@@ -1,0 +1,117 @@
+/* src/HomePage.css */
+
+/* Navbar section */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #2d3e75; /* Dark blue background */
+}
+
+.navbar-logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: white;
+}
+
+.logo-skill {
+  color: #f39423; /* Orange for "SKIL" */
+}
+
+.logo-lab {
+  color: white; /* White for "LAB" */
+}
+
+
+.navbar-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.navbar-links li {
+  display: inline-block;
+}
+
+.nav-link-home {
+  text-decoration: none;
+  color: white; /* Default color */
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: color 0.3s ease; /* Smooth transition on hover */
+}
+
+.nav-link-home:hover {
+  color: #f39423 !important; /* Orange color on hover */
+}
+
+
+
+
+.initpage-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100vh;
+    background-color: white;
+  }
+  
+  /* Header Styling */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+  }
+  
+  .logo-section {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo-text {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .eu-logo .eu-image {
+    width: 60px;
+  }
+  
+  /* Main Content Styling */
+  .content {
+    text-align: center;
+    padding: 40px;
+  }
+  
+  .content-heading {
+    font-size: 2.5rem;
+    color: #333;
+  }
+  
+  .content-description {
+    font-size: 1.2rem;
+    margin-top: 20px;
+    line-height: 1.5;
+    color: #555;
+  }
+  
+  /* Map Section Styling */
+  .map-section {
+    text-align: center;
+    margin-top: 40px;
+  }
+  
+  .map-image {
+    width: 80%;
+    max-width: 600px;
+  }
+  
+  /* Footer or Bottom EU Section */
+  .eu-logo-container {
+    display: flex;
+    justify-content: flex-start;
+    padding: 20px;
+  }
