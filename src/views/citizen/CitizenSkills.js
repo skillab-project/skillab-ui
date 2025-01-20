@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, CardBody, Button, CardHeader, CardTitle, Input } from 'reactstrap';
+import SkillSelection from './SkillSelection';
 
 
 const CitizenSkills = ({}) => {
     const [skills, setSkills] = useState([]);
-    const [newSkill, setNewSkill] = useState('');
-    const [newSkillYears, setNewSkillYears] = useState('');
 
-    const addSkill = () => {
-        if(newSkill!='' && newSkillYears!=''){
-            setSkills((prevSkills) => [...prevSkills, {name:newSkill,years:newSkillYears}]);
-            setNewSkill('');
             setNewSkillYears('');
+    const handleOnAddSkill = (selectedSkill) => {
+        console.log('Skill received:', selectedSkill);
+        if(selectedSkill.skill!='' && selectedSkill.years!=''){
+            setSkills((prevSkills) => [...prevSkills, selectedSkill]);
         }
     };
 
@@ -45,7 +44,7 @@ const CitizenSkills = ({}) => {
                                 <CardBody>
                                     <Row>
                                         <Col md="8" style={{margin:"auto"}}>
-                                            {skill.name}
+                                            {skill.skill.label}
                                         </Col>
                                         <Col md="4">
                                             {skill.years}
@@ -66,48 +65,8 @@ const CitizenSkills = ({}) => {
                     </Row>)
                 }
 
-                <Row>
-                    <Col md="12">
-                        <Card style={{marginBottom:"5px"}}>
-                            <CardBody>
-                                <Row>
-                                    <Col md="8">
-                                        <Input
-                                            placeholder="Skill"
-                                            type="text"
-                                            style={{textAlign:"center"}}
-                                            value={newSkill} 
-                                            onChange={(e) => setNewSkill(e.target.value)}
-                                        />
-                                    </Col>
-                                    <Col md="4">
-                                        <Input
-                                            placeholder="Years"
-                                            type="text"
-                                            style={{textAlign:"center"}}
-                                            value={newSkillYears} 
-                                            onChange={(e) => setNewSkillYears(e.target.value)}
-                                        />
-                                    </Col>
-                                </Row>
-                            </CardBody>
-                        </Card>
-                    </Col>
-                </Row>
-
-                <Row>
-                    <Col md="12">
-                        <Button
-                                className="btn-round btn-icon"
-                                color="success"
-                                outline
-                                size="m"
-                                onClick={() => addSkill()}
-                            >
-                                <i className="fa fa-plus-circle" />
-                        </Button>
-                    </Col>
-                </Row>
+                <SkillSelection onAddSkill={handleOnAddSkill}/>
+                
             </CardBody>
         </Card>
     );
