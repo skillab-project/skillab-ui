@@ -1,5 +1,5 @@
 import EducationAccount from "views/EducationAccount"
-import DataAnalysis from "views/dataAnalysis/DataAnalysis"
+import Configuration from "views/dataConfiguration/Configuration"
 
 var routes = [
   {
@@ -10,10 +10,10 @@ var routes = [
     layout: "/education",
   },
   {
-    path: "/data-analysis",
-    name: "Data Analysis",
+    path: "/configuration",
+    name: "Configuration",
     icon: "nc-icon nc-bank",
-    component: <DataAnalysis />,
+    component: <Configuration />,
     layout: "/education",
   },
 ];

@@ -1,6 +1,7 @@
 import CitizenAccount from "views/CitizenAccount";
 import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand"
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix"
+import Configuration from "views/dataConfiguration/Configuration"
 
 var routes = [
   {
@@ -22,6 +23,13 @@ var routes = [
     name: "Skills Demand Matrix",
     icon: "nc-icon nc-bank",
     component: <SkillDemandMatrix />,
+    layout: "/citizen",
+  },
+  {
+    path: "/Configuration",
+    name: "Configuration",
+    icon: "nc-icon nc-bank",
+    component: <Configuration />,
     layout: "/citizen",
   }
 ];

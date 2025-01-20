@@ -1,4 +1,4 @@
-import DataAnalysis from "views/dataAnalysis/DataAnalysis";
+import Configuration from "views/dataConfiguration/Configuration";
 import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand";
 import PolicyIndustryAccount from "views/PolicyIndustryAccount";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
@@ -34,10 +34,10 @@ var routes = [
     layout: "/policy-industry",
   },
   {
-    path: "/data-analysis",
-    name: "Data Analysis",
+    path: "/configuration",
+    name: "Configuration",
     icon: "nc-icon nc-bank",
-    component: <DataAnalysis />,
+    component: <Configuration />,
     // Maybe without one tab??
     layout: "/policy-industry",
   },

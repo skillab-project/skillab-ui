@@ -17,6 +17,8 @@ import {
   DropdownMenu,
   DropdownItem
 } from "reactstrap";
+import TargetOccupation from "./citizen/TargetOccupation";
+import CitizenSkills from "./citizen/CitizenSkills";
 
 function CitizenAccount() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -116,162 +118,11 @@ function CitizenAccount() {
 
 
           <Col md="6">
-            <Card>
-              <CardHeader>
-                <CardTitle tag="h5">My Skills</CardTitle>
-              </CardHeader>
-              <CardBody>
-                <Row>
-                  <Col md="12">
-                    <Card>
-                      <CardBody>
-                        <Row>
-                          <Col md="8" style={{fontWeight:"bold"}}>
-                            Skills
-                          </Col>
-                          <Col md="4" style={{fontWeight:"bold"}}>
-                            Years
-                          </Col>
-                        </Row>
-                      </CardBody>
-                    </Card>
-                  </Col>
-                </Row>
-
-                {/* This will be in a map for all the skills */}
-                <Row>
-                  <Col md="12">
-                    <Card style={{marginBottom:"10px"}}>
-                      <CardBody>
-                        <Row>
-                          <Col md="8" style={{margin:"auto"}}>
-                            Skill 1
-                          </Col>
-                          <Col md="4">
-                            5
-                            <Button
-                                  className="btn-round btn-icon"
-                                  color="success"
-                                  outline
-                                  size="sm"
-                                  style={{margin:"0px", marginLeft:"5px"}}
-                                >
-                                  <i className="fa fa-edit" />
-                            </Button>
-                          </Col>
-                        </Row>
-                      </CardBody>
-                    </Card>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md="12">
-                    <Card style={{marginBottom:"10px"}}>
-                      <CardBody>
-                        <Row>
-                          <Col md="8" style={{margin:"auto"}}>
-                            Skill 2
-                          </Col>
-                          <Col md="4">
-                            2
-                            <Button
-                                  className="btn-round btn-icon"
-                                  color="success"
-                                  outline
-                                  size="sm"
-                                  style={{margin:"0px", marginLeft:"5px"}}
-                                >
-                                  <i className="fa fa-edit" />
-                            </Button>
-                          </Col>
-                        </Row>
-                      </CardBody>
-                    </Card>
-                  </Col>
-                </Row>
-                {/* This will be in a map for all the skills */}
-
-                <Row>
-                  <Col md="12">
-                    <Card style={{marginBottom:"5px"}}>
-                      <CardBody>
-                        <Row>
-                          <Col md="8">
-                            <Input
-                              placeholder="Skill"
-                              type="text"
-                              style={{textAlign:"center"}}
-                            />
-                          </Col>
-                          <Col md="4">
-                            <Input
-                              placeholder="Years"
-                              type="text"
-                              style={{textAlign:"center"}}
-                            />
-                          </Col>
-                        </Row>
-                      </CardBody>
-                    </Card>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md="12">
-                    <Button
-                          className="btn-round btn-icon"
-                          color="success"
-                          outline
-                          size="m"
-                        >
-                          <i className="fa fa-plus-circle" />
-                    </Button>
-                  </Col>
-                </Row>
-              </CardBody>
-            </Card>
+            <CitizenSkills />
           </Col>
         </Row>
-        <Row>
-          <Col md="12">
-          <Card>
-              <CardHeader>
-                <CardTitle tag="h5">Target occupation</CardTitle>
-                <UncontrolledDropdown isOpen={dropdownOpen} toggle={toggle} direction="down">
-                  <DropdownToggle caret color="info">Select Target Occupation</DropdownToggle>
-                  <DropdownMenu >
-                    <DropdownItem>Some Action</DropdownItem>
-                    <DropdownItem divider />
-                    <DropdownItem>Foo Action</DropdownItem>
-                    <DropdownItem>Bar Action</DropdownItem>
-                    <DropdownItem>Quo Action</DropdownItem>
-                  </DropdownMenu>
-                </UncontrolledDropdown>
-              </CardHeader>
-              <CardBody>
-                <Row>
-                  <Col md="12">
-                    <Card>
-                      <CardBody>
-                        <Row>
-                          <Col md="12">
-                            Table for Skills needed
-                          </Col>
-                        </Row>
-                        <Row>
-                          <Col md="12">
-                            Table for Institutes
-                          </Col>
-                        </Row>
-                      </CardBody>
-                    </Card>
-                  </Col>
-                </Row>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
+        
+        <TargetOccupation />
       </div>
     </>
   );

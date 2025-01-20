@@ -1,7 +1,7 @@
 import IndustryAccount from "views/IndustryAccount";
 import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
-import DataAnalysis from "views/dataAnalysis/DataAnalysis"
+import Configuration from "views/dataConfiguration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
 import Artifacts from "views/industry/Artifacts";
 import KnowleageUnits from "views/industry/KnowledgeUnits";
@@ -43,10 +43,10 @@ var routes = [
     layout: "/industry",
   },
   {
-    path: "/data-analysis",
-    name: "Data Analysis",
+    path: "/configuration",
+    name: "Configuration",
     icon: "nc-icon nc-bank",
-    component: <DataAnalysis />,
+    component: <Configuration />,
     layout: "/industry",
   },
   {
