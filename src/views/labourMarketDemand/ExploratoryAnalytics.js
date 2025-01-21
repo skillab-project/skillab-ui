@@ -39,7 +39,7 @@ const InfoTable = ({ data, selectedOccupations }) => {
                   key={occupation}
                   style={{ border: "1px solid #ddd", padding: "8px", textAlign: "center" }}
                 >
-                  {row[occupation]}%
+                  {row[occupation]}
                 </td>
               ))}
             </tr>
@@ -49,22 +49,15 @@ const InfoTable = ({ data, selectedOccupations }) => {
     );
   };
 
-function ExploratoryAnalytics() {
-    const dataExploratory = [
-        { country: "France", Engineer: 30, Teacher: 20, Nurse: 50 },
-        { country: "Germany", Engineer: 40, Teacher: 25, Nurse: 35 },
-        { country: "Italy", Engineer: 25, Teacher: 30, Nurse: 45 },
-        { country: "Spain", Engineer: 35, Teacher: 20, Nurse: 45 },
-        { country: "Poland", Engineer: 45, Teacher: 15, Nurse: 40 },
-        { country: "Netherlands", Engineer: 20, Teacher: 35, Nurse: 45 },
-        { country: "Belgium", Engineer: 30, Teacher: 40, Nurse: 30 },
-        { country: "Sweden", Engineer: 50, Teacher: 20, Nurse: 30 },
-    ];
-    const allOccupationsExploratory = Object.keys(dataExploratory[0]).filter((key) => key !== "country");
+function ExploratoryAnalytics(props) {
+    const [dataExploratory, setDataExploratory] = useState(props.data);
+    const [allOccupationsExploratory, setAllOccupationsExploratory] = useState([]);
+    const [visibleOccupationsExploratory, setVisibleOccupationsExploratory] = useState([]);
+    const [visibleOccupationsExploratoryNumber, setVisibleOccupationsExploratoryNumber] = useState([]);
     const [visibleRange, setVisibleRange] = useState([0, 4]);
-    const [selectedOccupations, setSelectedOccupations] = useState([
-            allOccupationsExploratory[0],allOccupationsExploratory[1]
-        ]);
+    const [selectedOccupations, setSelectedOccupations] = useState([]);
+
+
     const handleSliderChange = (event) => {
             const value = parseInt(event.target.value, 10);
             setVisibleRange([value, value + 4]); // Show 4 countries at a time
@@ -79,102 +72,124 @@ function ExploratoryAnalytics() {
     const visibleData = dataExploratory.slice(visibleRange[0], visibleRange[1]);
     const [showTable, setShowTable] = useState(false);
 
-
-    //Generate Color
     const generateColor = (index) => {
         const hue = (index * 137) % 360; // Golden ratio for evenly spaced hues
         return `hsl(${hue}, 70%, 50%)`;
     };
 
 
+    useEffect(() => {
+      if(dataExploratory){
+        var allOccupations= Object.keys(dataExploratory[0]).filter((key) => key !== "country");
+        setAllOccupationsExploratory(allOccupations);
+        setVisibleOccupationsExploratory(allOccupations.slice(0,10));
+        setVisibleOccupationsExploratoryNumber(10);
+        setSelectedOccupations([allOccupations[0],allOccupations[1]]);
+      }
+    }, []);
+
+
+    const handleMoreOccupations = () => {
+      setVisibleOccupationsExploratory(allOccupationsExploratory.slice(0, visibleOccupationsExploratoryNumber+10));
+      setVisibleOccupationsExploratoryNumber(visibleOccupationsExploratoryNumber+10);
+    }
+
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle tag="h5">Exploratory Analytics</CardTitle>
-                {/* <CardSubtitle>
-                    Select ISCO Level: 
-                    <select name="isco-levels" id="isco-levels">
-                        <option value="">--choose an option--</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="2">3</option>
-                        <option value="3">4</option>
-                    </select>
-                </CardSubtitle> */}
             </CardHeader>
             <CardBody>
-                {/* Filter Buttons */}
-                <div style={{ marginBottom: "20px" }}>
-                    {allOccupationsExploratory.map((occupation) => (
-                    <button
-                        key={occupation}
-                        onClick={() => toggleOccupation(occupation)}
-                        style={{
-                        marginRight: "10px",
-                        padding: "10px",
-                        background: selectedOccupations.includes(occupation)
-                            ? "#8884d8"
-                            : "#ddd",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        }}
-                    >
-                        {occupation}
-                    </button>
-                    ))}
-                </div>
+              {allOccupationsExploratory.length>0 &&
+                <>
+                  {/* Filter Buttons */}
+                  <div style={{ marginBottom: "20px" }}>
+                      {visibleOccupationsExploratory.map((occupation) => (
+                      <button
+                          key={occupation}
+                          onClick={() => toggleOccupation(occupation)}
+                          style={{
+                          marginRight: "10px",
+                          marginBottom: "5px",
+                          padding: "5px",
+                          background: selectedOccupations.includes(occupation)
+                              ? "#8884d8"
+                              : "#ddd",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "5px",
+                          cursor: "pointer",
+                          }}
+                      >
+                          {occupation}
+                      </button>
+                      ))}
+                  </div>
 
-                {/* Slider */}
-                <input
-                    type="range"
-                    min={0}
-                    max={dataExploratory.length - 4}
-                    value={visibleRange[0]}
-                    onChange={handleSliderChange}
-                    style={{ width: "100%", marginBottom: "20px" }}
-                />
+                  <div>
+                    <Button
+                        color="success"
+                        outline
+                        size="m"
+                        onClick={() => handleMoreOccupations()}
+                      >
+                        More
+                    </Button>
+                  </div>
 
-                {/* Bar Chart */}
-                <ResponsiveContainer width="100%" height={400}>
-                    <BarChart
-                    data={visibleData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="country" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
+                  {/* Slider */}
+                  <input
+                      type="range"
+                      min={0}
+                      max={dataExploratory.length - 4}
+                      value={visibleRange[0]}
+                      onChange={handleSliderChange}
+                      style={{ width: "100%", marginBottom: "20px" }}
+                  />
 
-                    {selectedOccupations.map((occupation,index) => (
-                        <Bar
-                        key={occupation}
-                        dataKey={occupation}
-                        fill={generateColor(index)}
-                        />
-                    ))}
-                    </BarChart>
-                </ResponsiveContainer>
+                  {/* Bar Chart */}
+                  <ResponsiveContainer width="100%" height={400}>
+                      <BarChart
+                      data={visibleData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="country" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
 
-                {/* More Info Button */}
-                <button
-                    onClick={() => setShowTable(!showTable)}
-                    style={{
-                    marginTop: "20px",
-                    padding: "10px 20px",
-                    background: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    }}
-                >
-                    {showTable ? "Hide Info" : "More Info"}
-                </button>
-                {/* Conditional Rendering of Table */}
-                {showTable && <InfoTable data={visibleData} selectedOccupations={selectedOccupations} />}
+                      {selectedOccupations.map((occupation,index) => (
+                          <Bar
+                          key={occupation}
+                          dataKey={occupation}
+                          fill={generateColor(index)}
+                          />
+                      ))}
+                      </BarChart>
+                  </ResponsiveContainer>
+
+                  {/* More Info Button */}
+                  <button
+                      onClick={() => setShowTable(!showTable)}
+                      style={{
+                      marginTop: "20px",
+                      padding: "10px 20px",
+                      background: "#007bff",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                      }}
+                  >
+                      {showTable ? "Hide Info" : "More Info"}
+                  </button>
+                  
+                  {/* Conditional Rendering of Table */}
+                  {showTable && <InfoTable data={visibleData} selectedOccupations={selectedOccupations} />}
+                </>
+              }
             </CardBody>
         </Card>
     );
