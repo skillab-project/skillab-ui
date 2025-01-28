@@ -69,14 +69,21 @@ function TopCountries(props) {
                                         const { NAME } = geo.properties; // Ensure NAME matches frequencyData country key
                                         const frequency = countryFrequencyMap[NAME] || 0;
 
+                                        // Check if the country is present in the data
+                                        const isCountryInData = NAME in countryFrequencyMap;
+
                                         return (
                                         <Geography
                                             key={geo.rsmKey}
                                             geography={geo}
                                             style={{
-                                            default: { fill: colorScale(frequency), outline: "none" },
-                                            hover: { fill: "#f00", outline: "none" },
-                                            pressed: { fill: "#f00", outline: "none" },
+                                                default: {fill: isCountryInData
+                                                    ? colorScale(frequency) // Scale for listed countries
+                                                    : "red", // Red for unlisted countries
+                                                    outline: "none",
+                                                },
+                                                // hover: { fill: "#f00", outline: "none" },
+                                                // pressed: { fill: "#f00", outline: "none" },
                                             }}
                                         />
                                         );
