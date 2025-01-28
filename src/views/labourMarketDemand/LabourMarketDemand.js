@@ -17,13 +17,6 @@ import {
 } from "reactstrap";
 import classnames from 'classnames';
 import axios from 'axios';
-import InterconnectedSkills from "./InterconnectedSkills";
-import ExploratoryAnalytics from "./ExploratoryAnalytics";
-import TrendAnalysis from "./TrendAnalysis";
-import DescriptiveAnalyticsOccupations from "./DescriptiveAnalyticsOccupations";
-import DescriptiveAnalyticsSkills from "./DescriptiveAnalyticsSkills";
-import SkillFilter from "./SkillFilter";
-import OccupationFilter from "./OccupationFilter";
 import "../../assets/css/loader.css";
 import LabourMarketDemandOccupation from "./LabourMarketDemandOccupation";
 import LabourMarketDemandSkill from "./LabourMarketDemandSkill";

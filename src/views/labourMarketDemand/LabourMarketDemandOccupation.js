@@ -20,8 +20,7 @@ import axios from 'axios';
 import InterconnectedSkills from "./InterconnectedSkills";
 import ExploratoryAnalytics from "./ExploratoryAnalytics";
 import TrendAnalysis from "./TrendAnalysis";
-import DescriptiveAnalyticsOccupations from "./DescriptiveAnalyticsOccupations";
-import DescriptiveAnalyticsSkills from "./DescriptiveAnalyticsSkills";
+import DescriptiveAnalytics from "./DescriptiveAnalytics";
 import SkillFilter from "./SkillFilter";
 import OccupationFilter from "./OccupationFilter";
 
@@ -212,7 +211,7 @@ const LabourMarketDemandOccupation = ({showFilter}) => {
                 <Row>
                     <Col md="12">
                         {(dataOccupations && dataOccupations.length>0) &&
-                            <DescriptiveAnalyticsOccupations data={dataOccupations} dataCountries={countryFrequencyData}/>
+                            <DescriptiveAnalytics data={dataOccupations} dataCountries={countryFrequencyData}/>
                         }
                     </Col>
                 </Row>

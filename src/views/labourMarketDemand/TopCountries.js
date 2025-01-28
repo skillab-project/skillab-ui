@@ -49,7 +49,7 @@ function TopCountries(props) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle tag="h6">Top Contries</CardTitle>
+                <CardTitle tag="h6">Contries</CardTitle>
             </CardHeader>
             <CardBody>
                 {props.data && props.data.length>0 && 

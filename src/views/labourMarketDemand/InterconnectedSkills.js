@@ -7,6 +7,7 @@ import {
     CardSubtitle
   } from "reactstrap";
 import ForceGraph2D from "react-force-graph-2d";
+import axios from 'axios';
 
 function InterconnectedSkills() {
     const [data, setData] = useState({
@@ -36,6 +37,17 @@ function InterconnectedSkills() {
     ]);
     const graphRef = useRef();
 
+    const fetchData = async () => {
+        axios
+            .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/skillcluster?type_now=kmeans&user_id=1&session_id=1"
+                                                             + "&weight_now=ii_weight&no_clust_now=10&threshold=0.1"
+                                                             + "umap_nn=5&umap_dim=2&pillar=Skill&level=2"
+                                                             + "vectors_type=weighting")
+            .then(async (res) => {
+                console.log("res: "+res.data);
+                const analyticsData = res.data;
+            });
+    }
 
     
     useEffect(() => {
@@ -74,16 +86,6 @@ function InterconnectedSkills() {
         <Card>
             <CardHeader>
                 <CardTitle tag="h5">Interconnected Skills</CardTitle>
-                {/* <CardSubtitle>
-                    Select ESCO Level: 
-                    <select name="occupation" id="occupations">
-                        <option value="">--choose an option--</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="2">3</option>
-                        <option value="3">4</option>
-                    </select>
-                </CardSubtitle> */}
             </CardHeader>
             <CardBody>
                 <div style={{height: "600px",

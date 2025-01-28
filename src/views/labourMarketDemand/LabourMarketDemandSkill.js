@@ -20,10 +20,10 @@ import axios from 'axios';
 import InterconnectedSkills from "./InterconnectedSkills";
 import ExploratoryAnalytics from "./ExploratoryAnalytics";
 import TrendAnalysis from "./TrendAnalysis";
-import DescriptiveAnalyticsOccupations from "./DescriptiveAnalyticsOccupations";
-import DescriptiveAnalyticsSkills from "./DescriptiveAnalyticsSkills";
+import DescriptiveAnalytics from "./DescriptiveAnalytics";
 import SkillFilter from "./SkillFilter";
 import OccupationFilter from "./OccupationFilter";
+import SkillClustering from "./SkillClustering";
 
 
 const LabourMarketDemandSkill = ({showFilter}) => {
@@ -74,11 +74,13 @@ const LabourMarketDemandSkill = ({showFilter}) => {
 
                 if(locationData){
                     const aggregatedData = locationData.reduce((acc, { Var1, Freq }) => {
-                        const country = Var1.split(", ")[1]; // Extract the country from Var1
-                        if (acc[country]) {
-                            acc[country] += Freq; // Add frequency if the country already exists
-                        } else {
-                            acc[country] = Freq; // Initialize frequency for the country
+                        if (Var1 !== "not_found_location") { // Skip "not_found_location"
+                            const country = Var1.split(", ")[1]; // Extract the country from Var1
+                            if (acc[country]) {
+                                acc[country] += Freq; // Add frequency if the country already exists
+                            } else {
+                                acc[country] = Freq; // Initialize frequency for the country
+                            }
                         }
                         return acc;
                     }, {});
@@ -190,7 +192,7 @@ const LabourMarketDemandSkill = ({showFilter}) => {
                 <Row>
                     <Col md="12">
                         {(dataSkills && dataSkills.length>0) &&
-                            <DescriptiveAnalyticsOccupations data={dataSkills} dataCountries={countryFrequencyData}/>
+                            <DescriptiveAnalytics data={dataSkills} dataCountries={countryFrequencyData}/>
                         }
                     </Col>
                 </Row>
@@ -214,9 +216,15 @@ const LabourMarketDemandSkill = ({showFilter}) => {
                     </Col>
                 </Row>
 
-                <Row>
+                {/* <Row>
                     <Col md="12">
                         <InterconnectedSkills/>
+                    </Col>
+                </Row> */}
+
+                <Row>
+                    <Col md="12">
+                        <SkillClustering />
                     </Col>
                 </Row>
             </>
