@@ -2,6 +2,7 @@ import CitizenAccount from "views/CitizenAccount";
 import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand"
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix"
 import Configuration from "views/dataConfiguration/Configuration"
+import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
 
 var routes = [
   {
@@ -23,6 +24,13 @@ var routes = [
     name: "Skills Demand Matrix",
     icon: "nc-icon nc-bank",
     component: <SkillDemandMatrix />,
+    layout: "/citizen",
+  },
+  {
+    path: "/eu-general-purpose-statistics",
+    name: "EU General-Purpose Statistics",
+    icon: "nc-icon nc-bank",
+    component: <EuGeneralPurposeStatistics />,
     layout: "/citizen",
   },
   {

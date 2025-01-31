@@ -43,17 +43,17 @@ var routes = [
     layout: "/industry",
   },
   {
-    path: "/configuration",
-    name: "Configuration",
-    icon: "nc-icon nc-bank",
-    component: <Configuration />,
-    layout: "/industry",
-  },
-  {
     path: "/eu-general-purpose-statistics",
     name: "EU General-Purpose Statistics",
     icon: "nc-icon nc-bank",
     component: <EuGeneralPurposeStatistics />,
+    layout: "/industry",
+  },
+  {
+    path: "/configuration",
+    name: "Configuration",
+    icon: "nc-icon nc-bank",
+    component: <Configuration />,
     layout: "/industry",
   },
 ];
