@@ -52,7 +52,7 @@ function DataAnalysis() {
                     Profile Sources
                 </NavLink>
             </NavItem>
-            <NavItem style={{cursor:"pointer"}}>
+            {/* <NavItem style={{cursor:"pointer"}}>
                 <NavLink
                     className={classnames({
                         active:
@@ -73,7 +73,7 @@ function DataAnalysis() {
                 >
                     CV Databases
                 </NavLink>
-            </NavItem>
+            </NavItem> */}
             {/* <NavItem style={{cursor:"pointer"}}>
                 <NavLink>
                     Artifact Analysis
@@ -101,7 +101,7 @@ function DataAnalysis() {
                     </Col>
                 </Row>
             </TabPane>
-            <TabPane tabId="3">
+            {/* <TabPane tabId="3">
                 <Row>
                     <Col md="12">
                         <CourseSources />
@@ -114,7 +114,7 @@ function DataAnalysis() {
                         <CVDatabases />
                     </Col>
                 </Row>
-            </TabPane>
+            </TabPane> */}
         </TabContent>
     </div>
   );

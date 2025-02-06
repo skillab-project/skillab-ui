@@ -24,9 +24,17 @@ function EuGeneralPurposeStatistics() {
   }
 
   return (
-    <>
-      <div className="content">
-        <Nav tabs style={{marginBottom:"5px"}}>
+    <div className="content">
+        <Row>
+            <Col md="12">
+                <Card>
+                <CardHeader>
+                    <CardTitle tag="h5">Coming Soon</CardTitle>
+                </CardHeader>
+                </Card>
+            </Col>
+        </Row>
+        {/* <Nav tabs style={{marginBottom:"5px"}}>
             <NavItem style={{cursor:"pointer"}}>
                 <NavLink
                     className={classnames({
@@ -80,9 +88,8 @@ function EuGeneralPurposeStatistics() {
                     </Col>
                 </Row>
             </TabPane>
-        </TabContent>
-      </div>
-    </>
+        </TabContent> */}
+    </div>
   );
 }
 

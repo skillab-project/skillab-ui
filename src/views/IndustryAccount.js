@@ -104,7 +104,7 @@ function IndustryAccount() {
                                             <TfiAnnouncement size="50"/>
                                         </CardBody>
                                         <CardFooter>
-                                            Job Advertizmetns
+                                            Job Advertisements
                                         </CardFooter>
                                     </Card>
                                 </Col>
@@ -180,7 +180,8 @@ function IndustryAccount() {
                         <CardTitle tag="h5">My Organization</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <Row>
+                        Coming Soon
+                        {/* <Row>
                             <Col xl="4" md="6" sm="12">
                                 <Card className="card-stats">
                                     <CardHeader>
@@ -238,7 +239,7 @@ function IndustryAccount() {
                                     </CardBody>
                                 </Card>
                             </Col>
-                        </Row>
+                        </Row> */}
                     </CardBody>
                 </Card>
             </Col>

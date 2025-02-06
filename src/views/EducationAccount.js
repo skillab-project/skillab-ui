@@ -87,7 +87,8 @@ function EducationAccount() {
                         <CardTitle tag="h5">My University</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <Row>
+                        Coming Soon
+                        {/* <Row>
                             <Col xl="4" md="6" sm="12">
                                 <Card className="card-stats">
                                     <CardHeader>
@@ -145,7 +146,7 @@ function EducationAccount() {
                                     </CardBody>
                                 </Card>
                             </Col>
-                        </Row>
+                        </Row> */}
                     </CardBody>
                 </Card>
             </Col>

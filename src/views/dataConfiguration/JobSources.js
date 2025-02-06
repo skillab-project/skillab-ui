@@ -12,8 +12,9 @@ import {
     Modal,
     Table
   } from "reactstrap";
-  import { FaEdit, FaTrash, FaCheckSquare, FaRegSquare } from "react-icons/fa";
-  import axios from "axios";
+import { FaEdit, FaTrash, FaCheckSquare, FaRegSquare } from "react-icons/fa";
+import axios from "axios";
+import { useLocation } from 'react-router-dom';
 
 const JobSources = () => {
     const [sources, setSources] = useState([]);
@@ -24,6 +25,8 @@ const JobSources = () => {
     const [name, setName] = useState("");
     const [selectAll, setSelectAll] = useState(false);
 
+    const location = useLocation();
+    const isCitizenPath = location.pathname.startsWith('/citizen');
 
     useEffect(() => {
         axios.get(process.env.REACT_APP_API_URL_TRACKER+"/api/jobs/sources").then((response) => {
@@ -94,11 +97,15 @@ const JobSources = () => {
     };
 
     const handleClickUpdate = (source) => {
-        console.log(`Update clicked for ${source}`);
+        if(!isCitizenPath){
+            console.log(`Update clicked for ${source}`);
+        }
     };
     
     const handleClickDelete = (source) => {
-        console.log(`Delete clicked for ${source}`);
+        if(!isCitizenPath){
+            console.log(`Delete clicked for ${source}`);
+        }
     };
 
     return (
@@ -131,10 +138,16 @@ const JobSources = () => {
                         <td>{source}</td>
                         <td>{jobCounts[source] ?? "Loading..."}</td>
                         <td className="text-center">
-                            <Button style={{marginRight:"5px"}} color="warning" size="sm" className="me-2" onClick={() => handleClickUpdate(source)}>
+                            <Button style={{ marginRight: "5px", backgroundColor: isCitizenPath ? "#d3d3d3" : "", borderColor: isCitizenPath ? "#d3d3d3" : "" }} 
+                                    color="warning" size="sm" className="me-2"
+                                    onClick={() => handleClickUpdate(source)}
+                                    disabled={isCitizenPath}>
                                 <FaEdit />
                             </Button>
-                            <Button color="danger" size="sm" onClick={() => handleClickDelete(source)}>
+                            <Button style={{ backgroundColor: isCitizenPath ? "#d3d3d3" : "", borderColor: isCitizenPath ? "#d3d3d3" : "" }} 
+                                    color="danger" size="sm"
+                                    onClick={() => handleClickDelete(source)}
+                                    disabled={isCitizenPath}>
                                 <FaTrash />
                             </Button>
                         </td>
