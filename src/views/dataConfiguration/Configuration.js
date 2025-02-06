@@ -15,8 +15,10 @@ import {
   TabPane
 } from "reactstrap";
 import classnames from 'classnames';
-import JobVacancies from "./JobVacancies";
+import JobSources from "./JobSources";
 import CVDatabases from "./CVDatabases"
+import ProfileSources from "./ProfileSources";
+import CourseSources from "./CourseSources";
 
 
 function DataAnalysis() {
@@ -26,8 +28,7 @@ function DataAnalysis() {
   }
 
   return (
-    <>
-      <div className="content">
+    <div className="content">
         <Nav tabs style={{marginBottom:"5px"}}>
             <NavItem style={{cursor:"pointer"}}>
                 <NavLink
@@ -37,7 +38,7 @@ function DataAnalysis() {
                     })}
                     onClick={() => { toggle('1'); }}
                 >
-                    Job Vacancies
+                    Job Sources
                 </NavLink>
             </NavItem>
             <NavItem style={{cursor:"pointer"}}>
@@ -48,7 +49,7 @@ function DataAnalysis() {
                     })}
                     onClick={() => { toggle('2'); }}
                 >
-                    CV Databases
+                    Profile Sources
                 </NavLink>
             </NavItem>
             <NavItem style={{cursor:"pointer"}}>
@@ -59,7 +60,7 @@ function DataAnalysis() {
                     })}
                     onClick={() => { toggle('3'); }}
                 >
-                    Artifact Analysis
+                    Course Sources
                 </NavLink>
             </NavItem>
             <NavItem style={{cursor:"pointer"}}>
@@ -70,57 +71,52 @@ function DataAnalysis() {
                     })}
                     onClick={() => { toggle('4'); }}
                 >
-                    Document Text Mining
+                    CV Databases
                 </NavLink>
             </NavItem>
+            {/* <NavItem style={{cursor:"pointer"}}>
+                <NavLink>
+                    Artifact Analysis
+                </NavLink>
+            </NavItem>
+            <NavItem style={{cursor:"pointer"}}>
+                <NavLink>
+                    Document Text Mining
+                </NavLink>
+            </NavItem> */}
         </Nav>
 
         <TabContent activeTab={currentActiveTab}>
             <TabPane tabId="1">
                 <Row>
                     <Col md="12">
-                        <JobVacancies />
+                        <JobSources />
                     </Col>
                 </Row>
             </TabPane>
             <TabPane tabId="2">
                 <Row>
                     <Col md="12">
-                        <CVDatabases />
+                        <ProfileSources />
                     </Col>
                 </Row>
             </TabPane>
             <TabPane tabId="3">
                 <Row>
                     <Col md="12">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle tag="h5">ss3</CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                ss3
-                            </CardBody>
-                        </Card>
+                        <CourseSources />
                     </Col>
                 </Row>
             </TabPane>
             <TabPane tabId="4">
                 <Row>
                     <Col md="12">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle tag="h5">ss4</CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                ss4
-                            </CardBody>
-                        </Card>
+                        <CVDatabases />
                     </Col>
                 </Row>
             </TabPane>
         </TabContent>
-      </div>
-    </>
+    </div>
   );
 }
 

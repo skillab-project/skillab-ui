@@ -15,9 +15,9 @@ import {
     TabPane
   } from "reactstrap";
 
-const CVDatabases = () => {
+const CourseSources = () => {
     //CV
-    const [dataCV, setDataCV] = useState([
+    const [data, setData] = useState([
         { source: "Source 1", url: "https://www.example1.com" },
         { source: "Source 2", url: "https://www.example2.com" },
         { source: "Source 3", url: "https://www.example3.com" },
@@ -38,7 +38,7 @@ const CVDatabases = () => {
                     </tr>
                     </thead>
                     <tbody>
-                        {dataCV.map((item, index) => (
+                        {data.map((item, index) => (
                             <tr key={index}>
                             <td>
                                 <button
@@ -65,4 +65,4 @@ const CVDatabases = () => {
         </Card>
     );
 }
-export default CVDatabases;
+export default CourseSources;

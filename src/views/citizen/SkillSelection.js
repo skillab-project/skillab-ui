@@ -207,7 +207,7 @@ const SkillSelection = ({onAddSkill}) => {
                                     
                                 </div>
                             </Col>
-                            <Col md="4">
+                            <Col md="4" style={{margin: "auto"}}>
                                 <Input
                                     placeholder="Years"
                                     type="text"
