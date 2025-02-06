@@ -23,6 +23,9 @@ import {
     dashboardEmailStatisticsChart,
     dashboardNASDAQChart,
   } from "variables/charts.js";
+import { LuTrendingUpDown } from "react-icons/lu";
+import { MdPolicy } from "react-icons/md";
+
 
 function PolicyIndustryAccount() {
 
@@ -47,8 +50,7 @@ function PolicyIndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}} onClick={()=>handelClickManagePolicies()}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
-                                        </CardBody>
+                                            <MdPolicy size="50"/>                                        </CardBody>
                                         <CardFooter>
                                             Manage Policies
                                         </CardFooter>
@@ -65,7 +67,7 @@ function PolicyIndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <LuTrendingUpDown size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Future Technology Trends
