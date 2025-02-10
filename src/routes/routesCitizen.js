@@ -15,14 +15,14 @@ var routes = [
   {
     path: "/labour-market-demand",
     name: "Labour Market Demand",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-planet",
     component: <LabourMarketDemand />,
     layout: "/citizen",
   },
   {
     path: "/skills-demand-matrix",
     name: "Skills Demand Matrix",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-vector",
     component: <SkillDemandMatrix />,
     layout: "/citizen",
   },
@@ -36,7 +36,7 @@ var routes = [
   {
     path: "/Configuration",
     name: "Configuration",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-settings",
     component: <Configuration />,
     layout: "/citizen",
   }

@@ -23,14 +23,14 @@ var routes = [
   {
     path: "/labour-market-demand",
     name: "Labour Market Demand",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-planet",
     component: <LabourMarketDemand />,
     layout: "/policy-education",
   },
   {
     path: "/skills-demand-matrix",
     name: "Skills Demand Matrix",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-vector",
     component: <SkillDemandMatrix />,
     layout: "/policy-education",
   },
@@ -44,7 +44,7 @@ var routes = [
   {
     path: "/configuration",
     name: "Configuration",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-settings",
     component: <Configuration />,
     layout: "/policy-education",
   },
