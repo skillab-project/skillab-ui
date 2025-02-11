@@ -90,16 +90,17 @@ function SkillDemandMatrix() {
                             <OccupationSelectionAndPillar onApplySelection={handleApplyOccupationSelection}/>
                         </CardHeader>
                         <CardBody>
-                            {loading && <div class="lds-dual-ring"></div>}
-                            {data.map((group) => (
-                                <GroupLevel data={group} />
-                            ))}
-
+                            {loading ? (
+                                <div className="lds-dual-ring"></div>
+                            ) : data.length > 0 ? (
+                                data.map((group, index) => <GroupLevel key={index} data={group} />)
+                            ) : (
+                                <h6>No data</h6>
+                            )}
                         </CardBody>
                     </Card>
                 </Col>
             </Row>
-
         </div>
     );
 }
