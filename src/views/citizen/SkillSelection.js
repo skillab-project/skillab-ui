@@ -25,7 +25,7 @@ const SkillSelection = ({onAddSkill}) => {
                         const response = await axios.post(
                             process.env.REACT_APP_API_URL_TRACKER+'/api/skills',
                             new URLSearchParams({
-                                'min_skill_level': '1',
+                                // 'min_skill_level': '1',
                                 'keywords': searchTerm
                             }),
                             {

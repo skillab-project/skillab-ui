@@ -6,7 +6,7 @@ import axios from 'axios';
 import SkillsNeeded from './SkillsNeeded';
 
 
-const TargetOccupation = ({}) => {
+const TargetOccupation = ({skills}) => {
     const [loadingSkillsNeeded, setLoadingSkillsNeeded] = useState(false);
     const [skillsNeeded, setSkillsNeeded] = useState([]);
 
@@ -51,7 +51,7 @@ const TargetOccupation = ({}) => {
                                             {loadingSkillsNeeded ? 
                                                 <div className="lds-dual-ring"/>
                                                 :
-                                                <SkillsNeeded data={skillsNeeded}/>
+                                                <SkillsNeeded data={skillsNeeded} skills={skills}/>
                                             }
                                         </CardBody>
                                     </Card>

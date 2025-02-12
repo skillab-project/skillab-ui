@@ -3,9 +3,7 @@ import { Row, Col, Card, CardBody, Button, CardHeader, CardTitle, Input } from '
 import SkillSelection from './SkillSelection';
 
 
-const CitizenSkills = ({}) => {
-    const [skills, setSkills] = useState([]);
-
+const CitizenSkills = ({ skills, setSkills }) => {
     const handleOnAddSkill = (selectedSkill) => {
         console.log('Skill received:', selectedSkill);
         if(selectedSkill.skill!='' && selectedSkill.years!=''){

@@ -1,20 +1,30 @@
 import React, { useState } from 'react';
-import { Table, Pagination, PaginationItem, PaginationLink, Row, Col } from 'reactstrap';
+import { Table, Pagination, PaginationItem, PaginationLink, Row, Col, CustomInput } from 'reactstrap';
 
-const SkillsNeeded = ({ data }) => {
+const SkillsNeeded = ({ data, skills }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [showUserSkillsOnly, setShowUserSkillsOnly] = useState(false);  // Toggle for filtering
     const itemsPerPage = 10;
-    const totalPages = Math.ceil(data.length / itemsPerPage);
 
     const mapPillar = (pillar) => {
         const pillarMap = { K: "Knowledge", T: "Transversal", L: "Language", S: "Skill" };
         return pillarMap[pillar] || pillar;
     };
 
-    // Get items for current page
+    // Extract user skills for comparison
+    const userSkillsSet = new Set(skills.map(skill => skill.skill.label.trim().toLowerCase()));
+
+    // Filter data if 'Only My Skills' is active
+    const filteredData = showUserSkillsOnly
+        ? data.filter(item => userSkillsSet.has(item.Skills.trim().toLowerCase()))
+        : data;
+
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+    // Pagination logic AFTER filtering
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
     // Handle pagination navigation
     const handlePageChange = (page) => {
@@ -23,16 +33,19 @@ const SkillsNeeded = ({ data }) => {
         }
     };
 
+    const handleToggleChange = () => {
+        setShowUserSkillsOnly(!showUserSkillsOnly);
+        setCurrentPage(1);  // Reset to page 1 when toggling
+    };
+    
     // Logic for showing page numbers dynamically
     const pageNumbers = [];
     const maxVisiblePages = 5;
     let startPage = Math.max(currentPage - Math.floor(maxVisiblePages / 2), 1);
     let endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
 
-    if (totalPages > maxVisiblePages) {
-        if (endPage === totalPages) {
-            startPage = totalPages - maxVisiblePages + 1;
-        }
+    if (totalPages > maxVisiblePages && endPage === totalPages) {
+        startPage = totalPages - maxVisiblePages + 1;
     }
 
     for (let i = startPage; i <= endPage; i++) {
@@ -41,6 +54,18 @@ const SkillsNeeded = ({ data }) => {
 
     return (
         <>
+            {/* Filter Toggle */}
+            <div className="d-flex justify-content-end align-items-center mb-3">
+                <span className="mr-2">Only My Skills</span>
+                <CustomInput 
+                    type="switch" 
+                    id="skillToggle" 
+                    checked={showUserSkillsOnly} 
+                    onChange={handleToggleChange} 
+                    className="custom-switch"
+                />
+            </div>
+
             {/* Skills Table */}
             <Table striped>
                 <thead>
@@ -51,13 +76,44 @@ const SkillsNeeded = ({ data }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {currentItems.map((item, index) => (
-                        <tr key={index}>
-                            <td>{item.Skills}</td>
-                            <td>{mapPillar(item.Pillar)}</td>
-                            <td>{item.Value}</td>
-                        </tr>
-                    ))}
+                    {currentItems.map((item, index) => {
+                        const cleanedSkill = item.Skills.trim().toLowerCase();
+                        const matchedSkill = skills.find(userSkill => userSkill.skill.label.trim().toLowerCase() === cleanedSkill);
+                        const hasSkill = Boolean(matchedSkill);
+
+                        // Determine dot color based on years
+                        let dotColor = '';
+                        if (hasSkill) {
+                            const years = matchedSkill.years;
+                            if (years > 10) dotColor = '#006400'; // Dark Green
+                            else if (years > 5) dotColor = '#339933'; // Medium Green
+                            else if (years > 2) dotColor = '#66cc66'; // Light Medium Green
+                            else dotColor = '#90ee90'; // Light Green
+                        }
+
+                        return (
+                            <tr key={index}>
+                                <td>
+                                    {hasSkill && (
+                                        <span 
+                                            title={`${matchedSkill.years} years`}
+                                            style={{ 
+                                                height: '10px', 
+                                                width: '10px', 
+                                                backgroundColor: dotColor, 
+                                                borderRadius: '50%', 
+                                                display: 'inline-block', 
+                                                marginRight: '5px' 
+                                            }}
+                                        ></span>
+                                    )}
+                                    {item.Skills}
+                                </td>
+                                <td>{mapPillar(item.Pillar)}</td>
+                                <td>{item.Value}</td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </Table>
 
