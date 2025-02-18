@@ -31,22 +31,15 @@ var routes = [
   {
     path: "/labour-market-demand",
     name: "Labour Market Demand",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-planet",
     component: <LabourMarketDemand />,
     layout: "/industry",
   },
   {
     path: "/skills-demand-matrix",
     name: "Skills Demand Matrix",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-vector",
     component: <SkillDemandMatrix />,
-    layout: "/industry",
-  },
-  {
-    path: "/configuration",
-    name: "Configuration",
-    icon: "nc-icon nc-bank",
-    component: <Configuration />,
     layout: "/industry",
   },
   {
@@ -54,6 +47,13 @@ var routes = [
     name: "EU General-Purpose Statistics",
     icon: "nc-icon nc-bank",
     component: <EuGeneralPurposeStatistics />,
+    layout: "/industry",
+  },
+  {
+    path: "/configuration",
+    name: "Configuration",
+    icon: "nc-icon nc-settings",
+    component: <Configuration />,
     layout: "/industry",
   },
 ];

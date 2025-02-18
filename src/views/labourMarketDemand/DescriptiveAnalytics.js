@@ -19,7 +19,7 @@ import {
 import TopCountries from "./TopCountries";
 
 
-function DescriptiveAnalyticsOccupations(props) {
+function DescriptiveAnalytics(props) {
     const [dataOccupations, setDataOccupations] = useState(props.data);
     const [dataOccupationsShown, setDataOccupationsShown] = useState([]);
     const [dataOccupationsShownNumber, setDataOccupationsShownNumber] = useState(0);
@@ -49,7 +49,7 @@ function DescriptiveAnalyticsOccupations(props) {
                     <Col md="12">
                         <Card>
                             <CardHeader>
-                                <CardTitle tag="h6">Top Occupations</CardTitle>
+                                <CardTitle tag="h6">Top Instances</CardTitle>
                             </CardHeader>
                             <CardBody>
                                 <ResponsiveContainer width="100%" height={dataOccupationsShown.length * 60}>
@@ -96,4 +96,4 @@ function DescriptiveAnalyticsOccupations(props) {
     );
 }
 
-export default DescriptiveAnalyticsOccupations;
+export default DescriptiveAnalytics;

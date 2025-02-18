@@ -23,7 +23,8 @@ const OccupationFilter = ({onApplyFilters}) => {
                         const response = await axios.post(
                             process.env.REACT_APP_API_URL_TRACKER+'/api/occupations',
                             new URLSearchParams({
-                                'keywords': searchTerm
+                                'keywords': searchTerm,
+                                'max_level': '3'
                             }),
                             {
                                 params: {

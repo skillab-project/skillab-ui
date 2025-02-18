@@ -15,6 +15,16 @@ import {
     dashboardEmailStatisticsChart,
     dashboardNASDAQChart,
   } from "variables/charts.js";
+import { GiStairsGoal } from "react-icons/gi";
+import { AiFillAlert } from "react-icons/ai";
+import { LuTrendingUpDown } from "react-icons/lu";
+import { TbZoomInArea } from "react-icons/tb";
+import { TfiAnnouncement } from "react-icons/tfi";
+import { FaListUl, FaPeopleRoof } from "react-icons/fa6";
+import { SiJfrogpipelines } from "react-icons/si";
+import { MdModelTraining } from "react-icons/md";
+
+
 
 
 function IndustryAccount() {
@@ -43,7 +53,7 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <GiStairsGoal size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Gap with Competition
@@ -53,7 +63,7 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <AiFillAlert size="50" />
                                         </CardBody>
                                         <CardFooter>
                                             Knowleage Units at Risk
@@ -63,7 +73,7 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <LuTrendingUpDown size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Future Needs
@@ -73,7 +83,7 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <TbZoomInArea size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Insights on Future
@@ -91,10 +101,10 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <TfiAnnouncement size="50"/>
                                         </CardBody>
                                         <CardFooter>
-                                            Job Advertizmetns
+                                            Job Advertisements
                                         </CardFooter>
                                     </Card>
                                 </Col>
@@ -109,7 +119,7 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}} onClick={()=>handelClickArtifactRepositories()}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <FaListUl size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Artifact Repositories
@@ -119,7 +129,7 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <MdModelTraining size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Skill Training Sets
@@ -129,7 +139,7 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <SiJfrogpipelines size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Data Analysis Pipelines
@@ -147,7 +157,7 @@ function IndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}} onClick={()=>handelClickEmployeeKnowleageUnits()}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <FaPeopleRoof size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Employee Skills and Knowleage Units
@@ -170,7 +180,8 @@ function IndustryAccount() {
                         <CardTitle tag="h5">My Organization</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <Row>
+                        Coming Soon
+                        {/* <Row>
                             <Col xl="4" md="6" sm="12">
                                 <Card className="card-stats">
                                     <CardHeader>
@@ -228,7 +239,7 @@ function IndustryAccount() {
                                     </CardBody>
                                 </Card>
                             </Col>
-                        </Row>
+                        </Row> */}
                     </CardBody>
                 </Card>
             </Col>

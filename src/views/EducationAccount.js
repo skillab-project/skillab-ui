@@ -23,6 +23,9 @@ import {
     dashboardEmailStatisticsChart,
     dashboardNASDAQChart,
   } from "variables/charts.js";
+import { MdManageAccounts } from "react-icons/md";
+import { GiTeamIdea } from "react-icons/gi";
+
 
 function EducationAccount() {
 
@@ -43,7 +46,7 @@ function EducationAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <MdManageAccounts size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Management
@@ -61,7 +64,7 @@ function EducationAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <GiTeamIdea size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Recommendations
@@ -84,7 +87,8 @@ function EducationAccount() {
                         <CardTitle tag="h5">My University</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <Row>
+                        Coming Soon
+                        {/* <Row>
                             <Col xl="4" md="6" sm="12">
                                 <Card className="card-stats">
                                     <CardHeader>
@@ -142,7 +146,7 @@ function EducationAccount() {
                                     </CardBody>
                                 </Card>
                             </Col>
-                        </Row>
+                        </Row> */}
                     </CardBody>
                 </Card>
             </Col>

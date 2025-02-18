@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, CardBody, Button } from 'reactstrap';
+import { Row, Col, Card, CardBody, Button, Dropdown, DropdownMenu, DropdownToggle, DropdownItem } from 'reactstrap';
 import axios from 'axios';
 
-const OccupationSelection = ({onApplySelection}) => {
+const OccupationSelectionAndPillar = ({onApplySelection}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [allOccupations, setAllOccupations] = useState([]); // Holds the full list fetched from the API
     const [filteredOccupations, setFilteredOccupations] = useState([]); // Filtered Occupations for the dropdown
     const [isLoading, setIsLoading] = useState(false);
     const [selectedOccupations, setSelectedOccupations] = useState([]); 
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState('Select Pillar');
+
+    const toggle = () => setDropdownOpen((prevState) => !prevState);
+
+    const handleSelect = (item) => {
+        setSelectedItem(item);
+    };
 
     // Fetch Occupations when the user types 3 or more characters
     useEffect(() => {
@@ -91,9 +99,10 @@ const OccupationSelection = ({onApplySelection}) => {
 
     // Handle Apply Filter Button
     const handleApplyFilter = () => {
-        console.log('Applied Selection:', selectedOccupations);
-        if (onApplySelection) {
-            onApplySelection(selectedOccupations);
+        if(selectedItem!="Select Pillar" && selectedOccupations.length!=0){
+            if (onApplySelection) {
+                onApplySelection(selectedOccupations[0], selectedItem);
+            }
         }
     };
 
@@ -196,12 +205,28 @@ const OccupationSelection = ({onApplySelection}) => {
                             ))}
                         </ul>
                     )}
+                    <div style={{margin: "auto", marginTop: "15px"}}>
+                        Select Pillar: 
+                        <Dropdown isOpen={dropdownOpen} toggle={toggle}>
+                            <DropdownToggle caret>
+                                {selectedItem}
+                            </DropdownToggle>
+                            <DropdownMenu right>
+                                <DropdownItem onClick={() => handleSelect('skills')}>Skills</DropdownItem>
+                                <DropdownItem onClick={() => handleSelect('knowledge')}>Knowledge</DropdownItem>
+                                <DropdownItem onClick={() => handleSelect('languages')}>Languages</DropdownItem>
+                                <DropdownItem onClick={() => handleSelect('traversal')}>Transversal</DropdownItem>
+                            </DropdownMenu>
+                        </Dropdown>
+                    </div>
                     <Button
                         className="btn-round"
                         color="info"
                         onClick={handleApplyFilter}
                         style={{
-                            marginTop: '12px'
+                            margin: "auto",
+                            marginTop: '15px',
+                            display: "block"
                         }}
                     >
                         Apply
@@ -212,4 +237,4 @@ const OccupationSelection = ({onApplySelection}) => {
     );
 };
 
-export default OccupationSelection;
+export default OccupationSelectionAndPillar;

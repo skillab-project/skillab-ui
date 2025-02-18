@@ -23,6 +23,9 @@ import {
     dashboardEmailStatisticsChart,
     dashboardNASDAQChart,
   } from "variables/charts.js";
+import { MdPolicy } from "react-icons/md";
+import { LuTrendingUpDown } from "react-icons/lu";
+
 
 function PolicyEducationAccount() {
 
@@ -47,7 +50,7 @@ function PolicyEducationAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}onClick={()=>handelClickManagePolicies()}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <MdPolicy size="50"/>
                                         </CardBody>
                                         <CardFooter>
                                             Manage Policies
@@ -65,7 +68,7 @@ function PolicyEducationAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
-                                            <i class="fa fa-globe"></i>
+                                            <LuTrendingUpDown size="50"/> 
                                         </CardBody>
                                         <CardFooter>
                                             Program and Needs
@@ -88,7 +91,8 @@ function PolicyEducationAccount() {
                         <CardTitle tag="h5">My Policies</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <Row>
+                        Coming Soon
+                        {/* <Row>
                             <Col xl="4" md="6" sm="12">
                                 <Card className="card-stats">
                                     <CardHeader>
@@ -146,7 +150,7 @@ function PolicyEducationAccount() {
                                     </CardBody>
                                 </Card>
                             </Col>
-                        </Row>
+                        </Row> */}
                     </CardBody>
                 </Card>
             </Col>

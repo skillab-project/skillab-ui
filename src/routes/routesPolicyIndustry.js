@@ -3,6 +3,7 @@ import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand";
 import PolicyIndustryAccount from "views/PolicyIndustryAccount";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import ManagePolicies from "../views/policies/ManagePolicies";
+import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics";
 
 var routes = [
   {
@@ -22,23 +23,29 @@ var routes = [
   {
     path: "/labour-market-demand",
     name: "Labour Market Demand",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-planet",
     component: <LabourMarketDemand />,
     layout: "/policy-industry",
   },
   {
     path: "/skills-demand-matrix",
     name: "Skills Demand Matrix",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-vector",
     component: <SkillDemandMatrix />,
     layout: "/policy-industry",
   },
   {
+    path: "/eu-general-purpose-statistics",
+    name: "EU General-Purpose Statistics",
+    icon: "nc-icon nc-bank",
+    component: <EuGeneralPurposeStatistics />,
+    layout: "/policy-education",
+  },
+  {
     path: "/configuration",
     name: "Configuration",
-    icon: "nc-icon nc-bank",
+    icon: "nc-icon nc-settings",
     component: <Configuration />,
-    // Maybe without one tab??
     layout: "/policy-industry",
   },
 ];

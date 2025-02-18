@@ -22,6 +22,7 @@ import CitizenSkills from "./citizen/CitizenSkills";
 
 function CitizenAccount() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [skills, setSkills] = useState([]);
 
   const toggle = () => setDropdownOpen((prevState) => !prevState);
 
@@ -118,11 +119,11 @@ function CitizenAccount() {
 
 
           <Col md="6">
-            <CitizenSkills />
+            <CitizenSkills skills={skills} setSkills={setSkills}/>
           </Col>
         </Row>
         
-        <TargetOccupation />
+        <TargetOccupation skills={skills}/>
       </div>
     </>
   );

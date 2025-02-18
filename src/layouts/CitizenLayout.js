@@ -36,7 +36,7 @@ function Dashboard(props) {
     <div className="wrapper">
       <Sidebar
         {...props}
-        routes={routes}
+        routes={routes.filter((prop) => (prop.path.match(/\//g) || []).length < 2)}   //Filter out the ones with 2 "/"
         bgColor={backgroundColor}
         activeColor={activeColor}
       />
