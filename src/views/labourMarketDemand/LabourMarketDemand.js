@@ -87,9 +87,9 @@ function LabourMarketDemand() {
              * Tab: Occupation
              */}
             <TabPane tabId="1">
-                {currentActiveTab ==1 &&
+                {/* {currentActiveTab ==1 &&
                     <LabourMarketDemandOccupation showFilter={showOccupationFilters}/>
-                }
+                } */}
             </TabPane>
             
 
@@ -97,9 +97,9 @@ function LabourMarketDemand() {
              * Tab: Skill
              */}
             <TabPane tabId="2">
-                {currentActiveTab ==2 &&
+                {/* {currentActiveTab ==2 &&
                     <LabourMarketDemandSkill showFilter={showSkillFilters}/>
-                }
+                } */}
             </TabPane>
         </TabContent>
       </div>

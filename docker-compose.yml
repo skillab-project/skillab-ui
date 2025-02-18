@@ -7,9 +7,9 @@ services:
       context: .
     container_name: ui
     environment:
-      # - REACT_APP_API_URL_KU=http://localhost:5000
-      # - REACT_APP_API_URL_KPI=http://localhost:8085
-      # - REACT_APP_API_URL_JBPM=http://localhost:8181/business-central/kie-wb.jsp
+      - REACT_APP_API_URL_KU=http://localhost/ku-detection
+      - REACT_APP_API_URL_KPI=http://localhost/policy
+      - REACT_APP_API_URL_JBPM=http://localhost/jbpm/business-central/kie-wb.jsp
       - REACT_APP_API_URL_TRACKER=http://skillab-tracker.csd.auth.gr
       - REACT_APP_API_URL_LABOUR_DEMAND=http://195.251.210.147:8873
       - REACT_APP_API_URL_SKILLS_REQUIRED=http://195.251.210.147:8874
@@ -17,6 +17,12 @@ services:
       # - REACT_APP_API_URL_SKILL_ARCHETYPAL_DIVERSITY=http://localhost:8087
       - REACT_APP_API_URL_SKILL_DEMAND_MATRIX=http://195.251.210.147:8872
     ports:
-      - '80:3000'
+      - '3000:3000'
+    networks:
+      - skillab-network
     labels:
       io.portainer.accesscontrol.teams: skillab-all
+
+networks:
+  skillab-network:
+    external: true
