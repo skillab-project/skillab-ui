@@ -7,15 +7,15 @@ services:
       context: .
     container_name: ui
     environment:
-      - REACT_APP_API_URL_KU=http://localhost/ku-detection
-      - REACT_APP_API_URL_KPI=http://localhost/policy
-      - REACT_APP_API_URL_JBPM=http://localhost/jbpm/business-central/kie-wb.jsp
+      - REACT_APP_API_URL_KU=https://portal.skillab-project.eu/ku-detection
+      - REACT_APP_API_URL_KPI=https://portal.skillab-project.eu/policy
+      - REACT_APP_API_URL_JBPM=https://portal.skillab-project.eu/jbpm/business-central/kie-wb.jsp
       - REACT_APP_API_URL_TRACKER=http://skillab-tracker.csd.auth.gr
-      - REACT_APP_API_URL_LABOUR_DEMAND=http://195.251.210.147:8873
-      - REACT_APP_API_URL_SKILLS_REQUIRED=http://195.251.210.147:8874
-      - REACT_APP_API_URL_SKILLS_DIVERSITY=http://195.251.210.147:8870
+      - REACT_APP_API_URL_LABOUR_DEMAND=https://portal.skillab-project.eu/labor-market-demand
+      - REACT_APP_API_URL_SKILLS_REQUIRED=https://portal.skillab-project.eu/required-skills
+      - REACT_APP_API_URL_SKILLS_DIVERSITY=https://portal.skillab-project.eu/diversity-analysis
       # - REACT_APP_API_URL_SKILL_ARCHETYPAL_DIVERSITY=http://localhost:8087
-      - REACT_APP_API_URL_SKILL_DEMAND_MATRIX=http://195.251.210.147:8872
+      - REACT_APP_API_URL_SKILL_DEMAND_MATRIX=https://portal.skillab-project.eu/hcv
     ports:
       - '3000:3000'
     labels:
