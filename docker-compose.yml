@@ -7,6 +7,7 @@ services:
       context: .
     container_name: ui
     environment:
+      - REACT_APP_API_URL_USER_MANAGEMENT=https://portal.skillab-project.eu/user-management
       - REACT_APP_API_URL_KU=https://portal.skillab-project.eu/ku-detection
       - REACT_APP_API_URL_KPI=https://portal.skillab-project.eu/policy
       - REACT_APP_API_URL_JBPM=https://portal.skillab-project.eu/jbpm/business-central/kie-wb.jsp
