@@ -1,24 +1,62 @@
 import {jwtDecode} from "jwt-decode";
 
-export function isAuthenticated() {
-  var token = localStorage.getItem("accessToken");
-  var valid = false;
-  if (token !== "" && token !== null) {
-    var decoded = jwtDecode(token);
-    if (Date.now() >= decoded.exp * 1000) {
-      valid = false;
-    } else {
-      valid = true;
-    }
+export async function isAuthenticated() {
+  let token = localStorage.getItem("accessToken");
+  
+  if (!token) {
+    return false;
   }
-  console.log("valid: " + valid);
-  return valid;
+
+  let decoded;
+  try {
+    decoded = jwtDecode(token);
+  } catch (e) {
+    console.error("Invalid token");
+    return false;
+  }
+
+  if (Date.now() >= decoded.exp * 1000) {
+    console.log("Access token expired, refreshing...");
+    token = await refreshToken();
+  }
+
+  return !!token;
 }
 
-export function refreshToken() {
-  var token = localStorage.getItem("refreshToken");
-  //toDo
-  //
+
+export async function refreshToken() {
+  const refreshToken = localStorage.getItem("refreshToken");
+
+  if (!refreshToken) {
+    console.error("No refresh token available");
+    return null;
+  }
+
+  try {
+    const response = await fetch(process.env.REACT_APP_API_URL_USER_MANAGEMENT+"/user/token/refresh", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error("Failed to refresh token");
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.accessToken && data.refreshToken) {
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      return data.accessToken;
+    }
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+  }
+
+  return null;
 }
 
 export function isPrivileged() {
