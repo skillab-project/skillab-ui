@@ -1,13 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, CardBody, Button, CardHeader, CardTitle, Input } from 'reactstrap';
 import SkillSelection from './SkillSelection';
+import {getId} from "../../utils/Tokens";
+import axios from "axios";
 
 
 const CitizenSkills = ({ skills, setSkills }) => {
-    const handleOnAddSkill = (selectedSkill) => {
+    const handleOnAddSkill = async (selectedSkill) => {
         console.log('Skill received:', selectedSkill);
         if(selectedSkill.skill!='' && selectedSkill.years!=''){
             setSkills((prevSkills) => [...prevSkills, selectedSkill]);
+
+            try {
+                const userId = await getId();
+                const response = await axios.put(
+                    process.env.REACT_APP_API_URL_USER_MANAGEMENT+'/user/'+userId+'/skills',
+                    {
+                        'skillId': selectedSkill.skill.id,
+                        'skillLabel': selectedSkill.skill.label,
+                        'years': selectedSkill.years
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                        }
+                    }
+                );
+                console.log("Profile updated successfully:", response.data);
+            }
+            catch (error) {
+                console.error("Error updating profile:", error);
+            }  
         }
     };
 

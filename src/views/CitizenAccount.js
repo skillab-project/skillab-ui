@@ -83,7 +83,14 @@ function CitizenAccount() {
             'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
         }
         }).then((response) => {
-          setSkills(response.data);
+          const formattedSkills = response.data.map(skill => ({
+              skill: {
+                  id: skill.skillId,
+                  label: skill.skillLabel
+              },
+              years: skill.years
+          }));
+          setSkills(formattedSkills);
       });
     }
   }

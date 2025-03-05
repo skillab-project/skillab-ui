@@ -69,7 +69,7 @@ const InitPage = () => {
 
                 // toDO
                 //depending on roles
-                // window.location.href='/citizen';
+                window.location.href='/citizen';
             }
         };
     
