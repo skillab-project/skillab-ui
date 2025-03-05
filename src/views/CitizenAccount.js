@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Card,
@@ -19,12 +19,78 @@ import {
 } from "reactstrap";
 import TargetOccupation from "./citizen/TargetOccupation";
 import CitizenSkills from "./citizen/CitizenSkills";
+import {getId} from "../utils/Tokens";
+import axios from "axios";
+
 
 function CitizenAccount() {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState({});
+  const [initialUserInfo, setInitialUserInfo] = useState({});
   const [skills, setSkills] = useState([]);
 
-  const toggle = () => setDropdownOpen((prevState) => !prevState);
+
+  const handleApplyUserUpdate = async () => {
+    const userId = await getId();
+    if (userId !== "") {
+      let url = `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/user/${userId}`;
+
+      // If there are parameters update them
+      const params = [];
+      if (userInfo.streetAddress !== initialUserInfo.streetAddress) {
+        params.push(`streetAddress=${encodeURIComponent(userInfo.streetAddress || "")}`);
+      }
+      if (userInfo.portfolio !== initialUserInfo.portfolio) {
+        params.push(`portfolio=${encodeURIComponent(userInfo.portfolio || "")}`);
+      }
+  
+      // Change API and call
+      if (params.length > 0) {
+        url += `?${params.join("&")}`;
+        try {
+          const response = await axios.put(url, {}, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+            },
+          });
+          console.log("Profile updated successfully:", response.data);
+        } catch (error) {
+          console.error("Error updating profile:", error);
+        }
+      } else {
+        console.log("No changes to update.");
+      }
+    }
+  }
+  
+
+
+  const fetchProfileData = async () => {
+    const userId = await getId();
+    console.log("userId: "+userId);
+    if(userId!=""){
+      //get users general info
+      axios.get(process.env.REACT_APP_API_URL_USER_MANAGEMENT+"/user/"+userId, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+        }
+        }).then((response) => {
+          setUserInfo(response.data);
+          setInitialUserInfo(response.data);
+      });
+      //get users skills
+      axios.get(process.env.REACT_APP_API_URL_USER_MANAGEMENT+"/user/"+userId+"/skills", {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+        }
+        }).then((response) => {
+          setSkills(response.data);
+      });
+    }
+  }
+
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
 
   return (
     <>
@@ -42,7 +108,7 @@ function CitizenAccount() {
                       <FormGroup>
                         <label>Name (disabled)</label>
                         <Input
-                          defaultValue="John D."
+                          defaultValue={userInfo.name}
                           disabled
                           placeholder="Name"
                           type="text"
@@ -55,7 +121,7 @@ function CitizenAccount() {
                       <FormGroup>
                         <label>Email (disabled)</label>
                         <Input
-                          defaultValue="john@gmail.com"
+                          defaultValue={userInfo.email}
                           disabled
                           placeholder="Email"
                           type="text"
@@ -68,7 +134,8 @@ function CitizenAccount() {
                       <FormGroup>
                         <label>Address (disabled)</label>
                         <Input
-                          defaultValue="Thessaloniki, Greece"
+                          value={userInfo.streetAddress || ""}
+                          onChange={(e) => setUserInfo({ ...userInfo, streetAddress: e.target.value })}
                           placeholder="Address"
                           type="text"
                         />
@@ -80,7 +147,8 @@ function CitizenAccount() {
                       <FormGroup>
                         <label>Portfolio</label>
                         <Input
-                          defaultValue="example.com/..."
+                          value={userInfo.portfolio || ""}
+                          onChange={(e) => setUserInfo({ ...userInfo, portfolio: e.target.value })}
                           placeholder="Portfolio"
                           type="text"
                         />
@@ -104,9 +172,9 @@ function CitizenAccount() {
                   <Row>
                     <div className="update ml-auto mr-auto">
                       <Button
+                        onClick={handleApplyUserUpdate}
                         className="btn-round"
                         color="info"
-                        type="submit"
                       >
                         Update Profile
                       </Button>

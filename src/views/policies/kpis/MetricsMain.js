@@ -40,15 +40,8 @@ const MetricsMain = ({}) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const myHeaders = new Headers();
-        myHeaders.append(
-          "Authorization",
-          "Bearer " + localStorage.getItem("accessToken")
-        );
-
         const requestOptions = {
           method: "GET",
-          headers: myHeaders,
           redirect: "follow",
         };
 

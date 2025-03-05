@@ -23,10 +23,6 @@ const IndicatorsMain = () => {
     const config = {
       method: "post",
       url: apiUrl,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
       data: data,
     };
 
@@ -43,15 +39,8 @@ const IndicatorsMain = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const myHeaders = new Headers();
-        myHeaders.append(
-          "Authorization",
-          "Bearer " + localStorage.getItem("accessToken")
-        );
-
         const requestOptions = {
           method: "GET",
-          headers: myHeaders,
           redirect: "follow",
         };
 

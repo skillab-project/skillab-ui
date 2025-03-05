@@ -1,7 +1,7 @@
 import {jwtDecode} from "jwt-decode";
 
 export async function isAuthenticated() {
-  let token = localStorage.getItem("accessToken");
+  let token = localStorage.getItem("accessTokenSkillab");
   
   if (!token) {
     return false;
@@ -25,7 +25,7 @@ export async function isAuthenticated() {
 
 
 export async function refreshToken() {
-  const refreshToken = localStorage.getItem("refreshToken");
+  const refreshToken = localStorage.getItem("refreshTokenSkillab");
 
   if (!refreshToken) {
     console.error("No refresh token available");
@@ -48,8 +48,8 @@ export async function refreshToken() {
     const data = await response.json();
 
     if (data.accessToken && data.refreshToken) {
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("accessTokenSkillab", data.accessToken);
+      localStorage.setItem("refreshTokenSkillab", data.refreshToken);
       return data.accessToken;
     }
   } catch (error) {
@@ -60,7 +60,7 @@ export async function refreshToken() {
 }
 
 export function isPrivileged() {
-  var token = localStorage.getItem("accessToken");
+  var token = localStorage.getItem("accessTokenSkillab");
 
   //token not valid
   if (token === "" || token === null) {
@@ -78,7 +78,7 @@ export function isPrivileged() {
 }
 
 export function getEmail() {
-  var token = localStorage.getItem("accessToken");
+  var token = localStorage.getItem("accessTokenSkillab");
   if (token !== "" && token !== null) {
     var decoded = jwtDecode(token);
     return decoded.sub;
@@ -86,4 +86,11 @@ export function getEmail() {
   return "";
 }
 
-export default isAuthenticated;
+export async function getId() {
+  var token = localStorage.getItem("accessTokenSkillab");
+  if (token !== "" && token !== null) {
+    var decoded = jwtDecode(token);
+    return decoded.id;
+  }
+  return "";
+}

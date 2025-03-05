@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {Button, Card, CardTitle, CardHeader, CardBody, Row, Col, Input } from "reactstrap";
 import { FaLock, FaEnvelope } from "react-icons/fa";
 import NotificationAlert from "react-notification-alert";
-import isAuthenticated from "../utils/Tokens";
+import {isAuthenticated} from "../utils/Tokens";
 
 
 
@@ -42,9 +42,9 @@ const InitPage = () => {
             });
             if(response.status === 200) {
                 var body = await response.json();
-                localStorage.setItem("accessToken", body.accessToken);
-                localStorage.setItem("refreshToken", body.refreshToken);
-                if(isAuthenticated()){
+                localStorage.setItem("accessTokenSkillab", body.accessToken);
+                localStorage.setItem("refreshTokenSkillab", body.refreshToken);
+                if(await isAuthenticated()){
 
                     // toDO
                     //depending on roles
@@ -63,11 +63,17 @@ const InitPage = () => {
     };
 
     useEffect(() => {
-        if(isAuthenticated()){
-            // toDO
-            //depending on roles
-            window.location.href='/citizen';
-        }
+        const checkAuth = async () => {
+            const authStatus = await isAuthenticated();
+            if (authStatus) {
+
+                // toDO
+                //depending on roles
+                // window.location.href='/citizen';
+            }
+        };
+    
+        checkAuth();
     }, []);
 
     return (
