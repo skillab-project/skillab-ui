@@ -7,7 +7,10 @@ const OccupationFilter = ({onApplyFilters}) => {
     const [allOccupations, setAllOccupations] = useState([]); // Holds the full list fetched from the API
     const [filteredOccupations, setFilteredOccupations] = useState([]); // Filtered Occupations for the dropdown
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedOccupations, setSelectedOccupations] = useState([]); 
+    // toDo
+    //  change to [] afterwards
+    const [selectedOccupations, setSelectedOccupations] = useState([{id: "http://data.europa.eu/esco/isco/C2512",
+                                                                    label: "Software developers"}]);
 
     // Fetch Occupations when the user types 3 or more characters
     useEffect(() => {

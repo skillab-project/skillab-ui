@@ -25,9 +25,8 @@ import SkillFilter from "./SkillFilter";
 import OccupationFilter from "./OccupationFilter";
 
 
-const LabourMarketDemandOccupation = ({showFilter}) => {
+const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
     const [dataAreReady, setDataAreReady] = useState(false);
-
     const [dataOccupations, setDataOccupations] = useState([]);
     const [dataExploratory, setDataExploratory] = useState([]);
     const [countryFrequencyData, setCountryFrequencyData] = useState([]);
@@ -246,6 +245,9 @@ const LabourMarketDemandOccupation = ({showFilter}) => {
 
     const handleApplyFilters = (selectedFilters) => {
         console.log('Filters received:', selectedFilters);
+        if (onApplyFilters) {
+            onApplyFilters(selectedFilters.length);
+        }
     };
 
     
@@ -253,7 +255,7 @@ const LabourMarketDemandOccupation = ({showFilter}) => {
         <>
             {showFilter && <Row>
                 <Col md="12">
-                    <SkillFilter onApplyFilters={handleApplyFilters}/>
+                    <OccupationFilter onApplyFilters={handleApplyFilters}/>
                 </Col>
             </Row>
             }
@@ -280,11 +282,11 @@ const LabourMarketDemandOccupation = ({showFilter}) => {
                 }
 
                 
-                <Row>
+                {/* <Row>
                     <Col md="12">
                         <TrendAnalysis />
                     </Col>
-                </Row>
+                </Row> */}
 
             </>
             :
