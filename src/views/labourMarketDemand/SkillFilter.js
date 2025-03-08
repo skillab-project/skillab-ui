@@ -7,7 +7,10 @@ const SkillFilter = ({onApplyFilters}) => {
     const [allSkills, setAllSkills] = useState([]); // Holds the full list fetched from the API
     const [filteredSkills, setFilteredSkills] = useState([]); // Filtered skills for the dropdown
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedSkills, setSelectedSkills] = useState([]); 
+    // toDo
+    //  change to [] afterwards
+    const [selectedSkills, setSelectedSkills] = useState([{id: "http://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d",
+                                                          label: "Python (computer programming)"}]); 
 
     // Fetch skills when the user types 3 or more characters
     useEffect(() => {

@@ -198,7 +198,7 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
             chunk.forEach((id) => params.append('ids', id));
         
             const labelResponse = await axios.post(
-                'http://skillab-tracker.csd.auth.gr/api/skills?page=1',
+                process.env.REACT_APP_API_URL_TRACKER+'/api/skills?page=1',
                 params,
                 { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
             );

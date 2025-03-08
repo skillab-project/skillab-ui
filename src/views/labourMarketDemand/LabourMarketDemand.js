@@ -30,7 +30,7 @@ function LabourMarketDemand() {
     // toDo
     //  change to 0 afterwards
     const [numberOfOccupationFilters, setNumberOfOccupationFilters] = useState(1);
-    const [numberOfSkillFilters, setNumberOfSkillFilters] = useState(0);
+    const [numberOfSkillFilters, setNumberOfSkillFilters] = useState(1);
 
   
     const toggle = tab => {
@@ -56,6 +56,11 @@ function LabourMarketDemand() {
     const handleApplyOccupationFilters = (numberOfFilters) => {
         console.log('Filters received:', numberOfFilters);
         setNumberOfOccupationFilters(numberOfFilters);
+    };
+
+    const handleApplySkillFilters = (numberOfFilters) => {
+        console.log('Filters received:', numberOfFilters);
+        setNumberOfSkillFilters(numberOfFilters);
     };
 
 
@@ -144,9 +149,9 @@ function LabourMarketDemand() {
              * Tab: Skill
              */}
             <TabPane tabId="2">
-                {/* {currentActiveTab ==2 &&
-                    <LabourMarketDemandSkill showFilter={showSkillFilters}/>
-                } */}
+                {currentActiveTab ==2 &&
+                    <LabourMarketDemandSkill showFilter={showSkillFilters} onApplyFilters={handleApplySkillFilters}/>
+                }
             </TabPane>
         </TabContent>
       </div>
