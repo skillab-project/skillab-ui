@@ -150,6 +150,7 @@ const OccupationSelectionAndPillar = ({onApplySelection}) => {
                         id="occupation-input"
                         type="text"
                         placeholder="Type an occupation..."
+                        autocomplete="off"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{

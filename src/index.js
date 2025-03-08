@@ -14,6 +14,8 @@ import PolicyIndustryLayout from "layouts/PolicyIndustryLayout.js";
 import PolicyEducationLayout from "layouts/PolicyEducationLayout.js";
 import InitLayout from "layouts/InitLayout.js";
 import InitPage from "views/InitPage.js";
+import Login from "views/Login.js";
+import Register from "views/Register.js";
 
 
 export default function App() {
@@ -32,6 +34,8 @@ export default function App() {
         <Route path="/policy-education/*" element={<PolicyEducationLayout />} />
         <Route path="/" element={<InitLayout/>} >
           <Route index element={<InitPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

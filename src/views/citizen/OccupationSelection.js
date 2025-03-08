@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, CardBody, Button } from 'reactstrap';
+import {getId} from "../../utils/Tokens";
 import axios from 'axios';
 
 const OccupationSelection = ({onApplySelection}) => {
@@ -7,7 +8,29 @@ const OccupationSelection = ({onApplySelection}) => {
     const [allOccupations, setAllOccupations] = useState([]); // Holds the full list fetched from the API
     const [filteredOccupations, setFilteredOccupations] = useState([]); // Filtered Occupations for the dropdown
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedOccupations, setSelectedOccupations] = useState([]); 
+    const [selectedOccupations, setSelectedOccupations] = useState([]);
+
+    useEffect(() => {
+        //ToDo
+        // Or I can pass the target occupation from the parents parent?
+        const fetchUserOccupation = async () => {
+            const userId = await getId();
+            if(userId!=""){
+                axios.get(process.env.REACT_APP_API_URL_USER_MANAGEMENT+"/user/"+userId, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+                }
+                }).then((response) => {
+                    if(response.data.targetOccupation!=null) {
+                        setSelectedOccupations([{id:response.data.targetOccupation.occupationId,
+                            label: response.data.targetOccupation.occupationLabel}])
+                    }
+                });
+            }
+        }
+
+        fetchUserOccupation();
+    }, []);
 
     // Fetch Occupations when the user types 3 or more characters
     useEffect(() => {
@@ -90,9 +113,29 @@ const OccupationSelection = ({onApplySelection}) => {
     };
 
     // Handle Apply Filter Button
-    const handleApplyFilter = () => {
-        console.log('Applied Selection:', selectedOccupations);
+    const handleApplyFilter = async () => {
+        console.log('Applied Selection:', selectedOccupations);   
         if (onApplySelection) {
+            try {
+                const userId = await getId();
+                const response = await axios.put(
+                    process.env.REACT_APP_API_URL_USER_MANAGEMENT+'/user/'+userId+'/occupation',
+                    {
+                        'occupationId': selectedOccupations[0].id,
+                        'occupationLabel': selectedOccupations[0].label
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                        }
+                    }
+                );
+                console.log("Profile updated successfully:", response.data);
+            }
+            catch (error) {
+                console.error("Error updating profile:", error);
+            }
+
             onApplySelection(selectedOccupations);
         }
     };
@@ -141,6 +184,7 @@ const OccupationSelection = ({onApplySelection}) => {
                         id="occupation-input"
                         type="text"
                         placeholder="Type an occupation..."
+                        autocomplete="off"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{

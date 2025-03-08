@@ -14,8 +14,6 @@ import {
   TabContent,
   TabPane
 } from "reactstrap";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,Legend,LineChart,Line} from "recharts";
-import classnames from 'classnames';
 import axios from 'axios';
 import GroupLevel from "./GroupLevel";
 import OccupationSelectionAndPillar from './OccupationSelectionAndPillar';
@@ -23,18 +21,9 @@ import "../../assets/css/loader.css";
 
 
 function SkillDemandMatrix() {
+    const [search, setSearch] = useState(false);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
-
-    var dataSkills = [
-        { skill: "skill 1", priority: 30, rank: 20 },
-        { skill: "skill 2", priority: 40, rank: 25 },
-        { skill: "skill 3", priority: 25, rank: 30 },
-        { skill: "skill 4", priority: 35, rank: 20 },
-        { skill: "skill 5", priority: 45, rank: 15 },
-    ];
-    var selectedOccupations= ["skill","priority","rank"];
-    
     
 
     const handleApplyOccupationSelection = (selectedOccupation, selectedItem) => {
@@ -42,6 +31,7 @@ function SkillDemandMatrix() {
         console.log('Skill category:', selectedItem);
         var occupation = selectedOccupation.id;
         var pillar = selectedItem;
+        setSearch(true);
         setLoading(true);
 
         axios
@@ -92,6 +82,8 @@ function SkillDemandMatrix() {
                         <CardBody>
                             {loading ? (
                                 <div className="lds-dual-ring"></div>
+                            ) : !search ? (
+                                <></>
                             ) : data.length > 0 ? (
                                 data.map((group, index) => <GroupLevel key={index} data={group} />)
                             ) : (
