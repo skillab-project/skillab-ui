@@ -42,7 +42,7 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
                 if (Array.isArray(res.data)) {
                     console.log("Data will be loaded...");
                     axios
-                        .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/load_data?user_id=1&session_id=occupation&url=http%3A%2F%2Fskillab-tracker.csd.auth.gr%2Fapi%2Fjobs&body=occupation_ids%3Dhttp%3A%2F%2Fdata.europa.eu%2Fesco%2Fisco%2FC2512&limit_data_no=1000")
+                        .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/load_data?user_id=1&session_id=occupation&url="+process.env.REACT_APP_API_URL_TRACKER+"%2Fapi%2Fjobs&body=occupation_ids%3Dhttp%3A%2F%2Fdata.europa.eu%2Fesco%2Fisco%2FC2512&limit_data_no=1000")
                         .then((res2) => {
                             console.log("response: "+res2.data);
                             setDataAreReady(true);
