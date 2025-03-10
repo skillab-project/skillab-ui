@@ -36,27 +36,27 @@ const LabourMarketDemandSkill = ({showFilter, onApplyFilters}) => {
     // Check if the user has loaded data
     //  and if not load them
     const checkLoadedDataOfUser = async () => {
-        axios
-            .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=1&session_id=skill&attribute=data_query_info&storage_name=none")
-            .then((res) => {
-                console.log("get_data: "+res.data);
-                if (Array.isArray(res.data)) {
-                    console.log("Data will be loaded...");
-                    axios
-                        .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/load_data?user_id=1&session_id=skill&url="+process.env.REACT_APP_API_URL_TRACKER+"%2Fapi%2Fjobs&body=skill_ids%3Dhttp://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d&limit_data_no=1000")
-                        .then((res2) => {
-                            console.log("response: "+res2.data);
-                            setDataAreReady(true);
-                        });
-                }
-                else{
-                    console.log("Data are allready loaded!");
-                    setDataAreReady(true);
-                }
-        
-                // After that fetch data one by one
-                fetchDataSkills();
-            });
+        await axios
+                .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=1&session_id=skill&attribute=data_query_info&storage_name=none")
+                .then(async (res) => {
+                    console.log("get_data: "+res.data);
+                    if (Array.isArray(res.data)) {
+                        console.log("Data will be loaded...");
+                        await axios
+                                .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/load_data?user_id=1&session_id=skill&url="+process.env.REACT_APP_API_URL_TRACKER+"%2Fapi%2Fjobs&body=skill_ids%3Dhttp://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d&limit_data_no=1000")
+                                .then((res2) => {
+                                    console.log("response: "+res2.data);
+                                    setDataAreReady(true);
+                                });
+                    }
+                    else{
+                        console.log("Data are allready loaded!");
+                        setDataAreReady(true);
+                    }
+            
+                    // After that fetch data one by one
+                    fetchDataSkills();
+                });
     }
 
     // Get Data for Descriptive component
