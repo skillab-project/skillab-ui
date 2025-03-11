@@ -29,7 +29,11 @@ import { GiTeamIdea } from "react-icons/gi";
 
 function EducationAccount() {
 
-  return (
+    const handelClickManagement =()=> {
+        window.location.href = "/education/account/management";
+    }
+
+    return (
     <>
       <div className="content">
         <Row>
@@ -44,7 +48,7 @@ function EducationAccount() {
                             </Row>
                             <Row>
                                 <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickManagement()}>
                                         <CardBody>
                                             <MdManageAccounts size="50"/>
                                         </CardBody>
@@ -153,7 +157,7 @@ function EducationAccount() {
         </Row>
       </div>
     </>
-  );
+    );
 }
 
 export default EducationAccount;
