@@ -17,6 +17,7 @@ services:
       - REACT_APP_API_URL_SKILLS_DIVERSITY=https://portal.skillab-project.eu/diversity-analysis
       # - REACT_APP_API_URL_SKILL_ARCHETYPAL_DIVERSITY=http://localhost:8087
       - REACT_APP_API_URL_SKILL_DEMAND_MATRIX=https://portal.skillab-project.eu/hcv
+      - REACT_APP_API_URL_CURRICULUM_SKILLS=https://portal.skillab-project.eu/curriculum-skills
     ports:
       - '3000:3000'
     labels:
