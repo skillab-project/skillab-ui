@@ -43,7 +43,7 @@ const LabourMarketDemandSkill = ({showFilter, onApplyFilters}) => {
                     if (Array.isArray(res.data)) {
                         console.log("Data will be loaded...");
                         await axios
-                                .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/load_data?user_id=1&session_id=skill&url="+process.env.REACT_APP_API_URL_TRACKER+"%2Fapi%2Fjobs&body=skill_ids%3Dhttp://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d&limit_data_no=1000")
+                                .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/load_data?user_id=1&session_id=skill&url="+process.env.REACT_APP_API_URL_TRACKER+"%2Fapi%2Fjobs&body=skill_ids%3Dhttp://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d&source=OJA&limit_data_no=10000")
                                 .then((res2) => {
                                     console.log("response: "+res2.data);
                                     setDataAreReady(true);
