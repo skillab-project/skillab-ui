@@ -72,7 +72,7 @@ const SkillsNeeded = ({ data, skills }) => {
                     <tr>
                         <th>Skill</th>
                         <th>Pillar</th>
-                        <th>Value</th>
+                        <th>Importance</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,7 +110,7 @@ const SkillsNeeded = ({ data, skills }) => {
                                     {item.Skills}
                                 </td>
                                 <td>{mapPillar(item.Pillar)}</td>
-                                <td>{item.Value}</td>
+                                <td>{(item.Value * 100).toFixed(1)}%</td>
                             </tr>
                         );
                     })}
