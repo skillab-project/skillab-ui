@@ -120,7 +120,7 @@ function ManagePolicies() {
                 <TabPane tabId="4">
                     <Row>
                         <Col md="12">
-                            <Card>
+                            <Card style={{height:"104vh"}}>
                                 <CardBody>
                                     <Workflows/>
                                 </CardBody>

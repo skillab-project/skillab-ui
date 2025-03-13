@@ -121,14 +121,14 @@ const KPIsSetup = () => {
           onChange={(e) => setNewMetricDescription(e.target.value)}
         /> */}
         <div className="seperator" />
-        <input
+        <textarea
           className="equation-input"
           type="text"
           value={equation}
           onChange={(e) => setEquation(e.target.value)}
           placeholder="Enter equation"
         />
-        <div className="operators">
+        <div className="operators" >
           <button onClick={() => handleButtonClicked("+")}>+</button>
           <button onClick={() => handleButtonClicked("-")}>-</button>
           <button onClick={() => handleButtonClicked("*")}>*</button>
