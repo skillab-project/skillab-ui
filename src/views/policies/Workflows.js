@@ -42,7 +42,7 @@ function Workflows() {
         </button>
         <iframe
             src={`${process.env.REACT_APP_API_URL_JBPM}`}
-            style={{ width: '100%', height: '100%', border: 'none' }}
+            style={{ width: '100%', height: '100vh', border: 'none' }}
             title="Workflows"
         />
     </div>

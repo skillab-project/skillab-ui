@@ -3,6 +3,7 @@ import Configuration from "views/dataConfiguration/Configuration"
 import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics";
+import EducationManagement from "views/education/EducationManagement";
 
 var routes = [
   {
@@ -10,6 +11,13 @@ var routes = [
     name: "My University",
     icon: "nc-icon nc-single-02",
     component: <EducationAccount />,
+    layout: "/education",
+  },
+  {
+    path: "/account/management",
+    name: "Management",
+    icon: "nc-icon nc-single-02",
+    component: <EducationManagement />,
     layout: "/education",
   },
   {

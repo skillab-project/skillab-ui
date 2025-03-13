@@ -18,8 +18,9 @@ import {
 } from "reactstrap";
 
 const InfoTable = ({ data, selectedOccupations }) => {
-    return (
-      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
+  return (
+    <div style={{ overflowX: "auto", marginTop: "20px" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
             <th style={{ border: "1px solid #ddd", padding: "8px" }}>Country</th>
@@ -46,8 +47,9 @@ const InfoTable = ({ data, selectedOccupations }) => {
           ))}
         </tbody>
       </table>
-    );
-  };
+    </div>
+  );
+};
 
 function ExploratoryAnalytics(props) {
     const [dataExploratory, setDataExploratory] = useState(props.data);
@@ -187,7 +189,7 @@ function ExploratoryAnalytics(props) {
                   </button>
                   
                   {/* Conditional Rendering of Table */}
-                  {showTable && <InfoTable data={visibleData} selectedOccupations={selectedOccupations} />}
+                  {showTable && <InfoTable data={dataExploratory} selectedOccupations={selectedOccupations} />}
                 </>
               }
             </CardBody>
