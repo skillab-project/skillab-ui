@@ -138,22 +138,26 @@ function Artifacts() {
                                             repo.name === (selectedRepoForEdit?.repo_name || '') ? 'bg-blue-100' : 'bg-white'
                                             }`}
                                         >
-                                            <div className="flex items-center space-x-4">
-                                            <span className="text-lg font-semibold text-gray-900">{repo.name}</span>
-                                            <button
-                                                onClick={() => handleEditRepo(repo)}
-                                                className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition duration-300"
-                                                aria-label={`Edit ${repo.name}`}
-                                            >
-                                                <i className="fas fa-edit text-lg"></i>
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteRepo(repo.name)}
-                                                className="p-2 bg-gray-100 text-red-600 rounded-full hover:bg-red-200 transition duration-300"
-                                                aria-label={`Delete ${repo.name}`}
-                                            >
-                                                <i className="fas fa-trash text-lg"></i>
-                                            </button>
+                                            <div style={{display:"flex", alignItems:"center",justifyContent:"space-between" }}>
+                                                <span className="text-lg font-semibold text-gray-900">{repo.name}</span>
+                                                <div>
+                                                    <button
+                                                        onClick={() => handleEditRepo(repo)}
+                                                        className="p-1 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition duration-300"
+                                                        aria-label={`Edit ${repo.name}`}
+                                                        style={{margin:"2px"}}
+                                                    >
+                                                        <i className="fas fa-edit text-lg"></i>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteRepo(repo.name)}
+                                                        className="p-1 bg-gray-100 text-red-600 rounded-full hover:bg-red-200 transition duration-300"
+                                                        aria-label={`Delete ${repo.name}`}
+                                                        style={{margin:"2px"}}
+                                                    >
+                                                        <i className="fas fa-trash text-lg"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </li>
                                         ))}
