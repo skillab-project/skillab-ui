@@ -25,7 +25,7 @@ import { FaFilter } from "react-icons/fa";
 
 
 function LabourMarketDemand() {
-    const [currentActiveTab, setCurrentActiveTab] = useState('1');
+    const [currentActiveTab, setCurrentActiveTab] = useState('2');
     const [showOccupationFilters, setShowOccupationFilters] = useState(false);
     const [showSkillFilters, setShowSkillFilters] = useState(false);
     // toDo
@@ -93,7 +93,7 @@ function LabourMarketDemand() {
     <>
       <div className="content">
         <Nav tabs style={{marginBottom:"5px"}}>
-            <NavItem style={{cursor:"pointer"}}>
+            {/* <NavItem style={{cursor:"pointer"}}>
                 <NavLink
                     className={classnames({
                         active:
@@ -103,7 +103,7 @@ function LabourMarketDemand() {
                 >
                     General
                 </NavLink>
-            </NavItem>
+            </NavItem> */}
             <NavItem style={{cursor:"pointer"}}>
                 <NavLink
                     className={classnames({
