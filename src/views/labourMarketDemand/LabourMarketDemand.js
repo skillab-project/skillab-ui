@@ -20,6 +20,7 @@ import axios from 'axios';
 import "../../assets/css/loader.css";
 import LabourMarketDemandOccupation from "./LabourMarketDemandOccupation";
 import LabourMarketDemandSkill from "./LabourMarketDemandSkill";
+import GeneralJobStatistics from "./GeneralJobStatistics"
 import { FaFilter } from "react-icons/fa";
 
 
@@ -39,16 +40,20 @@ function LabourMarketDemand() {
 
 
     const handelClickShowFilter = () => {
-        if(currentActiveTab ==='1' && showOccupationFilters == false){
+        if(currentActiveTab ==='1'){
+            setShowOccupationFilters(false);
+            setShowSkillFilters(false);
+        }
+        else if(currentActiveTab ==='2' && showOccupationFilters == false){
             setShowOccupationFilters(true);
         }
-        else if(currentActiveTab ==='1' && showOccupationFilters == true){
+        else if(currentActiveTab ==='2' && showOccupationFilters == true){
             setShowOccupationFilters(false);
         }
-        else if(currentActiveTab ==='2' && showSkillFilters == false){
+        else if(currentActiveTab ==='3' && showSkillFilters == false){
             setShowSkillFilters(true);
         }
-        else if(currentActiveTab ==='2' && showSkillFilters == true){
+        else if(currentActiveTab ==='3' && showSkillFilters == true){
             setShowSkillFilters(false);
         }
     };
@@ -96,7 +101,7 @@ function LabourMarketDemand() {
                     })}
                     onClick={() => { toggle('1'); }}
                 >
-                    Occupation
+                    General
                 </NavLink>
             </NavItem>
             <NavItem style={{cursor:"pointer"}}>
@@ -106,6 +111,17 @@ function LabourMarketDemand() {
                             currentActiveTab === '2'
                     })}
                     onClick={() => { toggle('2'); }}
+                >
+                    Occupation
+                </NavLink>
+            </NavItem>
+            <NavItem style={{cursor:"pointer"}}>
+                <NavLink
+                    className={classnames({
+                        active:
+                            currentActiveTab === '3'
+                    })}
+                    onClick={() => { toggle('3'); }}
                 >
                     Skill
                 </NavLink>
@@ -127,8 +143,8 @@ function LabourMarketDemand() {
                     }}
                 >
                     <FaFilter style={{ color:"black" }} />
-                    {currentActiveTab == 1 && getFilterBadge(numberOfOccupationFilters)}
-                    {currentActiveTab == 2 && getFilterBadge(numberOfSkillFilters)}
+                    {currentActiveTab == 2 && getFilterBadge(numberOfOccupationFilters)}
+                    {currentActiveTab == 3 && getFilterBadge(numberOfSkillFilters)}
                 </button>
             </span>
         </Nav>
@@ -136,10 +152,19 @@ function LabourMarketDemand() {
         <TabContent activeTab={currentActiveTab}>
 
             {/**
-             * Tab: Occupation
+             * Tab: General
              */}
             <TabPane tabId="1">
                 {currentActiveTab ==1 &&
+                    <GeneralJobStatistics />
+                }
+            </TabPane>
+
+            {/**
+             * Tab: Occupation
+             */}
+            <TabPane tabId="2">
+                {currentActiveTab ==2 &&
                     <LabourMarketDemandOccupation showFilter={showOccupationFilters} onApplyFilters={handleApplyOccupationFilters}/>
                 }
             </TabPane>
@@ -148,8 +173,8 @@ function LabourMarketDemand() {
             {/**
              * Tab: Skill
              */}
-            <TabPane tabId="2">
-                {currentActiveTab ==2 &&
+            <TabPane tabId="3">
+                {currentActiveTab ==3 &&
                     <LabourMarketDemandSkill showFilter={showSkillFilters} onApplyFilters={handleApplySkillFilters}/>
                 }
             </TabPane>

@@ -7,7 +7,7 @@ import Taxonomies from "./Taxonomies";
 
 const EducationManagement = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
-    const [universityName, setUniversityName] = useState('UoM');
+    const [universityName, setUniversityName] = useState('University of Macedonia');
 
     const toggle = tab => {
         if (currentActiveTab !== tab) setCurrentActiveTab(tab);
