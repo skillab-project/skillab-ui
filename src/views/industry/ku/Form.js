@@ -153,18 +153,6 @@ const Form =({
         <div className="flex flex-col gap-4 items-start">
             <form onSubmit={(e) => e.preventDefault()} className="space-y-4 w-full">
                 <div>
-                    <label htmlFor="repoUrl" className="block text-gray-700 mb-2">
-                        GitHub Repository URL
-                    </label>
-                    <input
-                        type="text"
-                        id="repoUrl"
-                        value={repoUrl}
-                        onChange={(e) => setRepoUrl(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded"
-                    />
-                </div>
-                <div>
                     <label htmlFor="commitLimit" className="block text-gray-700 mb-2">
                         Commit Limit (leave empty to scan all commits)
                     </label>

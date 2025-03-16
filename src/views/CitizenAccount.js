@@ -27,6 +27,7 @@ function CitizenAccount() {
   const [userInfo, setUserInfo] = useState({});
   const [initialUserInfo, setInitialUserInfo] = useState({});
   const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(false);
 
 
   const handleApplyUserUpdate = async () => {
@@ -45,6 +46,8 @@ function CitizenAccount() {
   
       // Change API and call
       if (params.length > 0) {
+        setLoading(true);
+
         url += `?${params.join("&")}`;
         try {
           const response = await axios.put(url, {}, {
@@ -53,8 +56,11 @@ function CitizenAccount() {
             },
           });
           console.log("Profile updated successfully:", response.data);
+          setInitialUserInfo(response.data);
         } catch (error) {
           console.error("Error updating profile:", error);
+        } finally {
+          setLoading(false);
         }
       } else {
         console.log("No changes to update.");
@@ -185,6 +191,9 @@ function CitizenAccount() {
                       >
                         Update Profile
                       </Button>
+                      {loading &&
+                        <div class="lds-dual-ring"></div>
+                      }
                     </div>
                   </Row>
                 </Form>

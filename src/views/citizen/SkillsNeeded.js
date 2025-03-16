@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Table, Pagination, PaginationItem, PaginationLink, Row, Col, CustomInput } from 'reactstrap';
 
-const SkillsNeeded = ({ data, skills }) => {
+const SkillsNeeded = ({ data, skills, onSelectSkill }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [showUserSkillsOnly, setShowUserSkillsOnly] = useState(false);  // Toggle for filtering
     const itemsPerPage = 10;
@@ -52,6 +52,12 @@ const SkillsNeeded = ({ data, skills }) => {
         pageNumbers.push(i);
     }
 
+    const handleSelectSkill = (selectedSkill) => {
+        if (onSelectSkill) {
+            onSelectSkill(selectedSkill);
+        }
+    };
+
     return (
         <>
             {/* Filter Toggle */}
@@ -72,7 +78,8 @@ const SkillsNeeded = ({ data, skills }) => {
                     <tr>
                         <th>Skill</th>
                         <th>Pillar</th>
-                        <th>Value</th>
+                        <th>Importance</th>
+                        <th>Upskilling</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,7 +117,15 @@ const SkillsNeeded = ({ data, skills }) => {
                                     {item.Skills}
                                 </td>
                                 <td>{mapPillar(item.Pillar)}</td>
-                                <td>{item.Value}</td>
+                                <td>{(item.Value * 100).toFixed(1)}%</td>
+                                <td>
+                                    <button
+                                        onClick={() => handleSelectSkill(item.Skills)}
+                                        aria-label={`More`}
+                                    >
+                                        <i className="fas fa-eye text-lg"></i>
+                                    </button>
+                                </td>
                             </tr>
                         );
                     })}

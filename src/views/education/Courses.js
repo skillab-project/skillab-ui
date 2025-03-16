@@ -4,31 +4,40 @@ import axios from 'axios';
 
 
 const Courses = ({universityName}) => {
-    const [data, setData] = useState({name:"UoM", location:"Greece", semesters:[{name:"semester 1",courses:[{name:"OOP",description:"...",professor:"achat",skills:["Java","Python","OOP"]},
-                                                                                                            {name:"OOP2",description:"... more",professor:"achat",skills:["Java","Python","OOP"]}]},
-                                                                                {name:"semester 2",courses:[{name:"OOP",description:"...",professor:"achat",skills:["Java","Python","OOP"]}]}]});
+    const [semesters, setSemesters] = useState([]);
     const [search, setSearch] = useState(true);
     const [loading, setLoading] = useState(false);
     const [semesterShow, setSemesterShow] = useState("");
     const [selectedCourse, setSelectedCourse] = useState({});
 
-    // const getUniversityData = async () => {
-    //     try {
-    //         await axios
-    //             .get(process.env.REACT_APP_API_URL_CURRICULUM_SKILLS + "/get_university_data?name="+universityName)
-    //             .then((res) => {
-    //                 console.log("get_data: "+res.data);
+    const getUniversityData = async () => {
+        try {
+            setLoading(true);
+            await axios
+                .get(process.env.REACT_APP_API_URL_CURRICULUM_SKILLS + "/all_university_data?university_name="+universityName)
+                .then((res) => {
+                    console.log("get_data: "+res.data);
                     
-    //                 //toDO
-    //                 // setData();
-    //             });
-    //     } catch (err) {
-    //         console.error("Error fetching data:", err);
-    //     }
-    // }
+                    const apiData = res.data;
+                    const formattedSemesters = Object.entries(apiData.semesters).map(([semesterName, courses]) => ({
+                        name: semesterName,
+                        courses: Object.entries(courses).map(([courseName, courseData]) => ({
+                            name: courseName,
+                            description: courseData.description,
+                            skills: courseData.skills.map(skill => skill.name),
+                        })),
+                    }));
+
+                    setSemesters(formattedSemesters);
+                });
+        } catch (err) {
+            console.error("Error fetching data:", err);
+        }
+        setLoading(false);
+    }
 
     useEffect(() => {
-        // getUniversityData();
+        getUniversityData();
     }, []);
 
     // const handleApplyProgramSelection = (selectedDepartment, selectedProgram) => {
@@ -62,16 +71,21 @@ const Courses = ({universityName}) => {
                             <></>
                         ) : (
                             <>
-                                {data.semesters.map((semester) => (
+                                {semesters.map((semester) => (
                                     <Card>
-                                        <CardHeader style={{cursor:"pointer"}} onClick={() => handleSelectSemester(semester)}>
-                                            <CardTitle tag="h5">{semester.name}</CardTitle>
+                                        <CardHeader style={{ cursor: "pointer" }} onClick={() => handleSelectSemester(semester)}>
+                                            <CardTitle tag="h5">
+                                                {semester.name.split(" (")[0]}{" "}
+                                                <span style={{ fontSize: "0.8em", color: "#666" }}>
+                                                    ({semester.name.split(" (")[1]}
+                                                </span>
+                                            </CardTitle>
                                         </CardHeader>
                                         {semesterShow == semester.name && 
                                             <CardBody>
                                                 <Row>
                                                     <Col md="4">
-                                                        <ul style={{paddingLeft:"0px", maxHeight: "500px", overflowY: "auto" }}>
+                                                        <ul style={{paddingLeft:"0px", maxHeight: "550px", overflowY: "auto" }}>
                                                             {semester.courses.map((course) => (
                                                                 <li
                                                                     key={course.name}
@@ -80,7 +94,9 @@ const Courses = ({universityName}) => {
                                                                         course.name === selectedCourse?.name ? 'bg-default' : 'bg-white'
                                                                     }`}
                                                                 >
-                                                                    <span>{course.name}</span>
+                                                                    <span style={{textAlign:"left"}}>
+                                                                        {course.name}
+                                                                    </span>
                                                                     <button
                                                                         onClick={() => handleSelectCourse(course)}
                                                                         aria-label={`More`}
@@ -95,17 +111,7 @@ const Courses = ({universityName}) => {
                                                         {Object.keys(selectedCourse).length !== 0 && 
                                                             <>
                                                                 <Row>
-                                                                    <Col md="4">
-                                                                        <Card>
-                                                                            <CardHeader>
-                                                                                <CardTitle tag="h5">Professor</CardTitle>
-                                                                            </CardHeader>
-                                                                            <CardBody>
-                                                                                <span>{selectedCourse.professor}</span>
-                                                                            </CardBody>
-                                                                        </Card>
-                                                                    </Col>
-                                                                    <Col md="8">
+                                                                    <Col lg="12" xl="8">
                                                                         <Card>
                                                                             <CardHeader>
                                                                                 <CardTitle tag="h5">Description</CardTitle>
@@ -115,15 +121,13 @@ const Courses = ({universityName}) => {
                                                                             </CardBody>
                                                                         </Card>
                                                                     </Col>
-                                                                </Row>
-                                                                <Row>
-                                                                    <Col md="12">
+                                                                    <Col lg="12" xl="4">
                                                                         <Card>
                                                                             <CardHeader>
                                                                                 <CardTitle tag="h5">Skills</CardTitle>
                                                                             </CardHeader>
                                                                             <CardBody>
-                                                                                <ul style={{padding:"0px", listStyle:"none"}}>
+                                                                                <ul style={{textAlign:"left"}}>
                                                                                     {selectedCourse.skills.map((skill) => (
                                                                                         <li>{skill}</li>
                                                                                     ))}

@@ -21,6 +21,27 @@ import { scaleLinear } from "d3-scale";
 
 
 const geoUrl = require('../../assets/europe.geojson');
+const countryNameMap = {
+    "France": "France",
+    "Sweden": "Sweden",
+    "Česko": "Czech Republic",  // Standard English name
+    "ITALIA": "Italy",  // Convert to standard English name
+    "Polska": "Poland",  // Convert to English
+    "Greece": "Greece",
+    "Sverige": "Sweden",  // Duplicate, map to Sweden
+    "Österreich": "Austria",  // Standard English name
+    "ESPAÑA": "Spain",  // Convert to English
+    "UnitedKingdom": "United Kingdom",  // Fix spacing
+    "Suomi/Finland": "Finland",  // Use "Finland"
+    "Magyarország": "Hungary",  // Convert to English
+    "Nederland": "Netherlands",  // Convert to English
+    "Danmark": "Denmark",  // Convert to English
+    "Latvija": "Latvia",  // Convert to English
+    "Κύπρος": "Cyprus",  // Convert to English
+    "Belgique/België": "Belgium",  // Standard English name
+    "Slovensko": "Slovakia",  // Convert to English
+    "Germany": "Germany"
+};
 
 function TopCountries(props) {
     const [countryFrequencyMap, setCountryFrequencyMap] = useState([]);
@@ -34,7 +55,8 @@ function TopCountries(props) {
     useEffect(() => {
         if(props.data && props.data.length>0){
             var countryFrequencyMapNew = props.data.reduce((acc, item) => {
-                acc[item.country] = item.frequency;
+                const standardizedCountry = countryNameMap[item.country] || item.country; // Use mapped name or fallback
+                acc[standardizedCountry] = item.frequency;
                 return acc;
             }, {});
             setCountryFrequencyMap(countryFrequencyMapNew);
@@ -43,7 +65,21 @@ function TopCountries(props) {
             );
             setColorMaxScale(maxFrequencyValue);
         }
-    },[]);
+    }, [props.data]);  // Add props.data as a dependency
+            
+    // useEffect(() => {
+    //     if(props.data && props.data.length>0){
+    //         var countryFrequencyMapNew = props.data.reduce((acc, item) => {
+    //             acc[item.country] = item.frequency;
+    //             return acc;
+    //         }, {});
+    //         setCountryFrequencyMap(countryFrequencyMapNew);
+    //         var maxFrequencyValue = Math.max(
+    //             ...props.data.map((item) => item.frequency)
+    //         );
+    //         setColorMaxScale(maxFrequencyValue);
+    //     }
+    // },[]);
 
 
     return (
