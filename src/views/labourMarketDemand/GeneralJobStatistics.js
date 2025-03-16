@@ -16,14 +16,7 @@ import {
   CardSubtitle
 } from "reactstrap";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,Legend,LineChart,Line} from "recharts";
-import classnames from 'classnames';
 import axios from 'axios';
-import InterconnectedSkills from "./InterconnectedSkills";
-import ExploratoryAnalytics from "./ExploratoryAnalytics";
-import TrendAnalysis from "./TrendAnalysis";
-import DescriptiveAnalytics from "./DescriptiveAnalytics";
-import SkillFilter from "./SkillFilter";
-import OccupationFilter from "./OccupationFilter";
 
 
 const GeneralJobStatistics = () => {
@@ -58,8 +51,7 @@ const GeneralJobStatistics = () => {
                 if (response.data && Array.isArray(response.data)) {
                     allOccupationIds.push(...response.data);
                 }
-    
-                if (allOccupationIds.length === 0) continue; // Skip if no occupation IDs found
+                allOccupationIds.push(occupation.id);
     
                 const searchParams = new URLSearchParams();
                 allOccupationIds.forEach(id => searchParams.append('occupation_ids', id));
@@ -117,7 +109,7 @@ const GeneralJobStatistics = () => {
     
             // Call the function with the complete list
             fetchOccupationsAndJobs(occupationList);
-    
+            setOccupationLevel(occupationList);
         } catch (error) {
             console.error("Error selecting occupation:", error);
         }
