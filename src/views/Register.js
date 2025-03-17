@@ -22,7 +22,7 @@ const Register = () => {
         console.log("Registering with", { name, email, password, confirmPassword, address, portfolio });
         
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/register`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/user`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
