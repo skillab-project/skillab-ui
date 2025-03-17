@@ -60,6 +60,7 @@ const TargetOccupation = ({skills}) => {
             }));
 
             setInstitutes(formattedInstitutes);
+            setSelectedInstitute("");
         } catch (err) {
             console.error("Error fetching data:", err);
         }

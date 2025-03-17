@@ -46,6 +46,7 @@ const countryNameMap = {
 function TopCountries(props) {
     const [countryFrequencyMap, setCountryFrequencyMap] = useState([]);
     const [colorMaxScale, setColorMaxScale] = useState(0);
+    const [standardizedData, setStandardizedData] = useState([]);
     
     var colorScale = scaleLinear()
             .domain([0, colorMaxScale])
@@ -54,8 +55,16 @@ function TopCountries(props) {
     
     useEffect(() => {
         if(props.data && props.data.length>0){
+            //set data for bar chart
+            const updatedData = props.data.map(item => {
+                const standardizedCountry = countryNameMap[item.country] || item.country;
+                return { ...item, country: standardizedCountry };
+            });
+            setStandardizedData(updatedData);
+
+            //set data for graph
             var countryFrequencyMapNew = props.data.reduce((acc, item) => {
-                const standardizedCountry = countryNameMap[item.country] || item.country; // Use mapped name or fallback
+                const standardizedCountry = countryNameMap[item.country] || item.country;
                 acc[standardizedCountry] = item.frequency;
                 return acc;
             }, {});
@@ -65,21 +74,7 @@ function TopCountries(props) {
             );
             setColorMaxScale(maxFrequencyValue);
         }
-    }, [props.data]);  // Add props.data as a dependency
-            
-    // useEffect(() => {
-    //     if(props.data && props.data.length>0){
-    //         var countryFrequencyMapNew = props.data.reduce((acc, item) => {
-    //             acc[item.country] = item.frequency;
-    //             return acc;
-    //         }, {});
-    //         setCountryFrequencyMap(countryFrequencyMapNew);
-    //         var maxFrequencyValue = Math.max(
-    //             ...props.data.map((item) => item.frequency)
-    //         );
-    //         setColorMaxScale(maxFrequencyValue);
-    //     }
-    // },[]);
+    }, [props.data]);
 
 
     return (
@@ -130,9 +125,9 @@ function TopCountries(props) {
                         </Col>
 
                         <Col sm="12" md="6" style={{margin:"auto"}}>
-                            <ResponsiveContainer width="100%" height={props.data.length * 60}>
+                            <ResponsiveContainer width="100%" height={standardizedData.length * 60}>
                                 <BarChart
-                                    data={props.data}
+                                    data={standardizedData}
                                     layout="vertical"
                                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                                     barSize={30}
