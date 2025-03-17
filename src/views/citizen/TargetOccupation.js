@@ -11,8 +11,7 @@ const TargetOccupation = ({skills}) => {
     const [skillsNeeded, setSkillsNeeded] = useState([]);
     const [selectedSkill, setSelectedSkill] = useState("");
     const [selectedInstitute, setSelectedInstitute] = useState("");
-    const [institutes, setInstitutes] = useState([{name:"UoM",location:"Greece",courses:[{name:"OOP",skills:["Java","Python"]}]},
-                                                    {name:"Auth",location:"Greece",courses:[{name:"OOP",skills:["Java","Python"]}]} ]);
+    const [institutes, setInstitutes] = useState([]);
 
     const handleApplyOccupationSelection = (selectedOccupation) => {
         console.log('Occupation received:', selectedOccupation);
