@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Card,
@@ -23,11 +23,18 @@ import { TfiAnnouncement } from "react-icons/tfi";
 import { FaListUl, FaPeopleRoof } from "react-icons/fa6";
 import { SiJfrogpipelines } from "react-icons/si";
 import { MdModelTraining } from "react-icons/md";
+import { Bar } from 'react-chartjs-2';
 
 
 
 
 function IndustryAccount() {
+    const [chartData, setChartData] = useState(null);
+
+    useEffect(() => {
+        // handleViewOrganizationSkills();
+    }, []);
+    
 
     function handelClickArtifactRepositories() {
         window.location.href = "/industry/account/artifacts";
@@ -35,6 +42,135 @@ function IndustryAccount() {
     function handelClickEmployeeKnowleageUnits() {
         window.location.href = "/industry/account/ku";
     }
+
+    const handleViewOrganizationSkills = async () => {
+        try {
+            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/detected_kus');
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+    
+            const analysisData = await response.json();
+    
+            console.log('Fetched Analysis Data:', analysisData);
+    
+            const aggregatedData = {};
+    
+            analysisData.forEach((item, index) => {
+                console.log(`Processing item ${index}:`, item);
+    
+                const { kus, author } = item;
+    
+                for (const key in kus) {
+                    if (Object.hasOwnProperty.call(kus, key)) {
+                        console.log(`Processing KU "${key}" with value: ${kus[key]}`);
+    
+                        if (typeof kus[key] === 'number') {
+                            if (!aggregatedData[key]) {
+                                aggregatedData[key] = {
+                                    files: 0,
+                                    authors: new Set(),
+                                    employeeCount: 0,
+                                };
+                                console.log(`Initialized data for KU "${key}".`);
+                            }
+    
+                            aggregatedData[key].files += kus[key];
+                            console.log(`Updated files for KU "${key}":`, aggregatedData[key].files);
+    
+                            if (kus[key] === 1) {
+                                aggregatedData[key].authors.add(author);
+                                console.log(`Added author "${author}" to KU "${key}".`);
+                            }
+    
+                            aggregatedData[key].employeeCount = aggregatedData[key].authors.size;
+                            console.log(`Updated employeeCount for KU "${key}":`, aggregatedData[key].employeeCount);
+                        }
+                    }
+                }
+            });
+    
+            console.log('Final Aggregated Data:', aggregatedData);
+    
+            const sortedKeys = Object.keys(aggregatedData).sort((a, b) => {
+                const numA = parseInt(a.slice(1));
+                const numB = parseInt(b.slice(1));
+                return numA - numB;
+            });
+    
+            console.log('Sorted Keys:', sortedKeys);
+    
+            const labels = sortedKeys;
+            const dataFiles = sortedKeys.map(key => aggregatedData[key].files);
+            const dataEmployees = sortedKeys.map(key => aggregatedData[key].employeeCount);
+    
+            console.log('Chart Data - Files:', dataFiles);
+            console.log('Chart Data - Employees:', dataEmployees);
+    
+            setChartData({
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Number of Files',
+                        data: dataFiles,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Number of Authors',
+                        data: dataEmployees,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1',
+                    },
+                ],
+                options: {
+                    responsive: true,
+                    layout: {
+                        padding: {
+                            right: 150,
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Number of Files',
+                            },
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            offset: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Authors',
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                    },
+                },
+            });
+    
+            console.log('Chart Data prepared successfully.');
+
+        } catch (error) {
+            console.error('Failed to load analysis data:', error);
+        }
+    };    
 
 
     return (
@@ -182,62 +318,12 @@ function IndustryAccount() {
                     <CardBody>
                         Coming Soon
                         {/* <Row>
-                            <Col xl="4" md="6" sm="12">
-                                <Card className="card-stats">
-                                    <CardHeader>
-                                        <CardTitle tag="h5">2022</CardTitle>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <Row>
-                                            <Col md="12">
-                                                table
-                                            </Col>
-                                        </Row>
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                            <Col xl="4" md="6" sm="12">
-                                <Card className="card-stats">
-                                    <CardHeader>
-                                        <CardTitle tag="h5">2023</CardTitle>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <Row>
-                                        <Col md="12">
-                                                table
-                                            </Col>
-                                        </Row>
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                            <Col xl="4" md="6" sm="12">
-                                <Card className="card-stats">
-                                    <CardHeader>
-                                        <CardTitle tag="h5">2024</CardTitle>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <Row>
-                                            <Col md="12">
-                                                table
-                                            </Col>
-                                        </Row>
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                        </Row>
-
-                        <Row>
                             <Col md="12">
-                                <Card>
-                                    <CardBody>
-                                        <Line
-                                        data={dashboard24HoursPerformanceChart.data}
-                                        options={dashboard24HoursPerformanceChart.options}
-                                        width={400}
-                                        height={100}
-                                        />
-                                    </CardBody>
-                                </Card>
+                                {chartData &&
+                                    <div className="mt-8">
+                                        <Bar data={chartData} />
+                                    </div>
+                                }
                             </Col>
                         </Row> */}
                     </CardBody>
