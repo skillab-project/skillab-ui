@@ -16,23 +16,29 @@ import InitLayout from "layouts/InitLayout.js";
 import InitPage from "views/InitPage.js";
 import Login from "views/Login.js";
 import Register from "views/Register.js";
+import ProtectedRoute from "ProtectedRoute.js";
 
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/citizen" element={<Navigate to="/citizen/account" replace/>} />
-        <Route path="/citizen/*" element={<CitizenLayout />} />
-        <Route path="/industry" element={<Navigate to="/industry/account" replace/>} />
-        <Route path="/industry/*" element={<IndustryLayout />} />
-        <Route path="/education" element={<Navigate to="/education/account" replace/>} />
-        <Route path="/education/*" element={<EducationLayout />} />
-        <Route path="/policy-industry" element={<Navigate to="/policy-industry/account" replace/>} />
-        <Route path="/policy-industry/*" element={<PolicyIndustryLayout />} />
-        <Route path="/policy-education" element={<Navigate to="/policy-education/account" replace/>} />
-        <Route path="/policy-education/*" element={<PolicyEducationLayout />} />
-        <Route path="/" element={<InitLayout/>} >
+        {/* Protect these routes */}
+        <Route path="/citizen/*" element={<ProtectedRoute element={<CitizenLayout />} />} />
+        <Route path="/industry/*" element={<ProtectedRoute element={<IndustryLayout />} />} />
+        <Route path="/education/*" element={<ProtectedRoute element={<EducationLayout />} />} />
+        <Route path="/policy-industry/*" element={<ProtectedRoute element={<PolicyIndustryLayout />} />} />
+        <Route path="/policy-education/*" element={<ProtectedRoute element={<PolicyEducationLayout />} />} />
+
+        {/* Redirects */}
+        <Route path="/citizen" element={<Navigate to="/citizen/account" replace />} />
+        <Route path="/industry" element={<Navigate to="/industry/account" replace />} />
+        <Route path="/education" element={<Navigate to="/education/account" replace />} />
+        <Route path="/policy-industry" element={<Navigate to="/policy-industry/account" replace />} />
+        <Route path="/policy-education" element={<Navigate to="/policy-education/account" replace />} />
+
+        {/* Public Routes */}
+        <Route path="/" element={<InitLayout />} >
           <Route index element={<InitPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

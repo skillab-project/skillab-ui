@@ -23,6 +23,7 @@ import TrendAnalysis from "./TrendAnalysis";
 import DescriptiveAnalytics from "./DescriptiveAnalytics";
 import SkillFilter from "./SkillFilter";
 import OccupationFilter from "./OccupationFilter";
+import {getId} from "../../utils/Tokens";
 
 
 const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
@@ -30,19 +31,21 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
     const [dataOccupations, setDataOccupations] = useState([]);
     const [dataExploratory, setDataExploratory] = useState([]);
     const [countryFrequencyData, setCountryFrequencyData] = useState([]);
-
+    const [filterOccupations, setFilterOccupations] = useState([{id: "http://data.europa.eu/esco/isco/C2512",
+                                                                    label: "Software developers"}]);
+    var userId="";
     
     // Check if the user has loaded data
     //  and if not load them
     const checkLoadedDataOfUser = async () => {
         await axios
-                .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=1&session_id=occupation&attribute=data_query_info&storage_name=none")
+                .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=" +userId+ "&session_id=occupation&attribute=data_query_info&storage_name=none")
                 .then(async (res) => {
                     console.log("get_data: "+res.data);
                     if (Array.isArray(res.data)) {
                         console.log("Data will be loaded...");
                         await axios
-                                .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/load_data?user_id=1&session_id=occupation&url="+process.env.REACT_APP_API_URL_TRACKER+"%2Fapi%2Fjobs&body=occupation_ids%3Dhttp%3A%2F%2Fdata.europa.eu%2Fesco%2Fisco%2FC2512&source=OJA&limit_data_no=10000")
+                                .get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/load_data?user_id=" +userId+ "&session_id=occupation&url="+process.env.REACT_APP_API_URL_TRACKER+"%2Fapi%2Fjobs&body=occupation_ids%3Dhttp%3A%2F%2Fdata.europa.eu%2Fesco%2Fisco%2FC2512&source=OJA&limit_data_no=5000")
                                 .then((res2) => {
                                     console.log("response: "+res2.data);
                                     setDataAreReady(true);
@@ -62,12 +65,12 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
     const fetchDataOccupations = async () => {
         try {
             //  check first in getdata before make new analysis
-            const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=1&session_id=occupation&attribute=all_stats&storage_name=skills");
+            const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=" +userId+ "&session_id=occupation&attribute=all_stats&storage_name=skills");
 
             // Check if response data is empty
             if (Object.keys(response.data).length === 0 && response.data.constructor === Object) {
                 console.log('Response get_data for skills, is empty');
-                const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/analytics_descriptive?user_id=1&session_id=occupation&storage_name=skills&features_query=skills");
+                const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/analytics_descriptive?user_id=" +userId+ "&session_id=occupation&storage_name=skills&features_query=skills");
                 
                 // set data 
                 setDataOccupations(analyticsResponse.data.skills);
@@ -88,14 +91,14 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
     const fetchLocationData = async () => {
         try{
             //  check first in getdata before make new analysis
-            const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=1&session_id=occupation&attribute=all_stats&storage_name=location");
+            const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=" +userId+ "&session_id=occupation&attribute=all_stats&storage_name=location");
             
             // Check if response data is empty
             if (Object.keys(response.data).length === 0 && response.data.constructor === Object) {
                 console.log('Response get_data for location is empty, fetching analytics data...');
                 
                 // Fetch analytics data if the initial response is empty
-                const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/analytics_descriptive?user_id=1&session_id=occupation&storage_name=location&features_query=location");
+                const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/analytics_descriptive?user_id=" +userId+ "&session_id=occupation&storage_name=location&features_query=location");
         
                 processLocationData(analyticsResponse.data.location);
             } else {
@@ -142,14 +145,14 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
     const fetchDataExploratory = async () => {
         try{
             //  check first in getdata before make new analysis
-            const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/get_data?user_id=1&session_id=occupation&attribute=explor_stats&storage_name=occupation");
+            const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/get_data?user_id=" +userId+ "&session_id=occupation&attribute=explor_stats&storage_name=occupation");
             
             // Check if response data is empty
             if (Object.keys(response.data).length === 0 && response.data.constructor === Object) {
                 console.log('Response get_data for exploratory is empty, fetching analytics data...');
 
                 // Fetch analytics data if the initial response is empty
-                const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/analytics_exploratory?user_id=1&session_id=occupation&storage_name=occupation&features_query=skills%2Clocation");
+                const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/analytics_exploratory?user_id=" +userId+ "&session_id=occupation&storage_name=occupation&features_query=skills%2Clocation");
             
                 // Process the fetched analytics data
                 processAnalyticsData(analyticsResponse.data);
@@ -239,12 +242,20 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
 
 
     useEffect(() => {
-        checkLoadedDataOfUser();
+        const load =async () => {
+            userId= await getId();
+            if(userId=="")
+                userId=1;
+            checkLoadedDataOfUser();
+        }
+        
+        load();
     }, []);
 
 
     const handleApplyFilters = (selectedFilters) => {
         console.log('Filters received:', selectedFilters);
+        setFilterOccupations(selectedFilters);
         if (onApplyFilters) {
             onApplyFilters(selectedFilters.length);
         }
