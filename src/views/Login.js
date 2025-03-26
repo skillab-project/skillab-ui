@@ -68,8 +68,9 @@ const InitPage = () => {
             if (authStatus) {
 
                 // toDO
-                //depending on roles
-                window.location.href='/citizen';
+                //depending on installation
+                if(process.env.REACT_APP_INSTALLATION=="citizen")
+                    window.location.href='/citizen/account';
             }
         };
     

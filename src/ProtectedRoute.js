@@ -15,9 +15,9 @@ const ProtectedRoute = ({ element }) => {
 
 
     //While authentication is being checked
-    // if (auth === null) {
-    //     return <div>Loading...</div>;
-    // }
+    if (auth === null) {
+        return <div>Loading...</div>;
+    }
 
     return auth ? element : <Navigate to="/login" replace />;
 };
