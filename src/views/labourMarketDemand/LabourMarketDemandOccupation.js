@@ -25,11 +25,33 @@ import SkillFilter from "./SkillFilter";
 import OccupationFilter from "./OccupationFilter";
 import {getId} from "../../utils/Tokens";
 
+const countryNameMap = {
+    "France": "France",
+    "Sweden": "Sweden",
+    "Česko": "Czech Republic",
+    "ITALIA": "Italy",
+    "Polska": "Poland",
+    "Greece": "Greece",
+    "Sverige": "Sweden",
+    "Österreich": "Austria",
+    "ESPAÑA": "Spain",
+    "UnitedKingdom": "United Kingdom",
+    "Suomi/Finland": "Finland",
+    "Magyarország": "Hungary",
+    "Nederland": "Netherlands",
+    "Danmark": "Denmark",
+    "Latvija": "Latvia",
+    "Κύπρος": "Cyprus",
+    "Belgique/België": "Belgium",
+    "Slovensko": "Slovakia",
+    "Germany": "Germany"
+};
 
 const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
     const [dataAreReady, setDataAreReady] = useState(false);
     const [dataOccupations, setDataOccupations] = useState([]);
     const [dataExploratory, setDataExploratory] = useState([]);
+    const [dataTrending, setDataTrending] = useState([]);
     const [countryFrequencyData, setCountryFrequencyData] = useState([]);
     const [filterOccupations, setFilterOccupations] = useState([{id: "http://data.europa.eu/esco/isco/C2512",
                                                                     label: "Software developers"}]);
@@ -161,6 +183,9 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
                 // Process the data from the initial response
                 processAnalyticsData(response.data);
             }
+
+            // Fetch trending data
+            fetchDataTrending();
         }
         catch (error) {
             console.error('Error fetching location data:', error);
@@ -240,6 +265,58 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
         return updatedData;
     };
 
+    // Get Data for Trending component 
+    const fetchDataTrending = async () => {
+        try{
+            //  check first in getdata before make new analysis
+            const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/get_data?user_id=" +userId+ "&session_id=occupation&attribute=trend_anal&storage_name=trending");
+            
+            // Check if response data is empty
+            if (Object.keys(response.data).length === 0 && response.data.constructor === Object) {
+                console.log('Response get_data for trending is empty, fetching data...');
+
+                // Fetch trending data if the initial response is empty
+                const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/trend_analysis?user_id=" +userId+ "&session_id=occupation&storage_name=trending&date_field=upload_date&features_query=location&date_format=%25Y-%25m-%25d&what=month");
+            
+                // Process the fetched data
+                processTrendingData(analyticsResponse.data);
+            }
+            else{
+                // Process the data from the initial response
+                processTrendingData(response.data);
+            }
+        }
+        catch (error) {
+            console.error('Error fetching trending data:', error);
+        }
+    };
+
+    const processTrendingData = (data) => {
+        const rawData = data.location;
+        const countryTrends = {};
+    
+        rawData.forEach(({ date, item, Freq }) => {
+            const parts = item.split(", ");
+            const countryRaw = parts[parts.length - 1].replace(/\s/g, "");
+            const country = countryNameMap[countryRaw] || countryRaw;
+            const formattedDate = String(parseInt(date.replace(/^-/, ""), 10)); // Remove "-" and convert to int string
+    
+            if (!countryTrends[country]) {
+                countryTrends[country] = {};
+            }
+    
+            countryTrends[country][formattedDate] = (countryTrends[country][formattedDate] || 0) + Freq;
+        });
+    
+        const transformedData = Object.entries(countryTrends).map(([country, dateFreqs]) => ({
+            country,
+            ...dateFreqs
+        }));
+    
+        setDataTrending(transformedData);
+        console.log("Trending data processed:", transformedData);
+    };
+
 
     useEffect(() => {
         const load =async () => {
@@ -293,11 +370,13 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
                 }
 
                 
-                {/* <Row>
+                <Row>
                     <Col md="12">
-                        <TrendAnalysis />
+                        {dataTrending && dataTrending.length>0 &&
+                            <TrendAnalysis data={dataTrending} />
+                        }
                     </Col>
-                </Row> */}
+                </Row>
 
             </>
             :
