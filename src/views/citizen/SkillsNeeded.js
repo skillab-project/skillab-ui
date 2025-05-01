@@ -79,7 +79,7 @@ const SkillsNeeded = ({ data, skills, onSelectSkill }) => {
                         <th>Skill</th>
                         <th>Pillar</th>
                         <th>Importance</th>
-                        <th>Upskilling</th>
+                        <th>Re/Upskilling</th>
                     </tr>
                 </thead>
                 <tbody>

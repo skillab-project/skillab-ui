@@ -12,6 +12,7 @@ const TargetOccupation = ({skills}) => {
     const [selectedSkill, setSelectedSkill] = useState("");
     const [selectedInstitute, setSelectedInstitute] = useState("");
     const [institutes, setInstitutes] = useState([]);
+    const [coursesForUpskilling, setCoursesForUpskilling] = useState([]);
 
     const handleApplyOccupationSelection = (selectedOccupation) => {
         console.log('Occupation received:', selectedOccupation);
@@ -39,6 +40,56 @@ const TargetOccupation = ({skills}) => {
     const handleSelectSkill = async (skill) => {
         setSelectedSkill(skill);
 
+        // Univerities
+        getUniversities(skill);
+        // Courses
+        getCourses(skill);
+    };
+
+    const getCourses = async (skill) => {
+        setCoursesForUpskilling([]);
+        try {
+            // Get skill id
+            var skillId = "";
+            const res = await axios.post(
+                `${process.env.REACT_APP_API_URL_TRACKER}/api/skills`,
+                new URLSearchParams({
+                    'keywords': skill
+                })
+            );
+            const items = res.data.items || [];
+            const matchedSkill = items.find(item => item.label.toLowerCase() === skill.toLowerCase());
+
+            if (matchedSkill) {
+                const skillId = matchedSkill.id;
+                console.log("Skill ID:", skillId);
+
+                // Get courses
+                const courseRes = await axios.post(
+                    `${process.env.REACT_APP_API_URL_TRACKER}/api/courses?page=1`,
+                    new URLSearchParams({
+                        'skill_ids': skillId
+                    })
+                );
+                
+                console.log(courseRes.data);
+                const formattedCourses = (courseRes.data.items || []).map(course => ({
+                    title: course.title,
+                    rating: course.rating,
+                    url: course.url,
+                    source: course.source
+                }));
+                setCoursesForUpskilling(formattedCourses);
+                console.log(formattedCourses);
+            } else {
+                console.warn("Skill not found for label:", skill);
+            }
+        } catch (err) {
+            console.error("Error fetching data:", err);
+        }
+    }
+
+    const getUniversities = async (skill) => {
         try {
             const res = await axios.post(
                 `${process.env.REACT_APP_API_URL_CURRICULUM_SKILLS}/get_universities_by_skills`,
@@ -63,7 +114,7 @@ const TargetOccupation = ({skills}) => {
         } catch (err) {
             console.error("Error fetching data:", err);
         }
-    };
+    }
 
     return (
         <Row>
@@ -154,6 +205,35 @@ const TargetOccupation = ({skills}) => {
                                                             </Card>
                                                         </Col>
                                                     }
+                                                </Row>
+                                            </CardBody>
+                                        </Card>
+                                    </Col>
+
+                                    <Col md="12">
+                                        <Card>
+                                            <CardTitle tag="h6">
+                                                Online Courses
+                                            </CardTitle>
+                                            <CardBody>
+                                                <Row>
+                                                    {coursesForUpskilling.map((course) => (
+                                                        <Col md="3">
+                                                            <Card>
+                                                                <CardTitle tag="h6">
+                                                                    <a href={course.url} style={{textDecoration: "inherit",color: "inherit"}} target="_blank">
+                                                                        {course.title}
+                                                                    </a>
+                                                                </CardTitle>
+                                                                <CardBody>
+                                                                    {course.rating != null  &&
+                                                                        <div>{course.rating}/10</div>
+                                                                    }
+                                                                    <div>{course.source}</div>
+                                                                </CardBody>
+                                                            </Card>
+                                                        </Col>
+                                                    ))}
                                                 </Row>
                                             </CardBody>
                                         </Card>
