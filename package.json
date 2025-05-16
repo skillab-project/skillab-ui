@@ -36,6 +36,7 @@
     "tailwind-merge": "^2.5.5"
   },
   "scripts": {
+    "dev": "dotenv -e .dev.env -- react-scripts start",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

@@ -29,7 +29,14 @@ const JobSources = () => {
     const isCitizenPath = location.pathname.startsWith('/citizen');
 
     useEffect(() => {
-        axios.get(process.env.REACT_APP_API_URL_TRACKER+"/api/jobs/sources").then((response) => {
+        //...
+        axios.get(process.env.REACT_APP_API_URL_TRACKER+"/api/jobs/sources", 
+            {
+                headers:{
+                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                }
+            }
+        ).then((response) => {
             setSources(response.data);
             response.data.forEach((source) => {
                 fetchJobCount(source);
@@ -39,8 +46,12 @@ const JobSources = () => {
 
     const fetchJobCount = async (source) => {
         try {
-          const response = await axios.post(process.env.REACT_APP_API_URL_TRACKER+"/api/jobs?page=1", new URLSearchParams({ sources: source }), {
-            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+          const response = await axios.post(process.env.REACT_APP_API_URL_TRACKER+"/api/jobs?page=1",
+            new URLSearchParams({ sources: source }),{
+            headers: { 
+                "Content-Type": "application/x-www-form-urlencoded",
+                'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+            }
           });
           setJobCounts((prev) => ({ ...prev, [source]: response.data.count }));
         } catch (error) {

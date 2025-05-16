@@ -35,6 +35,7 @@ const SkillFilter = ({onApplyFilters}) => {
                                 },
                                 headers: {
                                     'accept': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
                                 },
                             }
                         );

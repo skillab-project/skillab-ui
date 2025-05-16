@@ -55,6 +55,7 @@ const OccupationSelection = ({onApplySelection}) => {
                                 },
                                 headers: {
                                     'accept': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
                                 },
                             }
                         );

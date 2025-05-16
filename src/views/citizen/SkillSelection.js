@@ -34,6 +34,7 @@ const SkillSelection = ({onAddSkill}) => {
                                 },
                                 headers: {
                                     'accept': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
                                 },
                             }
                         );

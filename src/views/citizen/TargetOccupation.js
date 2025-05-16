@@ -55,7 +55,12 @@ const TargetOccupation = ({skills}) => {
                 `${process.env.REACT_APP_API_URL_TRACKER}/api/skills`,
                 new URLSearchParams({
                     'keywords': skill
-                })
+                }),
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                    },
+                }
             );
             const items = res.data.items || [];
             const matchedSkill = items.find(item => item.label.toLowerCase() === skill.toLowerCase());
@@ -69,7 +74,12 @@ const TargetOccupation = ({skills}) => {
                     `${process.env.REACT_APP_API_URL_TRACKER}/api/courses?page=1`,
                     new URLSearchParams({
                         'skill_ids': skillId
-                    })
+                    }),
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                        },
+                    }
                 );
                 
                 console.log(courseRes.data);

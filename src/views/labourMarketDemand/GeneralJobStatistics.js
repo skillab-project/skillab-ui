@@ -45,7 +45,12 @@ const GeneralJobStatistics = () => {
     
                 const response = await axios.post(
                     process.env.REACT_APP_API_URL_TRACKER + '/api/utility/occupations-propagation',
-                    new URLSearchParams({ 'ids': occupation.id })
+                    new URLSearchParams({ 'ids': occupation.id }),
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                        }
+                    }
                 );
     
                 if (response.data && Array.isArray(response.data)) {
@@ -59,7 +64,12 @@ const GeneralJobStatistics = () => {
     
                 const jobResponse = await axios.post(
                     process.env.REACT_APP_API_URL_TRACKER + '/api/jobs?page=1',
-                    searchParams
+                    searchParams,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                        }
+                    }
                 );
     
                 const count = jobResponse.data.count || 0;
@@ -87,7 +97,12 @@ const GeneralJobStatistics = () => {
             
             const response = await axios.post(
                 process.env.REACT_APP_API_URL_TRACKER + '/api/occupations',
-                new URLSearchParams({ 'ids': occupation.id })
+                new URLSearchParams({ 'ids': occupation.id }),
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                    }
+                }
             );
     
             const occupationIds = response.data.items[0].children; // List of child occupation IDs
@@ -98,7 +113,12 @@ const GeneralJobStatistics = () => {
                 process.env.REACT_APP_API_URL_TRACKER + '/api/occupations?page=1',
                 new URLSearchParams(
                     occupationIds.map(id => ['ids', id]) // Convert array to URLSearchParams format
-                )
+                ),
+                {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                    }
+                }
             );
     
             // Extract IDs and Names

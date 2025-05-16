@@ -3,12 +3,15 @@ import {Button, Card, CardTitle, CardHeader, CardBody, Row, Col, Input } from "r
 import { FaLock, FaEnvelope } from "react-icons/fa";
 import NotificationAlert from "react-notification-alert";
 import {isAuthenticated} from "../utils/Tokens";
+import { authenticateTracker } from "utils/TrackerAuth";
+import { isAuthenticatedTracker } from "utils/TrackerAuth";
 
 
 
 const InitPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loadingAuth, setLoadingAuth] = useState(false);
 
     const notificationAlert = useRef();
     const notify = (message) => {
@@ -30,6 +33,7 @@ const InitPage = () => {
 
     const handleLogin = async () => {
         console.log("Logging in with", { email, password });
+        setLoadingAuth(true);
         try {
             var urlencoded = new URLSearchParams();
             urlencoded.append("email", email);
@@ -44,8 +48,11 @@ const InitPage = () => {
                 var body = await response.json();
                 localStorage.setItem("accessTokenSkillab", body.accessToken);
                 localStorage.setItem("refreshTokenSkillab", body.refreshToken);
-                if(await isAuthenticated()){
 
+                //authenticate Tracker
+                await authenticateTracker();
+
+                if(await isAuthenticated()){
                     // toDO
                     //depending on roles
                     window.location.href='/citizen';
@@ -60,12 +67,14 @@ const InitPage = () => {
         } catch (error) {
             console.error("Error:", error);
         }
+        setLoadingAuth(false);
     };
 
     useEffect(() => {
         const checkAuth = async () => {
             const authStatus = await isAuthenticated();
             if (authStatus) {
+                await isAuthenticatedTracker();
 
                 // toDO
                 //depending on installation
@@ -107,8 +116,14 @@ const InitPage = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 style={{paddingLeft: "20px"}} />
                         </div>
-                        <Button color="success" className="w-100" onClick={handleLogin}>Login</Button>
-                        <Button color="primary" className="w-100" onClick={() => window.location.href='/register'}>Register</Button>
+                        {
+                            loadingAuth ?
+                            <div class="lds-dual-ring" style={{display:"flex", justifySelf:"center"}}></div> :
+                            <>
+                                <Button color="success" className="w-100" onClick={handleLogin}>Login</Button>
+                                <Button color="primary" className="w-100" onClick={() => window.location.href='/register'}>Register</Button>
+                            </>
+                        }
                     </CardBody>
                 </Card>
             </Col>

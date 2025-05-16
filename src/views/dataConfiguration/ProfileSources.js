@@ -29,7 +29,14 @@ const ProfileSources = () => {
     const isCitizenPath = location.pathname.startsWith('/citizen');
 
     useEffect(() => {
-        axios.get(process.env.REACT_APP_API_URL_TRACKER+"/api/profiles/sources").then((response) => {
+        //...
+        axios.get(process.env.REACT_APP_API_URL_TRACKER+"/api/profiles/sources", 
+            {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                }
+            }
+        ).then((response) => {
             setSources(response.data);
             response.data.forEach((source) => {
                 fetchProfileCount(source);
@@ -39,8 +46,12 @@ const ProfileSources = () => {
 
     const fetchProfileCount = async (source) => {
         try {
-          const response = await axios.post(process.env.REACT_APP_API_URL_TRACKER+"/api/profiles?page=1", new URLSearchParams({ sources: source }), {
-            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+          const response = await axios.post(process.env.REACT_APP_API_URL_TRACKER+"/api/profiles?page=1", 
+            new URLSearchParams({ sources: source }), {
+            headers: { 
+                "Content-Type": "application/x-www-form-urlencoded",
+                'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+            }
           });
           setProfileCounts((prev) => ({ ...prev, [source]: response.data.count }));
         } catch (error) {

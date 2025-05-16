@@ -228,7 +228,12 @@ const LabourMarketDemandOccupation = ({showFilter, onApplyFilters}) => {
             const labelResponse = await axios.post(
                 process.env.REACT_APP_API_URL_TRACKER+'/api/skills?page=1',
                 params,
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+                {
+                    headers: { 
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                    }
+                }
             );
         
             // Merge the labels from the current chunk into the allLabels object
