@@ -21,16 +21,16 @@ pipeline {
             steps {
                 echo "***** Building Docker Image *****"
                 withCredentials([usernamePassword(credentialsId: 'tracker-api-creds', usernameVariable: 'TRACKER_USER', passwordVariable: 'TRACKER_PASS')]) {
-                    sh """
-                        echo "REACT_APP_API_URL_TRACKER_USERNAME=${TRACKER_USER}" >> .env
-                        echo "REACT_APP_API_URL_TRACKER_PASSWORD=${TRACKER_PASS}" >> .env
-                        docker compose build
-                    """
-                    // sh '''
-                    //     export REACT_APP_API_URL_TRACKER_USERNAME=${TRACKER_USER}
-                    //     export REACT_APP_API_URL_TRACKER_PASSWORD=${TRACKER_PASS}
+                    // sh """
+                    //     echo "REACT_APP_API_URL_TRACKER_USERNAME=${TRACKER_USER}" >> .env
+                    //     echo "REACT_APP_API_URL_TRACKER_PASSWORD=${TRACKER_PASS}" >> .env
                     //     docker compose build
-                    // '''
+                    // """
+                    sh '''
+                        export REACT_APP_API_URL_TRACKER_USERNAME=${TRACKER_USER}
+                        export REACT_APP_API_URL_TRACKER_PASSWORD=${TRACKER_PASS}
+                        docker compose build
+                    '''
                 }
             }
         }
