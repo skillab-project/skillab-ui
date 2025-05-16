@@ -24,7 +24,6 @@ pipeline {
                     sh '''
                         export REACT_APP_API_URL_TRACKER_USERNAME=${TRACKER_USER}
                         export REACT_APP_API_URL_TRACKER_PASSWORD=${TRACKER_PASS}
-                        export DOCKER_TAG=test
                         docker compose build
                     '''
                 }
@@ -73,8 +72,7 @@ pipeline {
     post{
         failure{
             // slackSend (color: "#FF0000", message: "Job FAILED: '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-            sh 'docker image rm ${APP_NAME}:test &> /dev/null || true'
-            sh 'DOCKER_TAG=test docker compose down --rmi all'
+            sh 'docker compose down --rmi all || true'
         }
     }
 }
