@@ -14,22 +14,6 @@ pipeline {
     }
 
     stages {
-        // ******************
-        // *** UNIT TESTS ***
-        // ******************
-        stage("Run Unit Tests") {
-            steps {
-                echo "***** Running Unit Tests in Docker *****"
-                sh '''
-                    docker run --rm \
-                        -v "$PWD":/app \
-                        -w /app \
-                        node:22.11.0 \
-                        sh -c "npm ci && npm test"
-                '''
-            }
-        }
-
         // *************************
         // *** IMAGE BUILD STAGE ***
         // *************************
@@ -43,6 +27,22 @@ pipeline {
                         docker compose build
                     """
                 }
+            }
+        }
+
+        // ******************
+        // *** UNIT TESTS ***
+        // ******************
+        stage("Run Unit Tests") {
+            steps {
+                echo "***** Running Unit Tests in Docker *****"
+                sh '''
+                    docker run --rm \
+                        -v "$PWD":/app \
+                        -w /app \
+                        ${DOCKER_REG}${DOCKER_REPO}${APP_NAME}:${DOCKER_TAG} \
+                        npm test
+                '''
             }
         }
 
