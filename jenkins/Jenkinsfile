@@ -19,10 +19,13 @@ pipeline {
         // ******************
         stage("Run Unit Tests") {
             steps {
-                echo "***** Running Unit Tests *****"
+                echo "***** Running Unit Tests in Docker *****"
                 sh '''
-                    npm ci
-                    npm test
+                    docker run --rm \
+                        -v "$PWD":/app \
+                        -w /app \
+                        node:22.11.0 \
+                        sh -c "npm ci && npm test"
                 '''
             }
         }
