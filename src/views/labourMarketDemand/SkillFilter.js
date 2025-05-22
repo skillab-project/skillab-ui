@@ -147,7 +147,7 @@ const SkillFilter = ({onApplyFilters}) => {
                         id="skill-input"
                         type="text"
                         placeholder="Type a skill..."
-                        autocomplete="off"
+                        autoComplete="off"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{

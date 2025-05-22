@@ -151,7 +151,7 @@ const SkillSelection = ({onAddSkill}) => {
                                         id="skill-input"
                                         type="text"
                                         placeholder="Type a skill..."
-                                        autocomplete="off"
+                                        autoComplete="off"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         style={{
@@ -223,6 +223,7 @@ const SkillSelection = ({onAddSkill}) => {
                         <Row>
                             <Col md="12">
                                 <Button
+                                        aria-label="Add selected skill"
                                         className="btn-round btn-icon"
                                         color="success"
                                         outline

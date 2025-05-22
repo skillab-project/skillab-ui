@@ -14,6 +14,19 @@ pipeline {
     }
 
     stages {
+        // ******************
+        // *** UNIT TESTS ***
+        // ******************
+        stage("Run Unit Tests") {
+            steps {
+                echo "***** Running Unit Tests *****"
+                sh '''
+                    npm ci
+                    npm test
+                '''
+            }
+        }
+
         // *************************
         // *** IMAGE BUILD STAGE ***
         // *************************
