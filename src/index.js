@@ -16,6 +16,8 @@ import InitLayout from "layouts/InitLayout.js";
 import InitPage from "views/InitPage.js";
 import Login from "views/Login.js";
 import Register from "views/Register.js";
+import ForgotPasswordPage from "ForgotPasswordPage";
+import PasswordResetPage from "PasswordResetPage";
 import ProtectedRoute from "ProtectedRoute.js";
 
 
@@ -42,6 +44,8 @@ export default function App() {
           <Route index element={<InitPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<PasswordResetPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

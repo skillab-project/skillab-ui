@@ -12,6 +12,7 @@ const InitPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loadingAuth, setLoadingAuth] = useState(false);
+    const [invalidLoginRequest, setInvalidLoginRequest] = useState(false);
 
     const notificationAlert = useRef();
     const notify = (message) => {
@@ -60,6 +61,7 @@ const InitPage = () => {
             }
             else if(response.status === 401 || response.status === 403) {
                 notify("Invalid email or password");
+                setInvalidLoginRequest(true);
             }
             else {
                 console.log("API error");
@@ -87,43 +89,54 @@ const InitPage = () => {
     }, []);
 
     return (
-    <div className="d-flex justify-content-center">
+    <div className="content">
         <NotificationAlert ref={notificationAlert} />
-        <Row className="justify-content-center">
-            <Col >
+        <Row style={{justifyContent:"center"}}>
+            <Col sm="12" md="6" lg="4"> 
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="text-center h5">Login</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <div className="mb-3 position-relative">
-                            <FaEnvelope style={{alignSelf:"anchor-center", paddingLeft:"3px"}}
-                                className="position-absolute text-muted" />
-                            <Input
-                                type="email"
-                                placeholder="Email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                style={{paddingLeft: "20px"}} />
-                        </div>
-                        <div className="mb-3 position-relative">
-                            <FaLock style={{alignSelf:"anchor-center", paddingLeft:"3px"}}
-                                className="position-absolute text-muted" />
-                            <Input
-                                type="password"
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                style={{paddingLeft: "20px"}} />
-                        </div>
-                        {
-                            loadingAuth ?
-                            <div class="lds-dual-ring" style={{display:"flex", justifySelf:"center"}}></div> :
-                            <>
-                                <Button color="success" className="w-100" onClick={handleLogin}>Login</Button>
-                                <Button color="primary" className="w-100" onClick={() => window.location.href='/register'}>Register</Button>
-                            </>
-                        }
+                        <form onSubmit={(e) => { e.preventDefault(); }}>
+                            <div style={{ marginBottom: "1rem", position: "relative" }}>
+                                <FaEnvelope style={{ position: "absolute", top: "50%", left: "8px", transform: "translateY(-50%)", color: "#999" }} />
+                                <input
+                                    type="email"
+                                    placeholder="Email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    style={{ paddingLeft: "30px", width: "100%", height: "2.5rem" }}
+                                    />
+                            </div>
+
+                            <div style={{ marginBottom: "1rem", position: "relative" }}>
+                                <FaLock style={{ position: "absolute", top: "50%", left: "8px", transform: "translateY(-50%)", color: "#999" }} />
+                                <input
+                                    type="password"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    style={{ paddingLeft: "30px", width: "100%", height: "2.5rem" }}
+                                    />
+                            </div>
+
+                            {loadingAuth ?
+                                <div class="lds-dual-ring" style={{display:"flex", justifySelf:"center"}}></div> :
+                                <>
+                                    <Button type="submit" color="success" className="w-100" onClick={handleLogin}>Login</Button>
+                                    <Button color="primary" className="w-100" onClick={() => window.location.href='/register'}>Register</Button>
+                                    {invalidLoginRequest ?
+                                        <a href="/forgot-password" className="text-decoration-none text-danger">
+                                            <i className="fas fa-question-circle me-1"></i>
+                                            Forgot your password?
+                                        </a>
+                                        :
+                                        <></>
+                                    }
+                                </>
+                            }
+                        </form>
                     </CardBody>
                 </Card>
             </Col>
