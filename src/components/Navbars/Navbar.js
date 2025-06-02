@@ -17,6 +17,7 @@ import {
   InputGroupAddon,
   Input,
 } from "reactstrap";
+import { FiLogOut } from "react-icons/fi";
 
 import routesCitizen from "routes/routesCitizen";
 import routesIndustry from "routes/routesIndustry";
@@ -110,6 +111,13 @@ function Header(props) {
       sidebarToggle.current.classList.toggle("toggled");
     }
   }, [location]);
+
+  const logout = () => {
+    localStorage.setItem("accessTokenSkillab", "");
+    localStorage.setItem("refreshTokenSkillab", "");
+    window.location.href='/';
+  }
+
   return (
     // add or remove classes depending if we are on full-screen-maps page or not
     <Navbar
@@ -172,11 +180,11 @@ function Header(props) {
                 <DropdownItem tag="a">Something else here</DropdownItem>
               </DropdownMenu>
             </Dropdown>
-            <NavItem>
-              <Link to="#pablo" className="nav-link btn-rotate">
-                <i className="nc-icon nc-settings-gear-65" />
+            <NavItem style={{display:"flex"}}>
+              <Link onClick={logout} to="#logout" className="nav-link btn-rotate" style={{display:"flex", alignItems:"center"}}>
+                <FiLogOut style={{fontSize:"18px", color:"gray"}} />
                 <p>
-                  <span className="d-lg-none d-md-block">Account</span>
+                  <span style={{marginLeft:"7px"}} className="d-lg-none d-md-block">Log Out</span>
                 </p>
               </Link>
             </NavItem>
