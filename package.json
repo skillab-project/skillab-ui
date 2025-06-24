@@ -19,6 +19,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.464.0",
     "perfect-scrollbar": "1.5.5",
+    "rc-slider": "^11.1.8",
     "react": ">=16.8.0",
     "react-apexcharts": "^1.6.0",
     "react-chartjs-2": "3.3.0",

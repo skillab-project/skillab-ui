@@ -1,4 +1,5 @@
 import React from "react";
+import { Row, Col, Card} from 'reactstrap';
 import CommitCard from "./CommitCard";
 
 const Commits= ({ commits, loading }) => {
@@ -20,11 +21,13 @@ const Commits= ({ commits, loading }) => {
 
   // Show commits
   return (
-    <div className="space-y-4">
+    <Row>
       {commits.map((commit) => (
-        <CommitCard key={commit.sha} commit={commit} />
+        <Col xl="3" md="4" sm="6" xs="12">
+          <CommitCard key={commit.sha} commit={commit} />
+        </Col>
       ))}
-    </div>
+    </Row>
   );
 };
 

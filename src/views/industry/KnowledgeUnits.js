@@ -9,7 +9,6 @@ import axios from 'axios';
 import '../../assets/css/industry.css';
 import { Bar } from 'react-chartjs-2';
 import Heatmap from "./ku/Heatmap";
-import Progress from "./ku/Progress";
 import Commits from "./ku/Commits";
 import Form from "./ku/Form";
 
@@ -45,53 +44,111 @@ function KnowleageUnits() {
 
     const handleViewOrganizationSkills = async () => {
         try {
-            const response = await fetch(process.env.REACT_APP_API_URL_KU+'/detected_kus');
-          
-            // Έλεγχος αν η απάντηση είναι επιτυχής
+            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/detected_kus');
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-      
             const analysisData = await response.json();
             const aggregatedData = {};
-      
-            // Υπολογισμός αθροισμάτων για κάθε KUs
-            analysisData.forEach((item) => {
-                for (const [key, value] of Object.entries(item)) {
+
+            // Process each item in the fetched data
+            analysisData.forEach((item, index) => {
+                const { kus, author } = item;
+
+                for (const [key, value] of Object.entries(kus)) {
                     if (typeof value === 'number') {
-                        if (aggregatedData[key]) {
-                            aggregatedData[key] += value;
-                        } else {
-                            aggregatedData[key] = value;
+                        // Initialize KU entry if not present
+                        if (!aggregatedData[key]) {
+                            aggregatedData[key] = {
+                                files: 0,
+                                authors: new Set(),
+                                employeeCount: 0,
+                            };
                         }
+
+                        // Update number of files
+                        aggregatedData[key].files += value;
+
+                        // Add author only if value is 1
+                        if (value === 1) {
+                            aggregatedData[key].authors.add(author);
+                        }
+
+                        // Update employee count (number of unique authors)
+                        aggregatedData[key].employeeCount = aggregatedData[key].authors.size;
                     }
                 }
             });
-      
-            // Ταξινόμηση των κλειδιών αριθμητικά
+
+            // Sort KU keys numerically (e.g., KU1, KU2, ...)
             const sortedKeys = Object.keys(aggregatedData).sort((a, b) => {
-                const numA = parseInt(a.slice(1)); // Λαμβάνουμε το αριθμητικό μέρος του κλειδιού
-                const numB = parseInt(b.slice(1)); // Λαμβάνουμε το αριθμητικό μέρος του κλειδιού
-                return numA - numB; // Ταξινόμηση αριθμητικά
+                const numA = parseInt(a.slice(2)); // Skip 'KU'
+                const numB = parseInt(b.slice(2));
+                return numA - numB;
             });
-      
-            // Δημιουργία των labels και των data με τη σωστή σειρά
+
+            // Prepare chart labels and datasets
             const labels = sortedKeys;
-            const data = sortedKeys.map(key => aggregatedData[key]);
-      
+            const dataFiles = sortedKeys.map(key => aggregatedData[key].files);
+            const dataEmployees = sortedKeys.map(key => aggregatedData[key].employeeCount);
+
+            // Set chart data
             setChartData({
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Number of KUs',
-                        data: data,
+                        label: 'Number of Files',
+                        data: dataFiles,
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Number of Authors',
+                        data: dataEmployees,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1',
                     },
                 ],
+                options: {
+                    responsive: true,
+                    layout: {
+                        padding: {
+                            right: 150,
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Number of Files',
+                            },
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            offset: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Authors',
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                    },
+                },
             });
-      
             setShowChart(true);
         }
         catch (error) {
@@ -185,25 +242,7 @@ function KnowleageUnits() {
                                     setResultsOfAnalysis={setResultsOfAnalysis} // Pass the setter function
                                 />
                                 {resultsOfAnalysis && ( // Render only if resultsOfAnalysis is true
-                                    <div>
-                                        {totalFiles > 0 && (
-                                        <div className="flex gap-2 items-center justify-between">
-                                            <Progress
-                                                value={(progress / totalFiles) * 100}
-                                                className="flex-grow bg-white"
-                                            />
-                                            <span className="whitespace-nowrap">
-                                            {progress}/{totalFiles}
-                                            </span>
-                                        </div>
-                                        )}
-                                        <div className="flex flex-col gap-4">
-                                        {analysisResults.length > 0 && (
-                                            <Heatmap analysisResults={analysisResults} />
-                                        )}
-                                        <Commits commits={commits} loading={loading} />
-                                        </div>
-                                    </div>
+                                    <Commits commits={commits} loading={loading} />
                                 )}
                             </CardBody>
                         </Card>

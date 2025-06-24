@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button } from "reactstrap";
 import { GitCommitVertical, BarChartHorizontal } from 'lucide-react';
 import Heatmap from './Heatmap';
+import {Button, Card, CardBody, Row, Col, Progress } from "reactstrap";
+import 'rc-slider/assets/index.css';
+import Slider from 'rc-slider';
 
 const Form =({
     commits,
@@ -22,6 +24,44 @@ const Form =({
     const [loadingHeatmap, setLoadingHeatmap] = useState(false);
     const [heatmapMessage, setHeatmapMessage] = useState("No data available");
     const [initialHeatmapHandler, setInitialHeatmapHandler] = useState(false);
+    const [filteredHeatmapData, setFilteredHeatmapData] = useState([]);
+    const [analysisProgress, setAnalysisProgress] = useState(0);
+
+    const [minDate, setMinDate] = useState(null);
+    const [maxDate, setMaxDate] = useState(null);
+    const [totalMonths, setTotalMonths] = useState(0);
+    const [selectedMonths, setSelectedMonths] = useState(1);
+
+    const handleSliderChange = (value) => {
+        setSelectedMonths(value);
+
+        const endDate = new Date(maxDate);
+        const startDate = new Date(endDate);
+        startDate.setMonth(endDate.getMonth() - (value - 1));
+
+        const filteredResults = heatmapData.filter(result => {
+            const resultDate = new Date(result.timestamp);
+            return resultDate >= startDate && resultDate <= endDate;
+        });
+
+        setFilteredHeatmapData(filteredResults);
+    };
+
+
+    useEffect(() => {
+      if (heatmapData.length > 0) {
+          const timestamps = heatmapData.map(result => new Date(result.timestamp));
+          const minDate = new Date(Math.min(...timestamps.map(d => d.getTime()))); 
+          const maxDate = new Date(Math.max(...timestamps.map(d => d.getTime())));
+  
+          setMinDate(minDate);
+          setMaxDate(maxDate);
+  
+          const monthsDiff = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth());
+          setTotalMonths(Math.max(1, monthsDiff +1 ) ); // Ensure at least 1 month
+          setSelectedMonths(Math.max(1, monthsDiff + 1)); // Initialize to total months
+      }
+    }, [heatmapData]);
 
 
     useEffect(() => {
@@ -44,9 +84,11 @@ const Form =({
     
           if (analysisResults.length > 0) {
             setHeatmapData(analysisResults);
+            setFilteredHeatmapData(analysisResults);
           } else {
             setHeatmapMessage("No analysis data found for this repository.");
             setHeatmapData([]);
+            setFilteredHeatmapData([]);
           }
         } catch (error) {
           console.error("Error fetching analysis data:", error);
@@ -108,7 +150,7 @@ const Form =({
     
     
     const handleExtractSkills = () => {
-        setInitialHeatmapHandler(false);
+        setInitialHeatmapHandler(true);
         setAnalysisStarted(true);
         setProgress(0);
         setAnalysisResults(heatmapData);
@@ -119,14 +161,22 @@ const Form =({
         );
     
         eventSource.onmessage = (event) => {
-            if (event.data === "end") {
-                eventSource.close();
-                setLoading(false);
-                setAnalysisStarted(false);
-            } else {
-                const fileData = JSON.parse(event.data);
-                setAnalysisResults((prevResults) => [...prevResults, fileData]);
-                setProgress((prevProgress) => prevProgress + 1);
+            const streamData = JSON.parse(event.data);
+            if(repoUrl == streamData.repoUrl) {
+                console.log(streamData);
+                setAnalysisProgress(streamData.progress);
+
+                if(streamData.file_data != undefined){
+                    setAnalysisResults((prevResults) => [...prevResults, streamData.file_data]);
+                    setHeatmapData((prevResults) => [...prevResults, streamData.file_data]);
+                    setFilteredHeatmapData((prevResults) => [...prevResults, streamData.file_data]);
+                }
+
+                if (streamData.progress == 100) {
+                    eventSource.close();
+                    setLoading(false);
+                    setAnalysisStarted(false);
+                }
             }
         };
     
@@ -182,13 +232,52 @@ const Form =({
                 }
             </form>
 
+            {/* Progress Bar in case of new analysis */}
+            {analysisStarted &&
+                <Progress style={{marginBottom:"25px"}} value={analysisProgress}>
+                    {analysisProgress}%
+                </Progress>
+            }
+
             {/* Heatmap section */}
             {initialHeatmapHandler && (
                 <div className="mt-8 w-full">
                     {loadingHeatmap ? (
                         <p>Loading analysis data...</p>
-                    ) : heatmapData.length > 0 ? (
-                        <Heatmap analysisResults={heatmapData} />
+                    ) : filteredHeatmapData.length > 0 ? (
+                        <>
+                            <div style={{ padding: '1rem' }}>
+                                <Row>
+                                    <Col xs="4" style={{textAlign:"left"}}><strong>Newest Date:</strong></Col>
+                                    <Col xs="4" ><strong>{selectedMonths} Month(s)</strong></Col>
+                                    <Col xs="4" style={{textAlign:"right"}}><strong>Oldest Date:</strong></Col>
+                                </Row>
+
+                                <Slider
+                                    min={1}
+                                    max={totalMonths}
+                                    step={1}
+                                    value={selectedMonths}
+                                    onChange={handleSliderChange}
+                                    trackStyle={{ backgroundColor: '#007bff', height: 6 }}
+                                    handleStyle={{
+                                        borderColor: '#007bff',
+                                        height: 20,
+                                        width: 20,
+                                        marginTop: -7,
+                                        backgroundColor: 'white',
+                                    }}
+                                    railStyle={{ backgroundColor: '#e9ecef', height: 6 }}
+                                />
+
+                                <Row>
+                                    <Col style={{textAlign:"left"}} className="text-start">{minDate?.toDateString()}</Col>
+                                    <Col style={{textAlign:"right"}} className="text-end">{maxDate?.toDateString()}</Col>
+                                </Row>
+                            </div>
+
+                            <Heatmap analysisResults={filteredHeatmapData} />
+                        </>
                     ) : (
                         <p>{heatmapMessage}</p>
                     )}

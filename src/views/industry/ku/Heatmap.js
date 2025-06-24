@@ -43,9 +43,9 @@ const Heatmap = ({ analysisResults }) => {
         colorScale: {
           ranges: [
             { from: 0, to: 0, color: "#FFFFFF" }, // White for zero
-            { from: 1, to: step, color: "#dfffd6" }, // Very light green
-            { from: step + 1, to: step * 2, color: "#92d48a" }, // Light green
-            { from: step * 2 + 1, to: step * 3, color: "#46963b" }, // Medium green
+            { from: 1, to: step, color: "#b1e0a4" }, // Very light green
+            { from: step + 1, to: step * 2, color: "#7bd470" }, // Light green
+            { from: step * 2 + 1, to: step * 3, color: "#398f2e" }, // Medium green
             { from: step * 3 + 1, to: maxKuCount, color: "#003d00" }, // Dark green
           ],
         },
