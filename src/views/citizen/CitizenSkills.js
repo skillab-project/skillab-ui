@@ -34,6 +34,33 @@ const CitizenSkills = ({ skills, setSkills }) => {
         }
     };
 
+    const handleDeleteSkill = async (skillId) => {
+        console.log("delete "+skillId);
+        try {
+            const userId = await getId();
+            const response = await axios.delete(
+                process.env.REACT_APP_API_URL_USER_MANAGEMENT+'/user/'+userId+'/skills?skillId='+skillId,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                    }
+                }
+            );
+            const formattedSkills = response.data.map(skill => ({
+                skill: {
+                    id: skill.skillId,
+                    label: skill.skillLabel
+                },
+                years: skill.years
+            }));
+            setSkills(formattedSkills);
+            console.log("Deleted skill successfully:", response.data);
+        }
+        catch (error) {
+            console.error("Error updating profile:", error);
+        }
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -78,6 +105,7 @@ const CitizenSkills = ({ skills, setSkills }) => {
                                                     <i className="fa fa-edit" />
                                             </Button>
                                             <Button
+                                                    onClick={() => handleDeleteSkill(skill.skill.id)}
                                                     className="btn-round btn-icon"
                                                     color="danger"
                                                     outline

@@ -37,6 +37,9 @@ function CitizenAccount() {
 
       // If there are parameters update them
       const params = [];
+      if (userInfo.country !== initialUserInfo.country) {
+        params.push(`country=${encodeURIComponent(userInfo.country || "")}`);
+      }
       if (userInfo.streetAddress !== initialUserInfo.streetAddress) {
         params.push(`streetAddress=${encodeURIComponent(userInfo.streetAddress || "")}`);
       }
@@ -145,7 +148,20 @@ function CitizenAccount() {
                   <Row>
                     <Col md="12">
                       <FormGroup>
-                        <label>Address (disabled)</label>
+                        <label>Country</label>
+                        <Input
+                          value={userInfo.country || ""}
+                          onChange={(e) => setUserInfo({ ...userInfo, country: e.target.value })}
+                          placeholder="Country"
+                          type="text"
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md="12">
+                      <FormGroup>
+                        <label>Address</label>
                         <Input
                           value={userInfo.streetAddress || ""}
                           onChange={(e) => setUserInfo({ ...userInfo, streetAddress: e.target.value })}
@@ -158,7 +174,7 @@ function CitizenAccount() {
                   <Row>
                     <Col md="12">
                       <FormGroup>
-                        <label>Portfolio</label>
+                        <label>Portfolio URL</label>
                         <Input
                           value={userInfo.portfolio || ""}
                           onChange={(e) => setUserInfo({ ...userInfo, portfolio: e.target.value })}
