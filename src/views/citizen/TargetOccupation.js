@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, CardBody, Button, CardHeader, CardTitle, Table, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
+import { Row, Col, Card, CardBody, Button, CardHeader, CardTitle, Tooltip } from 'reactstrap';
+import { FaInfoCircle } from 'react-icons/fa';
 import OccupationSelection from './OccupationSelection';
 import "../../assets/css/loader.css";
 import axios from 'axios';
@@ -13,6 +14,7 @@ const TargetOccupation = ({skills}) => {
     const [selectedInstitute, setSelectedInstitute] = useState("");
     const [institutes, setInstitutes] = useState([]);
     const [coursesForUpskilling, setCoursesForUpskilling] = useState([]);
+    const [tooltipOpen, setTooltipOpen] = useState(false);
 
     const handleApplyOccupationSelection = (selectedOccupation) => {
         console.log('Occupation received:', selectedOccupation);
@@ -131,7 +133,21 @@ const TargetOccupation = ({skills}) => {
             <Col md="12">
                 <Card>
                     <CardHeader>
-                        <CardTitle tag="h5">Target occupation</CardTitle>
+                        <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
+                            <CardTitle tag="h5">Target occupation</CardTitle>
+                            <FaInfoCircle
+                                id="occupationInfo"
+                                className="ms-2"
+                                style={{ cursor: 'pointer', marginLeft:'10px' }}
+                            />
+                            <Tooltip
+                                isOpen={tooltipOpen}
+                                target="occupationInfo"
+                                toggle={() => setTooltipOpen(!tooltipOpen)}
+                            >
+                                This is the role you're aiming for in your career.
+                            </Tooltip>
+                        </div>
                         <OccupationSelection onApplySelection={handleApplyOccupationSelection}/>
                     </CardHeader>
                     {skillsNeeded.length!=0 &&

@@ -77,6 +77,15 @@ const CitizenSkills = ({ skills, setSkills }) => {
                                                 >
                                                     <i className="fa fa-edit" />
                                             </Button>
+                                            <Button
+                                                    className="btn-round btn-icon"
+                                                    color="danger"
+                                                    outline
+                                                    size="sm"
+                                                    style={{margin:"0px", marginLeft:"5px"}}
+                                                >
+                                                    <i className="fa fa-trash" />
+                                            </Button>
                                         </Col>
                                     </Row>
                                 </CardBody>
