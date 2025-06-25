@@ -212,7 +212,7 @@ const SkillSelection = ({onAddSkill}) => {
                             <Col md="4" style={{margin: "auto"}}>
                                 <Input
                                     placeholder="Years"
-                                    type="text"
+                                    type="number"
                                     style={{textAlign:"center"}}
                                     value={newSkillYears} 
                                     onChange={(e) => setNewSkillYears(e.target.value)}

@@ -6,6 +6,9 @@ import axios from "axios";
 
 
 const CitizenSkills = ({ skills, setSkills }) => {
+    const [editingSkillId, setEditingSkillId] = useState(null);
+    const [editedSkill, setEditedSkill] = useState({ years: '' });
+
     const handleOnAddSkill = async (selectedSkill) => {
         console.log('Skill received:', selectedSkill);
         if(selectedSkill.skill!='' && selectedSkill.years!=''){
@@ -61,6 +64,36 @@ const CitizenSkills = ({ skills, setSkills }) => {
         }
     }
 
+    const handleSaveUpdateOfSkill = async (skill) => {
+        try {
+            const userId = await getId();
+            const response = await axios.put(
+                process.env.REACT_APP_API_URL_USER_MANAGEMENT+'/user/'+userId+'/skills/skill?skillId='+skill.skill.id+'&years='+editedSkill.years,
+                {},{
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                    }
+                }
+            );
+            console.log("Updated skill:", response.data);
+
+            // Update UI
+            const updatedSkills = skills.map((s) =>
+                s.skill.id === skill.skill.id
+                    ? { ...s, years: editedSkill.years }
+                    : s
+            );
+            setSkills(updatedSkills);
+
+            // Reset edit state
+            setEditingSkillId(null);
+            setEditedSkill({ years: '' });
+        } catch (error) {
+            console.error("Error updating skill:", error);
+        }
+    }
+
+
     return (
         <Card>
             <CardHeader>
@@ -94,26 +127,69 @@ const CitizenSkills = ({ skills, setSkills }) => {
                                             {skill.skill.label}
                                         </Col>
                                         <Col md="4">
-                                            {skill.years}
-                                            <Button
-                                                    className="btn-round btn-icon"
-                                                    color="success"
-                                                    outline
-                                                    size="sm"
-                                                    style={{margin:"0px", marginLeft:"5px"}}
-                                                >
-                                                    <i className="fa fa-edit" />
-                                            </Button>
-                                            <Button
-                                                    onClick={() => handleDeleteSkill(skill.skill.id)}
-                                                    className="btn-round btn-icon"
-                                                    color="danger"
-                                                    outline
-                                                    size="sm"
-                                                    style={{margin:"0px", marginLeft:"5px"}}
-                                                >
-                                                    <i className="fa fa-trash" />
-                                            </Button>
+                                            {editingSkillId === skill.skill.id ? (
+                                                <>
+                                                    <Col md="12" style={{padding:"0px"}}>
+                                                        <Input
+                                                            type="number"
+                                                            value={editedSkill.years}
+                                                            onChange={(e) =>
+                                                                setEditedSkill({ ...editedSkill, years: e.target.value })
+                                                            }
+                                                            style={{ maxWidth: '150px', display: 'inline-block' }}
+                                                        />
+                                                    </Col>
+                                                    <Col md="12" style={{padding:"0px"}}>
+                                                        <Button
+                                                            onClick={() => handleSaveUpdateOfSkill(skill)}
+                                                            className="btn-round btn-icon"
+                                                            color="success"
+                                                            outline
+                                                            size="sm"
+                                                            style={{ marginLeft: "5px" }}
+                                                        >
+                                                            <i className="fa fa-save" />
+                                                        </Button>
+                                                        <Button
+                                                            onClick={() => setEditingSkillId(null)}
+                                                            className="btn-round btn-icon"
+                                                            color="danger"
+                                                            outline
+                                                            size="sm"
+                                                            style={{ marginLeft: "5px" }}
+                                                        >
+                                                            <i className="fa fa-times-circle" />
+                                                        </Button>
+                                                    </Col>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {skill.years}
+                                                    <Button
+                                                            onClick={() => {
+                                                                setEditingSkillId(skill.skill.id);
+                                                                setEditedSkill({ years: skill.years });
+                                                            }}
+                                                            className="btn-round btn-icon"
+                                                            color="success"
+                                                            outline
+                                                            size="sm"
+                                                            style={{marginLeft:"5px"}}
+                                                        >
+                                                            <i className="fa fa-edit" />
+                                                    </Button>
+                                                    <Button
+                                                            onClick={() => handleDeleteSkill(skill.skill.id)}
+                                                            className="btn-round btn-icon"
+                                                            color="danger"
+                                                            outline
+                                                            size="sm"
+                                                            style={{marginLeft:"5px"}}
+                                                        >
+                                                            <i className="fa fa-trash" />
+                                                    </Button>
+                                                </>
+                                            )}
                                         </Col>
                                     </Row>
                                 </CardBody>
