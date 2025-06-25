@@ -288,8 +288,8 @@ describe('SkillSelection Component', () => {
 
         // Type years
         const yearsInput = screen.getByPlaceholderText('Years');
-        await userEvent.type(yearsInput, '5');
-        expect(yearsInput).toHaveValue('5');
+        await userEvent.type(yearsInput, "5");
+        expect(yearsInput).toHaveValue(5);
 
 
         // Click add button (assuming aria-label="Add selected skill")
@@ -306,7 +306,7 @@ describe('SkillSelection Component', () => {
         // Assert form is reset
         expect(screen.getByPlaceholderText('Type a skill...')).toBeInTheDocument(); // Skill input back
         expect(screen.queryByText('JavaScript')).not.toBeInTheDocument(); // Pill gone
-        expect(screen.getByPlaceholderText('Years')).toHaveValue(''); // Years cleared
+        expect(screen.getByPlaceholderText('Years')).toHaveValue(null); // Years cleared
     });
 
 
