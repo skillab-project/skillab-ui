@@ -11,11 +11,29 @@ import routes from "routes/routesIndustry";
 
 var ps;
 
+// Helper function to flatten the routes for the router
+const getRoutes = (routes) => {
+  let allRoutes = [];
+  routes.forEach((prop) => {
+    if (prop.children) {
+      // If it has children, recursively get their routes
+      allRoutes = allRoutes.concat(getRoutes(prop.children));
+    } else if (prop.component) {
+      // If it's a single route with a component, add it
+      allRoutes.push(prop);
+    }
+  });
+  return allRoutes;
+};
+
+
 function Dashboard(props) {
   const [backgroundColor, setBackgroundColor] = React.useState("white");
   const [activeColor, setActiveColor] = React.useState("info");
   const mainPanel = React.useRef();
   const location = useLocation();
+  const allRoutes = getRoutes(routes);
+  
   React.useEffect(() => {
     if (navigator.platform.indexOf("Win") > -1) {
       ps = new PerfectScrollbar(mainPanel.current);
@@ -28,22 +46,25 @@ function Dashboard(props) {
       }
     };
   });
+
   React.useEffect(() => {
     mainPanel.current.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [location]);
+
   return (
     <div className="wrapper">
       <Sidebar
         {...props}
-        routes={routes.filter((prop) => (prop.path.match(/\//g) || []).length < 2)}   //Filter out the ones with 2 "/"
+        routes={routes}
         bgColor={backgroundColor}
         activeColor={activeColor}
       />
       <div className="main-panel" ref={mainPanel}>
         <Navbar {...props} />
         <Routes>
-          {routes.map((prop, key) => {
+          {/* Map over the FLATTENED array for the router */}
+          {allRoutes.map((prop, key) => {
             return (
               <Route
                 path={prop.path}

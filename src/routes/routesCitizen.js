@@ -3,6 +3,10 @@ import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand"
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix"
 import Configuration from "views/dataConfiguration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
+import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
+import DemandForecasting from "views/demand/forecasting/DemandForecasting"
+import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
+import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 
 var routes = [
   {
@@ -13,26 +17,59 @@ var routes = [
     layout: "/citizen",
   },
   {
-    path: "/labour-market-demand",
-    name: "Labour Market Demand",
-    icon: "nc-icon nc-planet",
-    component: <LabourMarketDemand />,
-    layout: "/citizen",
+    name: "Demand",
+    isCategory: true, 
+    children: [
+      {
+        path: "/demand-analytics",
+        name: "Analytics",
+        icon: "nc-icon nc-zoom-split",
+        component: <DemandAnalytics />,
+        layout: "/citizen",
+      },
+      {
+        path: "/demand-forecasting",
+        name: "Forecasting",
+        icon: "nc-icon nc-chart-pie-36",
+        component: <DemandForecasting />,
+        layout: "/citizen",
+      },
+    ],
   },
   {
-    path: "/skills-demand-matrix",
-    name: "Skills Demand Matrix",
-    icon: "nc-icon nc-vector",
-    component: <SkillDemandMatrix />,
-    layout: "/citizen",
+    name: "Supply",
+    isCategory: true,
+    children: [
+      {
+        path: "/supply-analytics",
+        name: "Analytics",
+        icon: "nc-icon nc-zoom-split",
+        component: <SupplyAnalytics />,
+        layout: "/citizen",
+      },
+      {
+        path: "/supply-forecasting",
+        name: "Forecasting",
+        icon: "nc-icon nc-chart-pie-36",
+        component: <SupplyForecasting />,
+        layout: "/citizen",
+      },
+    ],
   },
-  {
-    path: "/eu-general-purpose-statistics",
-    name: "EU General-Purpose Statistics",
-    icon: "nc-icon nc-bank",
-    component: <EuGeneralPurposeStatistics />,
-    layout: "/citizen",
-  },
+  // {
+  //   path: "/labour-market-demand",
+  //   name: "Labour Market Demand",
+  //   icon: "nc-icon nc-planet",
+  //   component: <LabourMarketDemand />,
+  //   layout: "/citizen",
+  // },
+  // {
+  //   path: "/skills-demand-matrix",
+  //   name: "Skills Demand Matrix",
+  //   icon: "nc-icon nc-vector",
+  //   component: <SkillDemandMatrix />,
+  //   layout: "/citizen",
+  // },
   {
     path: "/Configuration",
     name: "Configuration",

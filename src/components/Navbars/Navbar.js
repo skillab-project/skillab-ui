@@ -44,46 +44,42 @@ function Header(props) {
   };
 
   const getBrand = () => {
-    let brandName = "Default Brand";
-    routesCitizen.map((prop, key) => {
-      if (window.location.href.indexOf(prop.layout + prop.path) !== -1) {
-        brandName = prop.name;
+    const findBrandName = (routes) => {
+      for (let prop of routes) {
+        // Check if the current route object's path matches the URL
+        if (window.location.href.indexOf(prop.layout + prop.path) !== -1) {
+          return prop.name;
+        }
+        // If it has children, recursively search in the children array
+        if (prop.children) {
+          let childBrandName = findBrandName(prop.children);
+          if (childBrandName) {
+            return prop.name +" "+ childBrandName; // If found in children, return it
+          }
+        }
       }
-      return null;
-    });
-    if(brandName == "Default Brand"){
-      routesIndustry.map((prop, key) => {
-        if (window.location.href.indexOf(prop.layout + prop.path) !== -1) {
-          brandName = prop.name;
-        }
-        return null;
-      });
+      return null; // Return null if not found in this array
+    };
+
+    // Put all your route configurations into an array
+    const allRouteGroups = [
+      routesCitizen,
+      routesIndustry,
+      routesEducation,
+      routesPolicyIndustry,
+      routesPolicyEducation,
+    ];
+
+    // Loop through each group and search for the brand name
+    for (let routeGroup of allRouteGroups) {
+      const brandName = findBrandName(routeGroup);
+      if (brandName) {
+        return brandName; // If we found it, return immediately
+      }
     }
-    if(brandName == "Default Brand"){
-      routesEducation.map((prop, key) => {
-        if (window.location.href.indexOf(prop.layout + prop.path) !== -1) {
-          brandName = prop.name;
-        }
-        return null;
-      });
-    }
-    if(brandName == "Default Brand"){
-      routesPolicyIndustry.map((prop, key) => {
-        if (window.location.href.indexOf(prop.layout + prop.path) !== -1) {
-          brandName = prop.name;
-        }
-        return null;
-      });
-    }
-    if(brandName == "Default Brand"){
-      routesPolicyEducation.map((prop, key) => {
-        if (window.location.href.indexOf(prop.layout + prop.path) !== -1) {
-          brandName = prop.name;
-        }
-        return null;
-      });
-    }
-    return brandName;
+
+    // If the loop finishes and we haven't found anything, return the default
+    return "Default Brand";
   };
 
   const openSidebar = () => {
