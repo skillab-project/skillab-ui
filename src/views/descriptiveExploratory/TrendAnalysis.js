@@ -26,12 +26,20 @@ function TrendAnalysis({ data }) {
   
     // Get all available countries and sorted dates (as strings)
     const allCountries = useMemo(() => data.map(d => d.country), [data]);
+    
     const allDates = useMemo(() => {
-        const sample = data[0] || {};
-        return Object.keys(sample)
-            .filter(k => k !== "country")
-            .sort((a, b) => parseInt(a) - parseInt(b));
+        const dateSet = new Set();
+        data.forEach(countryObject => {
+            Object.keys(countryObject).forEach(key => {
+                if (key !== "country") {
+                    dateSet.add(key);
+                }
+            });
+        });
+
+        return Array.from(dateSet).sort((a, b) => parseInt(a) - parseInt(b));
     }, [data]);
+
   
     // Toggle selected countries
     const toggleCountry = (country) => {

@@ -21,6 +21,10 @@ import axios from 'axios';
 import "../../../assets/css/loader.css";
 import { FaFilter } from "react-icons/fa";
 import JobAdsFilter from "../JobAdsFilter";
+import DescriptiveExploratorySyllabus from "../../descriptiveExploratory/DescriptiveExploratorySyllabus";
+import DescriptiveExploratoryKU from "views/descriptiveExploratory/DescriptiveExploratoryKU";
+import DescriptiveExploratoryShortCourses from "views/descriptiveExploratory/DescriptiveExploratoryShortCourses";
+import DescriptiveExploratoryProfiles from "views/descriptiveExploratory/DescriptiveExploratoryProfiles";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
@@ -167,7 +171,26 @@ const SupplyAnalytics = () => {
         
                 <TabContent activeTab={currentActiveTab}>
                     <TabPane tabId="1">
-                        {currentActiveTab === '1' && <>1, {selectedDataSource}</>}
+                        {currentActiveTab === '1' && selectedDataSource === 'EU Syllabus' &&
+                            <>
+                                <DescriptiveExploratorySyllabus filters=""/>
+                            </>
+                        }
+                        {currentActiveTab === '1' && selectedDataSource === 'EU KUs' &&
+                            <>
+                                <DescriptiveExploratoryKU filters=""/>
+                            </>
+                        }
+                        {currentActiveTab === '1' && selectedDataSource === 'Short Courses' &&
+                            <>
+                                <DescriptiveExploratoryShortCourses filters=""/>
+                            </>
+                        }
+                        {currentActiveTab === '1' && selectedDataSource === 'EU profiles' &&
+                            <>
+                                <DescriptiveExploratoryProfiles filters=""/>
+                            </>
+                        }
                     </TabPane>
         
                     <TabPane tabId="2">

@@ -17,16 +17,16 @@ import {
   CardSubtitle
 } from "reactstrap";
 
-const InfoTable = ({ data, selectedOccupations }) => {
+const InfoTable = ({ data, selectedSkills }) => {
   return (
     <div style={{ overflowX: "auto", marginTop: "20px" }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
             <th style={{ border: "1px solid #ddd", padding: "8px" }}>Country</th>
-            {selectedOccupations.map((occupation) => (
-              <th key={occupation} style={{ border: "1px solid #ddd", padding: "8px" }}>
-                {occupation}
+            {selectedSkills.map((skill) => (
+              <th key={skill} style={{ border: "1px solid #ddd", padding: "8px" }}>
+                {skill}
               </th>
             ))}
           </tr>
@@ -35,12 +35,12 @@ const InfoTable = ({ data, selectedOccupations }) => {
           {data.map((row) => (
             <tr key={row.country}>
               <td style={{ border: "1px solid #ddd", padding: "8px" }}>{row.country}</td>
-              {selectedOccupations.map((occupation) => (
+              {selectedSkills.map((skill) => (
                 <td
-                  key={occupation}
+                  key={skill}
                   style={{ border: "1px solid #ddd", padding: "8px", textAlign: "center" }}
                 >
-                  {row[occupation]}
+                  {row[skill]}
                 </td>
               ))}
             </tr>
@@ -53,22 +53,22 @@ const InfoTable = ({ data, selectedOccupations }) => {
 
 function ExploratoryAnalytics(props) {
     const [dataExploratory, setDataExploratory] = useState(props.data);
-    const [allOccupationsExploratory, setAllOccupationsExploratory] = useState([]);
-    const [visibleOccupationsExploratory, setVisibleOccupationsExploratory] = useState([]);
-    const [visibleOccupationsExploratoryNumber, setVisibleOccupationsExploratoryNumber] = useState([]);
+    const [allSkillsExploratory, setAllSkillsExploratory] = useState([]);
+    const [visibleSkillsExploratory, setVisibleSkillsExploratory] = useState([]);
+    const [visibleSkillsExploratoryNumber, setVisibleSkillsExploratoryNumber] = useState([]);
     const [visibleRange, setVisibleRange] = useState([0, 4]);
-    const [selectedOccupations, setSelectedOccupations] = useState([]);
+    const [selectedSkills, setSelectedSkills] = useState([]);
 
 
     const handleSliderChange = (event) => {
             const value = parseInt(event.target.value, 10);
             setVisibleRange([value, value + 4]); // Show 4 countries at a time
         };
-    const toggleOccupation = (occupation) => {
-            setSelectedOccupations((prev) =>
-            prev.includes(occupation)
-                ? prev.filter((item) => item !== occupation)
-                : [...prev, occupation]
+    const toggleskill = (skill) => {
+            setSelectedSkills((prev) =>
+            prev.includes(skill)
+                ? prev.filter((item) => item !== skill)
+                : [...prev, skill]
             );
         };
     const visibleData = dataExploratory.slice(visibleRange[0], visibleRange[1]);
@@ -82,18 +82,18 @@ function ExploratoryAnalytics(props) {
 
     useEffect(() => {
       if(dataExploratory){
-        var allOccupations= Object.keys(dataExploratory[0]).filter((key) => key !== "country");
-        setAllOccupationsExploratory(allOccupations);
-        setVisibleOccupationsExploratory(allOccupations.slice(0,10));
-        setVisibleOccupationsExploratoryNumber(10);
-        setSelectedOccupations([allOccupations[0],allOccupations[1]]);
+        var allSkills= Object.keys(dataExploratory[0]).filter((key) => key !== "country");
+        setAllSkillsExploratory(allSkills);
+        setVisibleSkillsExploratory(allSkills.slice(0,10));
+        setVisibleSkillsExploratoryNumber(10);
+        setSelectedSkills([allSkills[0],allSkills[1]]);
       }
     }, []);
 
 
-    const handleMoreOccupations = () => {
-      setVisibleOccupationsExploratory(allOccupationsExploratory.slice(0, visibleOccupationsExploratoryNumber+10));
-      setVisibleOccupationsExploratoryNumber(visibleOccupationsExploratoryNumber+10);
+    const handleMoreSkills = () => {
+      setVisibleSkillsExploratory(allSkillsExploratory.slice(0, visibleSkillsExploratoryNumber+10));
+      setVisibleSkillsExploratoryNumber(visibleSkillsExploratoryNumber+10);
     }
 
 
@@ -103,19 +103,19 @@ function ExploratoryAnalytics(props) {
                 <CardTitle tag="h5">Exploratory Analytics</CardTitle>
             </CardHeader>
             <CardBody>
-              {allOccupationsExploratory.length>0 &&
+              {allSkillsExploratory.length>0 &&
                 <>
                   {/* Filter Buttons */}
                   <div style={{ marginBottom: "20px" }}>
-                      {visibleOccupationsExploratory.map((occupation) => (
+                      {visibleSkillsExploratory.map((skill) => (
                       <button
-                          key={occupation}
-                          onClick={() => toggleOccupation(occupation)}
+                          key={skill}
+                          onClick={() => toggleskill(skill)}
                           style={{
                           marginRight: "10px",
                           marginBottom: "5px",
                           padding: "5px",
-                          background: selectedOccupations.includes(occupation)
+                          background: selectedSkills.includes(skill)
                               ? "#8884d8"
                               : "#ddd",
                           color: "#fff",
@@ -124,7 +124,7 @@ function ExploratoryAnalytics(props) {
                           cursor: "pointer",
                           }}
                       >
-                          {occupation}
+                          {skill}
                       </button>
                       ))}
                   </div>
@@ -134,7 +134,7 @@ function ExploratoryAnalytics(props) {
                         color="success"
                         outline
                         size="m"
-                        onClick={() => handleMoreOccupations()}
+                        onClick={() => handleMoreSkills()}
                       >
                         More
                     </Button>
@@ -162,10 +162,10 @@ function ExploratoryAnalytics(props) {
                       <Tooltip />
                       <Legend />
 
-                      {selectedOccupations.map((occupation,index) => (
+                      {selectedSkills.map((skill,index) => (
                           <Bar
-                          key={occupation}
-                          dataKey={occupation}
+                          key={skill}
+                          dataKey={skill}
                           fill={generateColor(index)}
                           />
                       ))}
@@ -189,7 +189,7 @@ function ExploratoryAnalytics(props) {
                   </button>
                   
                   {/* Conditional Rendering of Table */}
-                  {showTable && <InfoTable data={dataExploratory} selectedOccupations={selectedOccupations} />}
+                  {showTable && <InfoTable data={dataExploratory} selectedSkills={selectedSkills} />}
                 </>
               }
             </CardBody>

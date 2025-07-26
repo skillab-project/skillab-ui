@@ -17,6 +17,7 @@ function Artifacts() {
     const [formData, setFormData] = useState({
         repo_name: '',
         url: '',
+        organization: '',
         description: '',
         comments: '',
       });
@@ -26,6 +27,7 @@ function Artifacts() {
         setSelectedRepoForEdit(null);
         setFormData({repo_name: '',
             url: '',
+            organization: '',
             description: '',
             comments: ''});
     };
@@ -36,6 +38,7 @@ function Artifacts() {
         setFormData({
             repo_name: repo.name,
             url: repo.url,
+            organization: repo.organization,
             description: repo.description,
             comments: repo.comments
         });
@@ -70,6 +73,7 @@ function Artifacts() {
         }
         setFormData({repo_name: '',
             url: '',
+            organization: '',
             description: '',
             comments: ''})
     };
@@ -78,6 +82,7 @@ function Artifacts() {
         try {
           const response = await axios.put(process.env.REACT_APP_API_URL_KU+`/repos/${formData.repo_name}`, {
             url: formData.url,
+            organization: formData.organization,
             description: formData.description,
             comments: formData.comments
           });
@@ -187,6 +192,13 @@ function Artifacts() {
                                 value={formData.url}
                                 onChange={handleInputChange}
                                 placeholder="URL"
+                            />
+                            <input
+                                type="text"
+                                name="organization"
+                                value={formData.organization}
+                                onChange={handleInputChange}
+                                placeholder="Organization"
                             />
                             <textarea
                                 name="description"

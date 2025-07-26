@@ -1,5 +1,4 @@
 import IndustryAccount from "views/IndustryAccount";
-import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import Configuration from "views/dataConfiguration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"

@@ -20,6 +20,8 @@ import axios from 'axios';
 import "../../../assets/css/loader.css";
 import { FaFilter } from "react-icons/fa";
 import JobAdsFilter from "../JobAdsFilter";
+import SkillDemandMatrix from "../../hcv/HCV"
+import DescriptiveExploratoryJobs from "../../descriptiveExploratory/DescriptiveExploratoryJobs";
 
 const DemandAnalytics = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
@@ -144,7 +146,7 @@ const DemandAnalytics = () => {
                      */}
                     <TabPane tabId="1">
                         {currentActiveTab == 1 &&
-                            <>1</>
+                            <DescriptiveExploratoryJobs filters=""/>
                         }
                     </TabPane>
         
@@ -153,7 +155,7 @@ const DemandAnalytics = () => {
                      */}
                     <TabPane tabId="2">
                         {currentActiveTab == 2 &&
-                            <>2</>
+                            <SkillDemandMatrix datasource="jobs"/>
                         }
                     </TabPane>
                     

@@ -1,33 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, CardBody, Button } from 'reactstrap';
+import { Row, Col, Card, CardBody, Button, Dropdown, DropdownMenu, DropdownToggle, DropdownItem } from 'reactstrap';
 import axios from 'axios';
 
-const SkillFilter = ({onApplyFilters}) => {
+const OccupationSelectionAndPillar = ({onApplySelection}) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [allSkills, setAllSkills] = useState([]); // Holds the full list fetched from the API
-    const [filteredSkills, setFilteredSkills] = useState([]); // Filtered skills for the dropdown
+    const [allOccupations, setAllOccupations] = useState([]); // Holds the full list fetched from the API
+    const [filteredOccupations, setFilteredOccupations] = useState([]); // Filtered Occupations for the dropdown
     const [isLoading, setIsLoading] = useState(false);
-    // toDo
-    //  change to [] afterwards
-    const [selectedSkills, setSelectedSkills] = useState([{id: "http://data.europa.eu/esco/skill/ccd0a1d9-afda-43d9-b901-96344886e14d",
-                                                          label: "Python (computer programming)"}]); 
+    const [selectedOccupations, setSelectedOccupations] = useState([]); 
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState('Select Pillar');
 
-    // Fetch skills when the user types 3 or more characters
+    const toggle = () => setDropdownOpen((prevState) => !prevState);
+
+    const handleSelect = (item) => {
+        setSelectedItem(item);
+    };
+
+    // Fetch Occupations when the user types 3 or more characters
     useEffect(() => {
-        const fetchSkills = async () => {
+        const fetchOccupations = async () => {
             if (searchTerm.length === 3) {
                 setIsLoading(true);
-                const accumulatedSkills = [];
+                const accumulatedOccupations = [];
                 let currentPage = 1;
                 let hasMorePages = true;
     
                 try {
                     while (hasMorePages) {
                         const response = await axios.post(
-                            process.env.REACT_APP_API_URL_TRACKER+'/api/skills',
+                            process.env.REACT_APP_API_URL_TRACKER+'/api/occupations',
                             new URLSearchParams({
-                                'min_skill_level': '1',
-                                'keywords': searchTerm
+                                'keywords': searchTerm,
+                                'max_level': '3'
                             }),
                             {
                                 params: {
@@ -44,81 +49,80 @@ const SkillFilter = ({onApplyFilters}) => {
                             break;
                         }
     
-                        const skills = response.data.items.map((skill) => ({
-                            label: skill.label,
-                            id: skill.id,
+                        const occupations = response.data.items.map((occupation) => ({
+                            label: occupation.label,
+                            id: occupation.id,
                         }));
-                        accumulatedSkills.push(...skills);
+                        accumulatedOccupations.push(...occupations);
                         currentPage += 1;
                     }
     
-                    // Update the state with all skills
-                    setAllSkills(accumulatedSkills);
+                    // Update the state with all occupations
+                    setAllOccupations(accumulatedOccupations);
                 } catch (error) {
-                    console.error('Error fetching skills:', error);
+                    console.error('Error fetching occupations:', error);
                 } finally {
                     setIsLoading(false);
                 }
             }
         };
     
-        fetchSkills();
+        fetchOccupations();
     }, [searchTerm]);
 
-    // Filter the list of skills based on the current input
+    // Filter the list of occupations based on the current input
+    // ?just includes or we should have all?
     useEffect(() => {
-        if (searchTerm.length >= 3 && allSkills.length > 0) {
-            setFilteredSkills(
-                allSkills.filter((skill) =>
-                    skill.label.toLowerCase().includes(searchTerm.toLowerCase())
+        if (searchTerm.length >= 3 && allOccupations.length > 0) {
+            setFilteredOccupations(
+                allOccupations.filter((occupation) =>
+                    occupation.label.toLowerCase().includes(searchTerm.toLowerCase())
                 )
             );
         } else {
-            setFilteredSkills([]);
+            setFilteredOccupations([]);
         }
-    }, [searchTerm, allSkills]);
+    }, [searchTerm, allOccupations]);
 
-    // Add a skill to the selected list
-    const handleSelectSkill = (selectedSkill) => {
-        if (!selectedSkills.find((skill) => skill.label === selectedSkill.label)) {
-            setSelectedSkills([...selectedSkills, selectedSkill]);
+    // Add a occupation to the selected list
+    const handleSelectOccupation = (selectedOccupation) => {
+        if (!selectedOccupations.find((occupation) => occupation.label === selectedOccupation.label)) {
+            setSelectedOccupations([...selectedOccupations, selectedOccupation]);
         }
         setSearchTerm(''); // Reset the input
-        setFilteredSkills([]); // Clear suggestions
+        setFilteredOccupations([]); // Clear suggestions
     };
 
-    // Remove a skill from the selected list
-    const handleRemoveSkill = (label) => {
-        setSelectedSkills(selectedSkills.filter((skill) => skill.label !== label));
+    // Remove a occupation from the selected list
+    const handleRemoveOccupation = (label) => {
+        setSelectedOccupations(selectedOccupations.filter((occupation) => occupation.label !== label));
     };
 
     // Handle Apply Filter Button
     const handleApplyFilter = () => {
-        console.log('Applied Filters:', selectedSkills);
-        if (onApplyFilters) {
-            onApplyFilters(selectedSkills);
+        if(selectedItem!="Select Pillar" && selectedOccupations.length!=0){
+            if (onApplySelection) {
+                onApplySelection(selectedOccupations[0], selectedItem);
+            }
         }
     };
 
     return (
         <Card>
             <CardBody>
-                <i className="fa fa-filter"></i>
                 <div>
-                    <label htmlFor="skill-input" style={{ fontWeight: 'bold' }}>
-                        Skills:
-                    </label>
                     <div
                         style={{
                             display: 'flex',
                             flexWrap: 'wrap',
                             gap: '8px',
                             marginBottom: '8px',
+                            justifyContent: 'center'
                         }}
                     >
-                        {selectedSkills.map((skill) => (
+                        {selectedOccupations.map((occupation) => (
                             <div
-                                key={skill.id}
+                                key={occupation.id}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -127,9 +131,9 @@ const SkillFilter = ({onApplyFilters}) => {
                                     padding: '4px 8px',
                                 }}
                             >
-                                <span style={{ marginRight: '8px' }}>{skill.label}</span>
+                                <span style={{ marginRight: '8px' }}>{occupation.label}</span>
                                 <button
-                                    onClick={() => handleRemoveSkill(skill.label)}
+                                    onClick={() => handleRemoveOccupation(occupation.label)}
                                     style={{
                                         background: 'transparent',
                                         border: 'none',
@@ -143,10 +147,10 @@ const SkillFilter = ({onApplyFilters}) => {
                             </div>
                         ))}
                     </div>
-                    <input
-                        id="skill-input"
+                    {selectedOccupations.length==0 && (<input
+                        id="occupation-input"
                         type="text"
-                        placeholder="Type a skill..."
+                        placeholder="Type an occupation..."
                         autoComplete="off"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -158,13 +162,13 @@ const SkillFilter = ({onApplyFilters}) => {
                             marginTop: '8px',
                             fontSize: '14px',
                         }}
-                    />
+                    />)}
                     {isLoading && (
                         <div style={{ marginTop: '8px', fontStyle: 'italic' }}>
                             Loading...
                         </div>
                     )}
-                    {filteredSkills.length > 0 && (
+                    {filteredOccupations.length > 0 && (
                         <ul
                             style={{
                                 listStyleType: 'none',
@@ -181,10 +185,10 @@ const SkillFilter = ({onApplyFilters}) => {
                                 zIndex: 1000,
                             }}
                         >
-                            {filteredSkills.map((skill) => (
+                            {filteredOccupations.map((occupation) => (
                                 <li
-                                    key={skill.id}
-                                    onClick={() => handleSelectSkill(skill)}
+                                    key={occupation.id}
+                                    onClick={() => handleSelectOccupation(occupation)}
                                     style={{
                                         padding: '10px',
                                         cursor: 'pointer',
@@ -198,20 +202,36 @@ const SkillFilter = ({onApplyFilters}) => {
                                         (e.currentTarget.style.background = '#fff')
                                     }
                                 >
-                                    {skill.label}
+                                    {occupation.label}
                                 </li>
                             ))}
                         </ul>
                     )}
+                    <div style={{margin: "auto", marginTop: "15px"}}>
+                        Select Pillar: 
+                        <Dropdown isOpen={dropdownOpen} toggle={toggle}>
+                            <DropdownToggle caret>
+                                {selectedItem}
+                            </DropdownToggle>
+                            <DropdownMenu right>
+                                <DropdownItem onClick={() => handleSelect('skills')}>Skills</DropdownItem>
+                                <DropdownItem onClick={() => handleSelect('knowledge')}>Knowledge</DropdownItem>
+                                <DropdownItem onClick={() => handleSelect('languages')}>Languages</DropdownItem>
+                                <DropdownItem onClick={() => handleSelect('traversal')}>Transversal</DropdownItem>
+                            </DropdownMenu>
+                        </Dropdown>
+                    </div>
                     <Button
                         className="btn-round"
                         color="info"
                         onClick={handleApplyFilter}
                         style={{
-                            marginTop: '12px'
+                            margin: "auto",
+                            marginTop: '15px',
+                            display: "block"
                         }}
                     >
-                        Apply Filters
+                        Apply
                     </Button>
                 </div>
             </CardBody>
@@ -219,4 +239,4 @@ const SkillFilter = ({onApplyFilters}) => {
     );
 };
 
-export default SkillFilter;
+export default OccupationSelectionAndPillar;

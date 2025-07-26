@@ -1,6 +1,5 @@
 import EducationAccount from "views/EducationAccount"
 import Configuration from "views/dataConfiguration/Configuration"
-import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics";
 import EducationManagement from "views/education/EducationManagement";

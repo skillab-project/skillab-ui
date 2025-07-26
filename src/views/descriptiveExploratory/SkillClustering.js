@@ -13,26 +13,9 @@ import {getId} from "../../utils/Tokens";
 
 
 
-const SkillClustering = (props) => {
+const SkillClustering = ({data, onApplyChangeValueK}) => {
     const svgRef = useRef(null);
-    const [data, setData] = useState(props.data);
     const [noClustNow, setNoClustNow] = useState(10);
-    var userId=""
-
-    // Fetch data from the endpoint
-    const handleClick = async () => {
-        try {
-            userId= await getId();
-            if(userId=="")
-                userId=1;
-            setData([]);
-            const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/skillcluster?type_now=kmeans&user_id=" +userId+ "&session_id=skill&storage_name=skillcluster&weight_now=ii_weight&no_clust_now=" +noClustNow+ "&threshold=0.1&umap_nn=5&umap_dim=2&vectors_type=weighting");
-            setData(analyticsResponse.data.flat());
-        } catch (error) {
-            console.error("Error fetching data:", error);
-        }
-    };
-
 
     useEffect(() => {
         if (data.length === 0) return;
@@ -133,7 +116,7 @@ const SkillClustering = (props) => {
                                     color="success"
                                     outline
                                     size="m"
-                                    onClick={() => handleClick()}
+                                    onClick={() => onApplyChangeValueK(noClustNow)}
                                 >
                                     Update Chart
                             </Button>

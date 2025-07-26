@@ -1,5 +1,4 @@
 import Configuration from "views/dataConfiguration/Configuration";
-import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand";
 import PolicyIndustryAccount from "views/PolicyIndustryAccount";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import ManagePolicies from "../views/policies/ManagePolicies";

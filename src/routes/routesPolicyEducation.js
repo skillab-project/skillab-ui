@@ -1,5 +1,4 @@
 import PolicyEducationAccount from "views/PolicyEducationAccount";
-import LabourMarketDemand from "views/labourMarketDemand/LabourMarketDemand";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import Configuration from "views/dataConfiguration/Configuration";
 import ManagePolicies from "../views/policies/ManagePolicies";

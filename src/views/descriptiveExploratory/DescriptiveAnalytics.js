@@ -17,25 +17,26 @@ import {
     CardSubtitle
   } from "reactstrap";
 import TopCountries from "./TopCountries";
+import TopOrganizations from "./TopOrganizations";
 
 
 function DescriptiveAnalytics(props) {
-    const [dataOccupations, setDataOccupations] = useState(props.data);
-    const [dataOccupationsShown, setDataOccupationsShown] = useState([]);
-    const [dataOccupationsShownNumber, setDataOccupationsShownNumber] = useState(0);
+    const [dataSkills, setDataSkills] = useState(props.data);
+    const [dataSkillsShown, setDataSkillsShown] = useState([]);
+    const [dataSkillsShownNumber, setDataSkillsShownNumber] = useState(0);
 
 
     useEffect(() => {
-        if(dataOccupations){
-            setDataOccupationsShown(dataOccupations.slice(0, 10));
-            setDataOccupationsShownNumber(10);
+        if(dataSkills){
+            setDataSkillsShown(dataSkills.slice(0, 10));
+            setDataSkillsShownNumber(10);
         }
     }, []);
 
 
-    const handleMoreOccupations = () => {
-        setDataOccupationsShown(dataOccupations.slice(0, dataOccupationsShownNumber+10));
-        setDataOccupationsShownNumber(dataOccupationsShownNumber+10);
+    const handleMoreSkills = () => {
+        setDataSkillsShown(dataSkills.slice(0, dataSkillsShownNumber+10));
+        setDataSkillsShownNumber(dataSkillsShownNumber+10);
     }
 
     
@@ -52,9 +53,9 @@ function DescriptiveAnalytics(props) {
                                 <CardTitle tag="h6">Top Instances</CardTitle>
                             </CardHeader>
                             <CardBody>
-                                <ResponsiveContainer width="100%" height={dataOccupationsShown.length * 60}>
+                                <ResponsiveContainer width="100%" height={dataSkillsShown.length * 60}>
                                     <BarChart
-                                        data={dataOccupationsShown}
+                                        data={dataSkillsShown}
                                         layout="vertical"
                                         margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                                         barSize={30}
@@ -67,13 +68,13 @@ function DescriptiveAnalytics(props) {
                                     </BarChart>
                                 </ResponsiveContainer>
                             </CardBody>
-                            {dataOccupationsShown.length>0 &&
+                            {dataSkillsShown.length>0 &&
                                 <CardFooter>
                                     <Button
                                             color="success"
                                             outline
                                             size="m"
-                                            onClick={() => handleMoreOccupations()}
+                                            onClick={() => handleMoreSkills()}
                                         >
                                             More
                                     </Button>
@@ -84,10 +85,23 @@ function DescriptiveAnalytics(props) {
                 </Row>
                 <Row>
                     <Col md="12">
-                        {(props.dataCountries && props.dataCountries.length>0) ?
-                            <TopCountries data={props.dataCountries}/>
-                            :
-                            <div class="lds-dual-ring"></div>
+                        {props.dataCountries && 
+                            <>
+                            {(props.dataCountries && props.dataCountries.length>0) ?
+                                <TopCountries data={props.dataCountries}/>
+                                :
+                                <div class="lds-dual-ring"></div>
+                            }
+                            </>
+                        }
+                        {props.dataOrganizarion && 
+                            <>
+                            {(props.dataOrganizarion && props.dataOrganizarion.length>0) ?
+                                <TopOrganizations data={props.dataOrganizarion}/>
+                                :
+                                <div class="lds-dual-ring"></div>
+                            }
+                            </>
                         }
                     </Col>
                 </Row>
