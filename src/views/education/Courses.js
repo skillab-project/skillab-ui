@@ -91,7 +91,7 @@ const Courses = ({universityName}) => {
                                                                     key={course.name}
                                                                     style={{display:"flex", justifyContent:"space-between", alignItems:"center" }}
                                                                     className={`p-3 border border-gray-200 rounded-lg shadow-sm ${
-                                                                        course.name === selectedCourse?.name ? 'bg-default' : 'bg-white'
+                                                                        course.name === selectedCourse?.name ? 'bg-success' : 'bg-white'
                                                                     }`}
                                                                 >
                                                                     <span style={{textAlign:"left"}}>

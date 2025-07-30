@@ -451,7 +451,7 @@ const DescriptiveExploratoryJobs = ({filters}) => {
                 <Row>
                     <Col md="12">
                         {dataClustering && dataClustering.length>0 &&
-                            <SkillClustering data={dataClustering} onApplyChangeValueK={handleApplyChangeValueK}/>
+                            <SkillClustering data={dataClustering} onApplyChangeValueK={handleApplyChangeValueK} noClustering={10}/>
                         }
                     </Col>
                 </Row>

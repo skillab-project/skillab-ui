@@ -216,11 +216,13 @@ const Form =({
                     />
                 </div>
                 {loading ? (
-                    <Button>Loading</Button>
+                    <Button color='info' active="false">
+                        Loading
+                    </Button>
                     ) : (
                     <div className="flex space-x-4"> {/* Προσθέτω αυτή την γραμμή */}
                         <Button
-                            type="button"
+                            color='info'
                             onClick={handleAnalysis}
                             disabled={!repoUrl || analysisStarted}
                         >

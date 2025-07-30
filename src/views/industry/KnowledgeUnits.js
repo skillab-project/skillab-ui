@@ -185,7 +185,7 @@ function KnowleageUnits() {
                                                 key={repo.name}
                                                 style={{display:"flex", justifyContent:"space-between", alignItems:"center" }}
                                                 className={`p-4 border border-gray-200 rounded-lg shadow-sm ${
-                                                repo.name === selectedRepo ? 'bg-default' : 'bg-white'
+                                                repo.name === selectedRepo ? 'bg-success' : 'bg-white'
                                                 }`}
                                             >
                                                 <span>{repo.name}</span>
@@ -208,7 +208,7 @@ function KnowleageUnits() {
                         <CardBody>
                             <Button 
                                 onClick={handleViewOrganizationSkills} 
-                                className="px-4 py-2 bg-blue-500 text-white rounded"
+                                color="info"
                             >
                                 View Organization Skills
                             </Button>
@@ -216,6 +216,7 @@ function KnowleageUnits() {
                                 <div className="mt-8">
                                     <Bar data={chartData} />
                                     <Button 
+                                        color="info"
                                         onClick={handleCloseChart} 
                                         className="mt-4 px-4 py-2 bg-[#c72424] text-white rounded"
                                     >

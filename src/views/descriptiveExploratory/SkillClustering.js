@@ -13,9 +13,9 @@ import {getId} from "../../utils/Tokens";
 
 
 
-const SkillClustering = ({data, onApplyChangeValueK}) => {
+const SkillClustering = ({data, onApplyChangeValueK, noClustering}) => {
     const svgRef = useRef(null);
-    const [noClustNow, setNoClustNow] = useState(10);
+    const [noClustNow, setNoClustNow] = useState(noClustering);
 
     useEffect(() => {
         if (data.length === 0) return;

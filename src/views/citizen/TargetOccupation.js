@@ -103,7 +103,7 @@ const TargetOccupation = ({skills}) => {
 
     const getUniversities = async (skill) => {
         try {
-            const res = await axios.post(
+            const res = await axios.get(
                 `${process.env.REACT_APP_API_URL_CURRICULUM_SKILLS}/get_universities_by_skills`,
                 {
                     'skills': [skill]
@@ -185,7 +185,7 @@ const TargetOccupation = ({skills}) => {
                                                                     key={institute.name}
                                                                     style={{display:"flex", justifyContent:"space-between", alignItems:"center" }}
                                                                     className={`p-3 border border-gray-200 rounded-lg shadow-sm ${
-                                                                        institute.name === selectedInstitute?.name ? 'bg-default' : 'bg-white'
+                                                                        institute.name === selectedInstitute?.name ? 'bg-success' : 'bg-white'
                                                                     }`}
                                                                 >
                                                                     <span>{institute.name}</span>
