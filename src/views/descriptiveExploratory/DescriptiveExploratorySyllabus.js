@@ -205,11 +205,6 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
                     </Col>
                 </Row>
                 
-                {(dataSkills.length==0 || dataExploratory.length==0) &&
-                    <div class="lds-dual-ring"></div>
-                }
-
-                
                 <Row>
                     <Col md="12">
                         {dataTrending && dataTrending.length>0 &&
@@ -232,6 +227,10 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
                     </Col>
                 </Row>
 
+
+                {(dataSkills.length==0 || dataExploratory.length==0 || dataTrending==0 || dataClustering==0) &&
+                    <div class="lds-dual-ring"></div>
+                }
             </>
             :
             <>

@@ -3,6 +3,10 @@ import Configuration from "views/dataConfiguration/Configuration"
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics";
 import EducationManagement from "views/education/EducationManagement";
+import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
+import DemandForecasting from "views/demand/forecasting/DemandForecasting"
+import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
+import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 
 var routes = [
   {
@@ -25,17 +29,17 @@ var routes = [
     children: [
       {
         path: "/demand-analytics",
-        name: "Demand Analytics",
+        name: "Analytics",
         icon: "nc-icon nc-zoom-split",
-        component: <SkillDemandMatrix />,
-        layout: "/education",
+        component: <DemandAnalytics />,
+        layout: "/citizen",
       },
       {
         path: "/demand-forecasting",
-        name: "Demand Forecasting",
+        name: "Forecasting",
         icon: "nc-icon nc-chart-pie-36",
-        component: <SkillDemandMatrix />,
-        layout: "/education",
+        component: <DemandForecasting />,
+        layout: "/citizen",
       },
     ],
   },
@@ -45,34 +49,20 @@ var routes = [
     children: [
       {
         path: "/supply-analytics",
-        name: "Supply Analytics",
+        name: "Analytics",
         icon: "nc-icon nc-zoom-split",
-        component: <SkillDemandMatrix />,
-        layout: "/education",
+        component: <SupplyAnalytics />,
+        layout: "/citizen",
       },
       {
         path: "/supply-forecasting",
-        name: "Supply Forecasting",
+        name: "Forecasting",
         icon: "nc-icon nc-chart-pie-36",
-        component: <SkillDemandMatrix />,
-        layout: "/education",
+        component: <SupplyForecasting />,
+        layout: "/citizen",
       },
     ],
   },
-  // {
-  //   path: "/labour-market-demand",
-  //   name: "Labour Market Demand",
-  //   icon: "nc-icon nc-planet",
-  //   component: <LabourMarketDemand />,
-  //   layout: "/education",
-  // },
-  // {
-  //   path: "/skills-demand-matrix",
-  //   name: "Skills Demand Matrix",
-  //   icon: "nc-icon nc-vector",
-  //   component: <SkillDemandMatrix />,
-  //   layout: "/education",
-  // },
   {
     path: "/Configuration",
     name: "Configuration",

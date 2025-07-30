@@ -55,20 +55,6 @@ var routes = [
       },
     ],
   },
-  // {
-  //   path: "/labour-market-demand",
-  //   name: "Labour Market Demand",
-  //   icon: "nc-icon nc-planet",
-  //   component: <LabourMarketDemand />,
-  //   layout: "/citizen",
-  // },
-  // {
-  //   path: "/skills-demand-matrix",
-  //   name: "Skills Demand Matrix",
-  //   icon: "nc-icon nc-vector",
-  //   component: <SkillDemandMatrix />,
-  //   layout: "/citizen",
-  // },
   {
     path: "/Configuration",
     name: "Configuration",

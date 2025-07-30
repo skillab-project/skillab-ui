@@ -119,7 +119,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
             setDataTrending(transformedData);
 
             // Fetch clustering data
-            // fetchDataClustering(10);
+            fetchDataClustering(2);
         }
         catch (error) {
             console.error('Error fetching trending data:', error);
@@ -129,14 +129,17 @@ const DescriptiveExploratoryKU = ({filters}) => {
     // Fetch clustering skills
     const fetchDataClustering = async (noClustNow) => {
         try {
-            const response = await axios.get(process.env.REACT_APP_API_URL_KU + "/clustering/"+noClustNow);
-            const transformedData = response.data.flatMap((clusterGroup) =>
-                clusterGroup.universities.map((uni) => ({
-                    Cluster: clusterGroup.cluster,
-                    Pref_Label: uni.pref_label,
-                    x: uni.x,
-                    y: uni.y
-                }))
+            const response = await axios.post(
+                process.env.REACT_APP_API_URL_KU + "/cluster_repos",
+                {
+                    'num_clusters': noClustNow
+                });
+            const transformedData = response.data.map((repo) =>({
+                    Cluster: repo.cluster,
+                    Pref_Label: repo.repo_name,
+                    x: repo.coordinates.x,
+                    y: repo.coordinates.y
+                })
             );
             setDataClustering(transformedData);
         } catch (error) {
@@ -159,15 +162,18 @@ const DescriptiveExploratoryKU = ({filters}) => {
 
     const handleApplyChangeValueK = async (noClustNow) => {
         try {
-            const response = await axios.get(process.env.REACT_APP_API_URL_KU + "/cluster/universities/"+noClustNow);
-            const transformedData = response.data.flatMap((clusterGroup) =>
-                clusterGroup.universities.map((uni) => ({
-                    Cluster: clusterGroup.cluster,
-                    Pref_Label: uni.pref_label,
-                    x: uni.x,
-                    y: uni.y
-                }))
-            );
+            const response = await axios.post(
+                process.env.REACT_APP_API_URL_KU + "/cluster_repos",
+                {
+                    'num_clusters': noClustNow
+                });
+            const transformedData = response.data.map(item => ({
+                x: item.coordinates.x,
+                y: item.coordinates.y,
+                Cluster: item.cluster,
+                Pref_Label: item.repo_name
+            }));
+
             setDataClustering(transformedData);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -194,11 +200,6 @@ const DescriptiveExploratoryKU = ({filters}) => {
                     </Col>
                 </Row>
                 
-                {(dataSkills.length==0 || dataExploratory.length==0) &&
-                    <div class="lds-dual-ring"></div>
-                }
-
-                
                 <Row>
                     <Col md="12">
                         {dataTrending && dataTrending.length>0 &&
@@ -221,6 +222,10 @@ const DescriptiveExploratoryKU = ({filters}) => {
                     </Col>
                 </Row>
 
+
+                {(dataSkills.length==0 || dataExploratory.length==0 || dataTrending==0 || dataClustering==0) &&
+                    <div class="lds-dual-ring"></div>
+                }
             </>
             :
             <>

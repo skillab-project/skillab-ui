@@ -374,13 +374,25 @@ const DescriptiveExploratoryProfiles = ({filters}) => {
 
                 // Fetch clustering data if the initial response is empty
                 const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/skillcluster?type_now=kmeans&user_id=" +userId+ "&session_id=profiles&storage_name=skillcluster&weight_now=ii_weight&no_clust_now=" +noClustNow+ "&threshold=0.1&umap_nn=5&umap_dim=2&vectors_type=weighting");
-            
-                // Process the fetched data
-                setDataClustering(analyticsResponse.data.flat());
+                
+                const rawData = analyticsResponse.data[0];
+                const transformedData = rawData.map(item => ({
+                    x: item.V1,
+                    y: item.V2,
+                    Cluster: item.cluster,
+                    Pref_Label: item.Pref_Label,
+                }));
+                setDataClustering(transformedData);
             }
             else{
-                // Process the data from the initial response
-                setDataClustering(response.data.flat());
+                const rawData = response.data[0];
+                const transformedData = rawData.map(item => ({
+                    x: item.V1,
+                    y: item.V2,
+                    Cluster: item.cluster,
+                    Pref_Label: item.Pref_Label,
+                }));
+                setDataClustering(transformedData);
             }
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -398,6 +410,23 @@ const DescriptiveExploratoryProfiles = ({filters}) => {
         
         load();
     }, []);
+
+    const handleApplyChangeValueK = async (noClustNow) => {
+        try {
+            userId= await getId();
+            const analyticsResponse = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/skillcluster?type_now=kmeans&user_id=" +userId+ "&session_id=profiles&storage_name=skillcluster&weight_now=ii_weight&no_clust_now=" +noClustNow+ "&threshold=0.1&umap_nn=5&umap_dim=2&vectors_type=weighting");
+            const rawData = analyticsResponse.data[0];
+            const transformedData = rawData.map(item => ({
+                x: item.V1,
+                y: item.V2,
+                Cluster: item.cluster,
+                Pref_Label: item.Pref_Label,
+            }));
+            setDataClustering(transformedData);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
 
     
     return (
@@ -419,11 +448,6 @@ const DescriptiveExploratoryProfiles = ({filters}) => {
                     </Col>
                 </Row>
                 
-                {(dataOccupations.length==0 || dataExploratory.length==0) &&
-                    <div class="lds-dual-ring"></div>
-                }
-
-                
                 {/* <Row>
                     <Col md="12">
                         {dataTrending && dataTrending.length>0 &&
@@ -441,11 +465,15 @@ const DescriptiveExploratoryProfiles = ({filters}) => {
                 <Row>
                     <Col md="12">
                         {dataClustering && dataClustering.length>0 &&
-                            <SkillClustering data={dataClustering} />
+                            <SkillClustering data={dataClustering} onApplyChangeValueK={handleApplyChangeValueK}/>
                         }
                     </Col>
                 </Row>
 
+
+                {(dataOccupations.length==0 || dataExploratory.length==0 || dataClustering==0) &&
+                    <div class="lds-dual-ring"></div>
+                }
             </>
             :
             <>

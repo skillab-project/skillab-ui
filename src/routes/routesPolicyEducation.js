@@ -3,6 +3,10 @@ import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import Configuration from "views/dataConfiguration/Configuration";
 import ManagePolicies from "../views/policies/ManagePolicies";
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics";
+import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
+import DemandForecasting from "views/demand/forecasting/DemandForecasting"
+import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
+import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 
 var routes = [
   {
@@ -27,15 +31,15 @@ var routes = [
         path: "/demand-analytics",
         name: "Analytics",
         icon: "nc-icon nc-zoom-split",
-        component: <SkillDemandMatrix />,
-        layout: "/policy-education",
+        component: <DemandAnalytics />,
+        layout: "/citizen",
       },
       {
         path: "/demand-forecasting",
         name: "Forecasting",
         icon: "nc-icon nc-chart-pie-36",
-        component: <SkillDemandMatrix />,
-        layout: "/policy-education",
+        component: <DemandForecasting />,
+        layout: "/citizen",
       },
     ],
   },
@@ -47,32 +51,18 @@ var routes = [
         path: "/supply-analytics",
         name: "Analytics",
         icon: "nc-icon nc-zoom-split",
-        component: <SkillDemandMatrix />,
-        layout: "/policy-education",
+        component: <SupplyAnalytics />,
+        layout: "/citizen",
       },
       {
         path: "/supply-forecasting",
         name: "Forecasting",
         icon: "nc-icon nc-chart-pie-36",
-        component: <SkillDemandMatrix />,
-        layout: "/policy-education",
+        component: <SupplyForecasting />,
+        layout: "/citizen",
       },
     ],
   },
-  // {
-  //   path: "/labour-market-demand",
-  //   name: "Labour Market Demand",
-  //   icon: "nc-icon nc-planet",
-  //   component: <LabourMarketDemand />,
-  //   layout: "/policy-education",
-  // },
-  // {
-  //   path: "/skills-demand-matrix",
-  //   name: "Skills Demand Matrix",
-  //   icon: "nc-icon nc-vector",
-  //   component: <SkillDemandMatrix />,
-  //   layout: "/policy-education",
-  // },
   {
     path: "/configuration",
     name: "Configuration",
