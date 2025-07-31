@@ -436,21 +436,21 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
                     </Col>
                 </Row>
                 
-                <Row>
+                {/* <Row>
                     <Col md="12">
                         {dataExploratory && dataExploratory.length>0 &&
                             <ExploratoryAnalytics data={dataExploratory} />
                         }
                     </Col>
-                </Row>
+                </Row> */}
                 
-                <Row>
+                {/* <Row>
                     <Col md="12">
                         {dataTrending && dataTrending.length>0 &&
                             <TrendAnalysis data={dataTrending} />
                         }
                     </Col>
-                </Row>
+                </Row> */}
 
                 {/* <Row>
                     <Col md="12">
@@ -467,7 +467,7 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
                 </Row>
 
 
-                {(dataOccupations.length==0 || dataExploratory.length==0 || dataTrending==0 || dataClustering==0) &&
+                {(dataOccupations.length==0 || dataClustering==0) &&
                     <div class="lds-dual-ring"></div>
                 }
             </>

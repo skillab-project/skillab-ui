@@ -104,10 +104,7 @@ const TargetOccupation = ({skills}) => {
     const getUniversities = async (skill) => {
         try {
             const res = await axios.get(
-                `${process.env.REACT_APP_API_URL_CURRICULUM_SKILLS}/get_universities_by_skills`,
-                {
-                    'skills': [skill]
-                },
+                process.env.REACT_APP_API_URL_CURRICULUM_SKILLS+"/get_universities_by_skills?skills="+skill
             );
             console.log(res.data);
 
