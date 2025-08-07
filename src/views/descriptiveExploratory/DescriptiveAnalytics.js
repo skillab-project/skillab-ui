@@ -85,23 +85,11 @@ function DescriptiveAnalytics(props) {
                 </Row>
                 <Row>
                     <Col md="12">
-                        {props.dataCountries && 
-                            <>
-                            {(props.dataCountries && props.dataCountries.length>0) ?
-                                <TopCountries data={props.dataCountries}/>
-                                :
-                                <div class="lds-dual-ring"></div>
-                            }
-                            </>
+                        {(props.dataCountries && props.dataCountries.length>0) &&
+                            <TopCountries data={props.dataCountries}/>
                         }
-                        {props.dataOrganizarion && 
-                            <>
-                            {(props.dataOrganizarion && props.dataOrganizarion.length>0) ?
-                                <TopOrganizations data={props.dataOrganizarion}/>
-                                :
-                                <div class="lds-dual-ring"></div>
-                            }
-                            </>
+                        {(props.dataOrganizarion && props.dataOrganizarion.length>0) &&
+                            <TopOrganizations data={props.dataOrganizarion}/>
                         }
                     </Col>
                 </Row>
