@@ -22,7 +22,6 @@ import ExploratoryAnalytics from "./ExploratoryAnalytics";
 import TrendAnalysis from "./TrendAnalysis";
 import DescriptiveAnalytics from "./DescriptiveAnalytics";
 import SkillClustering from "./SkillClustering";
-import OccupationFilter from "./OccupationFilter";
 import {getId} from "../../utils/Tokens";
 
 

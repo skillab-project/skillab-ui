@@ -26,7 +26,10 @@ import DescriptiveExploratoryJobs from "../../descriptiveExploratory/Descriptive
 const DemandAnalytics = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
     const [showFilters, setShowFilters] = useState(false);
-    const [numberOfFilters, setNumberOfFilters] = useState(0);
+    const [numberOfFilters, setNumberOfFilters] = useState(1);
+    const [filters, setFilters] = useState({dataLimit: "20000", dataSource: [],
+                                            maxDate: "", minDate: "", occupations: []}); //initial filters to not wait a lot
+                                            //{id: "http://data.europa.eu/esco/isco/C2512", label: "Software developers"});
 
     const toggle = tab => {
         if (currentActiveTab !== tab) setCurrentActiveTab(tab);
@@ -36,10 +39,11 @@ const DemandAnalytics = () => {
         setShowFilters(!showFilters);
     };
 
-    //toDO functionality of filter to data
-    const handleApplyFilters = (numberOfFilters) => {
-        console.log('Filters received:', numberOfFilters);
-        setNumberOfFilters(numberOfFilters);
+    const handleApplyFilters = (filters) => {
+        console.log('Filters received:', filters.filters);
+        console.log('activeFilterCount:', filters.activeFilterCount);
+        setNumberOfFilters(filters.activeFilterCount);
+        setFilters(filters.filters);
     };
 
     const getFilterBadge = (count) => 
@@ -146,7 +150,7 @@ const DemandAnalytics = () => {
                      */}
                     <TabPane tabId="1">
                         {currentActiveTab == 1 &&
-                            <DescriptiveExploratoryJobs filters=""/>
+                            <DescriptiveExploratoryJobs filters={filters}/>
                         }
                     </TabPane>
         

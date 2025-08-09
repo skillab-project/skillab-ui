@@ -20,7 +20,7 @@ import classnames from 'classnames';
 import axios from 'axios';
 import "../../../assets/css/loader.css";
 import { FaFilter } from "react-icons/fa";
-import JobAdsFilter from "../JobAdsFilter";
+import ProfilesShortCoursesFilter from "../ProfilesShortCoursesFilter";
 import DescriptiveExploratorySyllabus from "../../descriptiveExploratory/DescriptiveExploratorySyllabus";
 import DescriptiveExploratoryKU from "views/descriptiveExploratory/DescriptiveExploratoryKU";
 import DescriptiveExploratoryShortCourses from "views/descriptiveExploratory/DescriptiveExploratoryShortCourses";
@@ -47,9 +47,10 @@ const dataSources = ['EU profiles', 'Short Courses', 'EU KUs', 'EU Syllabus'];
 const SupplyAnalytics = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
     const [showFilters, setShowFilters] = useState(false);
-    const [numberOfFilters, setNumberOfFilters] = useState(0);
+    const [numberOfFilters, setNumberOfFilters] = useState(1);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [selectedDataSource, setSelectedDataSource] = useState(dataSources[0]); // Default to 'EU profiles'
+    const [filters, setFilters] = useState({dataLimit: "20000", dataSource: []}); //initial filters to not wait a lot
 
     const toggleTab = tab => {
         if (currentActiveTab !== tab) setCurrentActiveTab(tab);
@@ -61,22 +62,18 @@ const SupplyAnalytics = () => {
         setShowFilters(!showFilters);
     };
 
-    //toDO functionality of filter to data
-    const handleApplyFilters = (numberOfFilters) => {
-        console.log('Filters received:', numberOfFilters);
-        setNumberOfFilters(numberOfFilters);
+    const handleApplyFilters = (filters) => {
+        console.log('Filters received:', filters.filters);
+        console.log('activeFilterCount:', filters.activeFilterCount);
+        setNumberOfFilters(filters.activeFilterCount);
+        setFilters(filters.filters);
     };
 
     // UseEffect to handle side-effects of changing the data source
     useEffect(() => {
         const availableTabs = tabVisibilityConfig[selectedDataSource];
         setCurrentActiveTab(availableTabs[0]);
-        // // If the currently active tab is NOT available for the new data source
-        // //  reset the active tab to the first available one.
-        // if (!availableTabs.includes(currentActiveTab)) {
-        //     setCurrentActiveTab(availableTabs[0]);
-        // }
-    }, [selectedDataSource]); // Rerun when data source changes
+    }, [selectedDataSource]);
 
     const getFilterBadge = (count) => 
         count !== 0 && (
@@ -139,32 +136,40 @@ const SupplyAnalytics = () => {
                             </NavLink>
                         </NavItem>
                     ))}
-                    <span style={{margin:"auto", marginRight:"5px"}} >
-                        <button
-                            onClick={handelClickShowFilter}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                borderRadius: "8px",
-                                padding: "5px 10px",
-                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                color: "white",
-                                fontSize: "16px",
-                                fontWeight: "500",
-                            }}
-                        >
-                            <FaFilter style={{ color:"black" }} />
-                            {getFilterBadge(numberOfFilters)}
-                        </button>
-                    </span>
+
+                    {(selectedDataSource === 'EU profiles' || selectedDataSource === 'Short Courses') &&
+                        <span style={{margin:"auto", marginRight:"5px"}} >
+                            <button
+                                onClick={handelClickShowFilter}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    backgroundColor: "transparent",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    padding: "5px 10px",
+                                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                    color: "white",
+                                    fontSize: "16px",
+                                    fontWeight: "500",
+                                }}
+                            >
+                                <FaFilter style={{ color:"black" }} />
+                                {getFilterBadge(numberOfFilters)}
+                            </button>
+                        </span>
+                    }
                 </Nav>
 
                 {showFilters &&
                     <Row>
                         <Col md="12">
-                            <JobAdsFilter onApplyFilters={handleApplyFilters}/>
+                            {selectedDataSource === 'EU profiles' &&
+                                <ProfilesShortCoursesFilter supply={"profiles"} onApplyFilters={handleApplyFilters}/>
+                            }
+                            {selectedDataSource === 'Short Courses' &&
+                                <ProfilesShortCoursesFilter supply={"courses"} onApplyFilters={handleApplyFilters}/>
+                            }
                         </Col>
                     </Row>
                 }
@@ -183,12 +188,12 @@ const SupplyAnalytics = () => {
                         }
                         {currentActiveTab === '1' && selectedDataSource === 'Short Courses' &&
                             <>
-                                <DescriptiveExploratoryShortCourses filters=""/>
+                                <DescriptiveExploratoryShortCourses filters={filters}/>
                             </>
                         }
                         {currentActiveTab === '1' && selectedDataSource === 'EU profiles' &&
                             <>
-                                <DescriptiveExploratoryProfiles filters=""/>
+                                <DescriptiveExploratoryProfiles filters={filters}/>
                             </>
                         }
                     </TabPane>

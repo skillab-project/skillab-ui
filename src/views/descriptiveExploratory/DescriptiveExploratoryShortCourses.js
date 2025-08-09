@@ -22,7 +22,6 @@ import ExploratoryAnalytics from "./ExploratoryAnalytics";
 import TrendAnalysis from "./TrendAnalysis";
 import DescriptiveAnalytics from "./DescriptiveAnalytics";
 import SkillClustering from "./SkillClustering";
-import OccupationFilter from "./OccupationFilter";
 import {getId} from "../../utils/Tokens";
 
 const countryNameMap = {
@@ -58,9 +57,17 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
     const [dataClustering, setDataClustering] = useState([]);
     const [countryFrequencyData, setCountryFrequencyData] = useState([]);
     const [analysisIsRunning, setAnalysisIsRunning] = useState(false);
-    const [filterSources, setFilterSources] = useState("");//udemy
-    const [filterLimitData, setFilterLimitData] = useState("20000");
+    const [errorWithAnalysis, setErrorWithAnalysis] = useState(false);
+    
     var userId="";
+
+    // derive constants from props
+    const filterSources = useMemo(() => filters?.dataSource?.[0] || "", [filters]);
+    const filterLimitData = useMemo(() => filters.dataLimit || "", [filters]);
+
+    const getCompleteSessionId = () => {
+        return "courses-sources-"+ filterSources +"-limit-" +filterLimitData;
+    };
 
     
     // Check if the user has loaded data
@@ -120,7 +127,7 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
     const fetchDataSkills = async () => {
         try {
             //  check first in getdata before make new analysis
-            const completeSessionId = "courses-sources-"+ filterSources +"-limit-" +filterLimitData;
+            const completeSessionId = getCompleteSessionId();
             console.log("completeSessionId: "+completeSessionId);
             
             const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND + "/get_data?user_id=" +userId+ "&session_id="
@@ -131,6 +138,12 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
                 console.log('Response get_data for skills, is empty');
                 response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/analytics_descriptive?user_id=" +userId+ "&session_id="+
                     completeSessionId+ "&storage_name=skills&features_query=skills");
+            }
+
+            // Check if there is error with loading data
+            if(response.data[0]=="Error loading data: cannot open the connection"){
+                setErrorWithAnalysis(true);
+                return;
             }
 
             // set data 
@@ -376,10 +389,17 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
     const fetchDataClustering = async (noClustNow) => {
         try {
             //  check first in getdata before make new analysis
-            const completeSessionId = "courses-sources-"+ filterSources +"-limit-" +filterLimitData;
+            const completeSessionId = getCompleteSessionId();
             const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/get_data?user_id="+userId+"&session_id="
                     +completeSessionId+ "&attribute=skill_clust&storage_name=skillcluster-"+noClustNow);
             
+            //ToDO check if its ok
+            // Check if there is error with loading data
+            if(response.data[0]=="Error loading data: cannot open the connection"){
+                setErrorWithAnalysis(true);
+                return;
+            }
+
             // Check if response data is empty
             if (Object.keys(response.data).length === 0 && response.data.constructor === Object) {
                 console.log('Response get_data for clustering is empty, fetching data...');
@@ -408,25 +428,44 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
 
 
     useEffect(() => {
-        const load =async () => {
+        const load = async () => {
             userId= await getId();
             if(userId=="")
                 userId=1;
+            
+            // Reset state before fetching new data
+            setDataAreReady(false);
+            setAnalysisIsRunning(false);
+            setErrorWithAnalysis(false);
+            setDataOccupations([]);
+            setDataExploratory([]);
+            setDataTrending([]);
+            setDataClustering([]);
+            setCountryFrequencyData([]);
+            
+            console.log("Filters changed, re-running analysis with:", filters);
             checkLoadedDataOfUser();
-        }
-        
+        };
+
         load();
-    }, []);
+    }, [filters]);
 
 
     const handleApplyChangeValueK = async (noClustNow) => {
         userId= await getId();
         
         // Get analysis if ready
-        const completeSessionId = "courses-sources-"+ filterSources +"-limit-" +filterLimitData;
+        const completeSessionId = getCompleteSessionId();
         const response = await axios.get(process.env.REACT_APP_API_URL_LABOUR_DEMAND+"/get_data?user_id="+userId+"&session_id="
                 +completeSessionId+ "&attribute=skill_clust&storage_name=skillcluster-"+noClustNow);
         
+        //ToDO check if its ok
+        // Check if there is error with loading data
+        if(response.data[0]=="Error loading data: cannot open the connection"){
+            setErrorWithAnalysis(true);
+            return;
+        }
+
         // If ready set response to state
         if(Object.keys(response.data).length !== 0) {
             const rawData = response.data[0];
@@ -465,65 +504,69 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
     
     return (
         <>
-            {analysisIsRunning &&
+            {(errorWithAnalysis || analysisIsRunning) && (
                 <Row>
                     <Col md="12">
-                        <Card>
-                            <CardBody>
-                                Come back soon, the analysis might take a while
-                            </CardBody>
-                        </Card>
+                    <Card>
+                        <CardBody>
+                        {errorWithAnalysis
+                            ? "Error with analysis, try different filters"
+                            : "Come back soon, the analysis might take a while"}
+                        </CardBody>
+                    </Card>
                     </Col>
                 </Row>
+            )}
+            
+            {!dataAreReady ? 
+                <div className="lds-dual-ring"></div>
+                :
+                (<>
+                    <Row>
+                        <Col md="12">
+                            {(dataOccupations && dataOccupations.length>0) &&
+                                <DescriptiveAnalytics data={dataOccupations} dataCountries={countryFrequencyData}/>
+                            }
+                        </Col>
+                    </Row>
+                    
+                    {/* <Row>
+                        <Col md="12">
+                            {dataExploratory && dataExploratory.length>0 &&
+                                <ExploratoryAnalytics data={dataExploratory} />
+                            }
+                        </Col>
+                    </Row> */}
+                    
+                    {/* <Row>
+                        <Col md="12">
+                            {dataTrending && dataTrending.length>0 &&
+                                <TrendAnalysis data={dataTrending} />
+                            }
+                        </Col>
+                    </Row> */}
+
+                    {/* <Row>
+                        <Col md="12">
+                            <InterconnectedSkills/>
+                        </Col>
+                    </Row> */}
+
+                    <Row>
+                        <Col md="12">
+                            {dataClustering && dataClustering.length>0 &&
+                                <SkillClustering data={dataClustering} onApplyChangeValueK={handleApplyChangeValueK} noClustering={2}/>
+                            }
+                        </Col>
+                    </Row>
+
+
+                    {!errorWithAnalysis &&
+                            (dataOccupations.length==0 || dataClustering.length==0) &&
+                        <div class="lds-dual-ring"></div>
+                    }
+                </>)
             }
-            {dataAreReady ? <>
-                <Row>
-                    <Col md="12">
-                        {(dataOccupations && dataOccupations.length>0) &&
-                            <DescriptiveAnalytics data={dataOccupations} dataCountries={countryFrequencyData}/>
-                        }
-                    </Col>
-                </Row>
-                
-                {/* <Row>
-                    <Col md="12">
-                        {dataExploratory && dataExploratory.length>0 &&
-                            <ExploratoryAnalytics data={dataExploratory} />
-                        }
-                    </Col>
-                </Row> */}
-                
-                {/* <Row>
-                    <Col md="12">
-                        {dataTrending && dataTrending.length>0 &&
-                            <TrendAnalysis data={dataTrending} />
-                        }
-                    </Col>
-                </Row> */}
-
-                {/* <Row>
-                    <Col md="12">
-                        <InterconnectedSkills/>
-                    </Col>
-                </Row> */}
-
-                <Row>
-                    <Col md="12">
-                        {dataClustering && dataClustering.length>0 &&
-                            <SkillClustering data={dataClustering} onApplyChangeValueK={handleApplyChangeValueK} noClustering={2}/>
-                        }
-                    </Col>
-                </Row>
-
-
-                {(dataOccupations.length==0 || dataClustering==0) &&
-                    <div class="lds-dual-ring"></div>
-                }
-            </>
-            :
-            <>
-                <div class="lds-dual-ring"></div>
-            </>}
         </>
     );
 }

@@ -20,7 +20,7 @@ import classnames from 'classnames';
 import axios from 'axios';
 import "../../../assets/css/loader.css";
 import { FaFilter } from "react-icons/fa";
-import JobAdsFilter from "../JobAdsFilter";
+import ProfilesShortCoursesFilter from "../ProfilesShortCoursesFilter";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
@@ -158,7 +158,12 @@ const SupplyForecasting = () => {
                 {showFilters &&
                     <Row>
                         <Col md="12">
-                            <JobAdsFilter onApplyFilters={handleApplyFilters}/>
+                            {selectedDataSource === 'EU profiles' &&
+                                <ProfilesShortCoursesFilter supply={"profiles"} onApplyFilters={handleApplyFilters}/>
+                            }
+                            {selectedDataSource === 'Short Courses' &&
+                                <ProfilesShortCoursesFilter supply={"courses"} onApplyFilters={handleApplyFilters}/>
+                            }
                         </Col>
                     </Row>
                 }
