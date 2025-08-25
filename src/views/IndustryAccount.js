@@ -42,6 +42,9 @@ function IndustryAccount() {
     function handelClickEmployeeKnowleageUnits() {
         window.location.href = "/industry/account/ku";
     }
+    function handelClickGapWithCompetition() {
+        window.location.href = "/industry/account/gap-competition";
+    }
 
     const handleViewOrganizationSkills = async () => {
         try {
@@ -187,7 +190,7 @@ function IndustryAccount() {
                             </Row>
                             <Row>
                                 <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickGapWithCompetition()}>
                                         <CardBody>
                                             <GiStairsGoal size="50"/>
                                         </CardBody>

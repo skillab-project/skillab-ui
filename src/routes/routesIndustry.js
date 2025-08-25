@@ -8,6 +8,7 @@ import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
 import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
+import GapCompetition from "views/industry/GapCompetition";
 
 var routes = [
   {
@@ -15,6 +16,13 @@ var routes = [
     name: "My Organization",
     icon: "nc-icon nc-single-02",
     component: <IndustryAccount />,
+    layout: "/industry",
+  },
+  {
+    path: "/account/gap-competition",
+    name: "Gap With Competition",
+    icon: "nc-icon nc-single-02",
+    component: <GapCompetition />,
     layout: "/industry",
   },
   {
