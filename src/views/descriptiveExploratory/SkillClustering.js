@@ -4,13 +4,9 @@ import {
     CardHeader,
     CardBody,
     CardTitle,
-    CardSubtitle,
     Button
   } from "reactstrap";
 import * as d3 from "d3";
-import axios from 'axios';
-import {getId} from "../../utils/Tokens";
-
 
 
 const SkillClustering = ({data, onApplyChangeValueK, noClustering}) => {
@@ -18,18 +14,18 @@ const SkillClustering = ({data, onApplyChangeValueK, noClustering}) => {
     const [noClustNow, setNoClustNow] = useState(noClustering);
 
     useEffect(() => {
-        if (data.length === 0) return;
+        if (!data || data.length === 0) return;
 
         // Clear previous SVG content
-        d3.select(svgRef.current).selectAll("*").remove();
+        const svg = d3.select(svgRef.current);
+        svg.selectAll("*").remove();
 
         const width = 800;
         const height = 600;
         const margin = { top: 20, right: 30, bottom: 30, left: 40 };
 
-        // Create SVG
-        const svg = d3
-        .select(svgRef.current)
+        // Re-select and configure the SVG element
+        svg
         .attr("viewBox", `0 0 ${width} ${height}`)
         .style("background", "#f9f9f9")
         .style("border", "1px solid #ccc");
@@ -58,16 +54,16 @@ const SkillClustering = ({data, onApplyChangeValueK, noClustering}) => {
         .attr("transform", `translate(${margin.left},0)`)
         .call(d3.axisLeft(yScale));
 
-        // Tooltip
         const tooltip = d3
         .select("body")
         .append("div")
+        .attr("class", "d3-tooltip")
         .style("position", "absolute")
         .style("background", "rgba(0,0,0,0.7)")
         .style("color", "white")
         .style("padding", "5px 10px")
         .style("border-radius", "5px")
-        .style("visibility", "hidden");
+        .style("display", "none");
 
         // Draw points
         svg
@@ -81,15 +77,21 @@ const SkillClustering = ({data, onApplyChangeValueK, noClustering}) => {
         .attr("fill", (d) => colorScale(d.Cluster))
         .on("mouseover", (event, d) => {
             tooltip
-            .style("visibility", "visible")
-            .text(`${d.Pref_Label} (Cluster ${d.Cluster})`);
+            .style("display", "block")
+            .html(`${d.Pref_Label} (Cluster ${d.Cluster})`);
         })
         .on("mousemove", (event) => {
             tooltip
             .style("top", `${event.pageY - 10}px`)
             .style("left", `${event.pageX + 10}px`);
         })
-        .on("mouseout", () => tooltip.style("visibility", "hidden"));
+        .on("mouseout", () => {
+            tooltip.style("display", "none");
+        });
+
+        return () => {
+            tooltip.remove();
+        };
     }, [data]);
 
 
@@ -121,10 +123,10 @@ const SkillClustering = ({data, onApplyChangeValueK, noClustering}) => {
                                     Update Chart
                             </Button>
                         </div>
-                        <svg ref={svgRef} style={{ width: "100%", height: "600px" }} />    
+                        <svg ref={svgRef} style={{ width: "100%", height: "600px" }} />
                     </>
                     :
-                    <div class="lds-dual-ring"></div>
+                    <div className="lds-dual-ring"></div>
                 }
             </CardBody>
         </Card>

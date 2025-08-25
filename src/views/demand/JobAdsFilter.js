@@ -14,6 +14,7 @@ const JobAdsFilter = ({ onApplyFilters }) => {
     const [maxDate, setMaxDate] = useState('');
     const [dataSource, setDataSource] = useState([]);
     const [dataLimit, setDataLimit] = useState('20000');
+    const [dateError, setDateError] = useState('');
 
     const dataSources = ['OJA', 'kariera.gr', 'kariera.fr', 'jobbguru', 'jobbguru.se', 'jobbland', 
         'jobbland.se', 'jobmedic', 'jobmedic.co.uk', 'jobscentral', 'jobs.de',
@@ -92,6 +93,13 @@ const JobAdsFilter = ({ onApplyFilters }) => {
     };
 
     const handleApplyFilter = () => {
+        // --- Date Validation ---
+        if (minDate && maxDate && new Date(maxDate) < new Date(minDate)) {
+            setDateError('Max Date cannot be earlier than Min Date.');
+            return;
+        }
+        setDateError('');
+
         const filters = {
             minDate,
             maxDate,
@@ -122,6 +130,13 @@ const JobAdsFilter = ({ onApplyFilters }) => {
 
                     <Label className="mt-2">Max Date:</Label>
                     <Input type="date" value={maxDate} onChange={(e) => setMaxDate(e.target.value)} />
+
+                    {/* Display validation error message here */}
+                    {dateError && (
+                        <div className="text-danger mt-1" style={{ fontSize: '0.875em' }}>
+                            {dateError}
+                        </div>
+                    )}
 
                     <Label className="mt-2">Data Source:</Label>
                     <Select
