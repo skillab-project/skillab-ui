@@ -54,18 +54,18 @@ jest.mock('reactstrap', () => {
 
 
 const mockData = [
-    { Skills: 'React', Pillar: 'K', Value: 0.9 },
-    { Skills: 'JavaScript', Pillar: 'K', Value: 0.85 },
-    { Skills: 'CSS', Pillar: 'T', Value: 0.7 },
-    { Skills: 'Node.js', Pillar: 'S', Value: 0.75 },
-    { Skills: 'English', Pillar: 'L', Value: 0.95 },
-    { Skills: 'Python', Pillar: 'K', Value: 0.6 },
-    { Skills: 'Agile', Pillar: 'T', Value: 0.8 },
-    { Skills: 'SQL', Pillar: 'S', Value: 0.65 },
-    { Skills: 'German', Pillar: 'L', Value: 0.5 },
-    { Skills: 'Project Management', Pillar: 'T', Value: 0.7 },
-    { Skills: 'AWS', Pillar: 'K', Value: 0.55 },
-    { Skills: 'Docker', Pillar: 'S', Value: 0.5 }
+    { Skill: 'React', Pillar: 'K', Value: 0.9 },
+    { Skill: 'JavaScript', Pillar: 'K', Value: 0.85 },
+    { Skill: 'CSS', Pillar: 'T', Value: 0.7 },
+    { Skill: 'Node.js', Pillar: 'S', Value: 0.75 },
+    { Skill: 'English', Pillar: 'L', Value: 0.95 },
+    { Skill: 'Python', Pillar: 'K', Value: 0.6 },
+    { Skill: 'Agile', Pillar: 'T', Value: 0.8 },
+    { Skill: 'SQL', Pillar: 'S', Value: 0.65 },
+    { Skill: 'German', Pillar: 'L', Value: 0.5 },
+    { Skill: 'Project Management', Pillar: 'T', Value: 0.7 },
+    { Skill: 'AWS', Pillar: 'K', Value: 0.55 },
+    { Skill: 'Docker', Pillar: 'S', Value: 0.5 }
 ];
 
 const mockUserSkills = [
@@ -107,7 +107,7 @@ describe('SkillsNeeded Component', () => {
 
 
     test('maps pillar codes to full names', () => {
-        const testData = [{ Skills: 'Test Skill', Pillar: 'K', Value: 0.5 }];
+        const testData = [{ Skill: 'Test Skill', Pillar: 'K', Value: 0.5 }];
         render(<SkillsNeeded data={testData} skills={[]} onSelectSkill={mockOnSelectSkill} />);
         expect(screen.getByText('Knowledge')).toBeInTheDocument(); // K -> Knowledge
     });
@@ -115,7 +115,7 @@ describe('SkillsNeeded Component', () => {
 
 
     test('formats importance value correctly', () => {
-        const testData = [{ Skills: 'Test Skill', Pillar: 'K', Value: 0.888 }];
+        const testData = [{ Skill: 'Test Skill', Pillar: 'K', Value: 0.888 }];
         render(<SkillsNeeded data={testData} skills={[]} onSelectSkill={mockOnSelectSkill} />);
         expect(screen.getByText('88.8%')).toBeInTheDocument();
     });
@@ -137,7 +137,7 @@ describe('SkillsNeeded Component', () => {
 
 
     test('does not display a dot for skills not owned by user', () => {
-        render(<SkillsNeeded data={[{ Skills: 'Python', Pillar: 'K', Value: 0.6 }]} skills={mockUserSkills} onSelectSkill={mockOnSelectSkill} />);
+        render(<SkillsNeeded data={[{ Skill: 'Python', Pillar: 'K', Value: 0.6 }]} skills={mockUserSkills} onSelectSkill={mockOnSelectSkill} />);
         
         const pythonSkillCell = screen.getByText('Python').closest('td');
         expect(pythonSkillCell).toBeInTheDocument();
@@ -191,21 +191,21 @@ describe('SkillsNeeded Component', () => {
         render(<SkillsNeeded data={mockData} skills={[]} onSelectSkill={mockOnSelectSkill} />); // 12 items
 
         // Initially on page 1
-        expect(screen.getByText(mockData[0].Skills)).toBeInTheDocument(); // React
-        expect(screen.queryByText(mockData[10].Skills)).not.toBeInTheDocument(); // AWS (11th item)
+        expect(screen.getByText(mockData[0].Skill)).toBeInTheDocument(); // React
+        expect(screen.queryByText(mockData[10].Skill)).not.toBeInTheDocument(); // AWS (11th item)
 
         // Go to page 2
         const page2Button = screen.getByRole('link', { name: '2' }); // Or getByText('2') if it's unique
         await userEvent.click(page2Button);
 
-        expect(screen.queryByText(mockData[0].Skills)).not.toBeInTheDocument();
-        expect(screen.getByText(mockData[10].Skills)).toBeInTheDocument(); // AWS
-        expect(screen.getByText(mockData[11].Skills)).toBeInTheDocument(); // Docker
+        expect(screen.queryByText(mockData[0].Skill)).not.toBeInTheDocument();
+        expect(screen.getByText(mockData[10].Skill)).toBeInTheDocument(); // AWS
+        expect(screen.getByText(mockData[11].Skill)).toBeInTheDocument(); // Docker
 
         // Go back to page 1 using "Previous"
         const prevButton = screen.getByRole('link', { name: /previous/i });
         await userEvent.click(prevButton);
-        expect(screen.getByText(mockData[0].Skills)).toBeInTheDocument();
+        expect(screen.getByText(mockData[0].Skill)).toBeInTheDocument();
     });
 
 
@@ -232,11 +232,11 @@ describe('SkillsNeeded Component', () => {
     test('resets to page 1 when "Only My Skills" toggle changes', async () => {
         const longData = [
             ...mockData, // 12 items
-            { Skills: 'Skill 13', Pillar: 'K', Value: 0.1 }, { Skills: 'Skill 14', Pillar: 'K', Value: 0.1 },
-            { Skills: 'Skill 15', Pillar: 'K', Value: 0.1 }, { Skills: 'Skill 16', Pillar: 'K', Value: 0.1 },
-            { Skills: 'Skill 17', Pillar: 'K', Value: 0.1 }, { Skills: 'Skill 18', Pillar: 'K', Value: 0.1 },
-            { Skills: 'Skill 19', Pillar: 'K', Value: 0.1 }, { Skills: 'Skill 20', Pillar: 'K', Value: 0.1 },
-            { Skills: 'Skill 21', Pillar: 'K', Value: 0.1 }, // 21 items total, 3 pages
+            { Skill: 'Skill 13', Pillar: 'K', Value: 0.1 }, { Skill: 'Skill 14', Pillar: 'K', Value: 0.1 },
+            { Skill: 'Skill 15', Pillar: 'K', Value: 0.1 }, { Skill: 'Skill 16', Pillar: 'K', Value: 0.1 },
+            { Skill: 'Skill 17', Pillar: 'K', Value: 0.1 }, { Skill: 'Skill 18', Pillar: 'K', Value: 0.1 },
+            { Skill: 'Skill 19', Pillar: 'K', Value: 0.1 }, { Skill: 'Skill 20', Pillar: 'K', Value: 0.1 },
+            { Skill: 'Skill 21', Pillar: 'K', Value: 0.1 }, // 21 items total, 3 pages
         ];
         // User has 4 skills from mockUserSkills.
         render(<SkillsNeeded data={longData} skills={mockUserSkills} onSelectSkill={mockOnSelectSkill} />);
@@ -247,7 +247,7 @@ describe('SkillsNeeded Component', () => {
         // Check that one of the user skills is visible (e.g., React)
         expect(screen.getByText('React')).toBeInTheDocument();
         // And a skill from page 2 of the unfiltered list is NOT visible
-        expect(screen.queryByText(longData[10].Skills)).not.toBeInTheDocument();
+        expect(screen.queryByText(longData[10].Skill)).not.toBeInTheDocument();
         // And pagination should reflect being on page 1 (e.g. '1' is active)
         const page1Button = screen.getByRole('link', { name: '1' }).closest('li');
         expect(page1Button).toHaveClass('active');
@@ -287,7 +287,7 @@ describe('SkillsNeeded Component', () => {
 
     test('dynamic pagination displays ellipsis and first/last page links correctly', async () => {
         const manyItems = Array.from({ length: 100 }, (_, i) => ({
-            Skills: `Skill ${i + 1}`, Pillar: 'K', Value: 0.5 
+            Skill: `Skill ${i + 1}`, Pillar: 'K', Value: 0.5 
         }));
         render(<SkillsNeeded data={manyItems} skills={[]} onSelectSkill={mockOnSelectSkill} />);
         
