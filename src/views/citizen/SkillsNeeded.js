@@ -84,7 +84,7 @@ const SkillsNeeded = ({ data, skills, onSelectSkill }) => {
                 </thead>
                 <tbody>
                     {currentItems.map((item, index) => {
-                        const cleanedSkill = item.Skills.trim().toLowerCase();
+                        const cleanedSkill = item.Skill.trim().toLowerCase();
                         const matchedSkill = skills.find(userSkill => userSkill.skill.label.trim().toLowerCase() === cleanedSkill);
                         const hasSkill = Boolean(matchedSkill);
 
@@ -114,13 +114,13 @@ const SkillsNeeded = ({ data, skills, onSelectSkill }) => {
                                             }}
                                         ></span>
                                     )}
-                                    {item.Skills}
+                                    {item.Skill}
                                 </td>
                                 <td>{mapPillar(item.Pillar)}</td>
                                 <td>{(item.Value * 100).toFixed(1)}%</td>
                                 <td>
                                     <button
-                                        onClick={() => handleSelectSkill(item.Skills)}
+                                        onClick={() => handleSelectSkill(item.Skill)}
                                         aria-label={`More`}
                                     >
                                         <i className="fas fa-eye text-lg"></i>

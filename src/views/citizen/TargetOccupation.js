@@ -107,6 +107,10 @@ const TargetOccupation = ({skills}) => {
                 process.env.REACT_APP_API_URL_CURRICULUM_SKILLS+"/get_universities_by_skills?skills="+skill
             );
             console.log(res.data);
+            if (res.data?.message=="No universities found matching the requested skills (even loosely).") {
+                setInstitutes([]);
+                return;
+            }
 
             // Transform response into the required format
             const formattedInstitutes = Object.entries(res.data).map(([university, courses]) => ({
