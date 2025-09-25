@@ -1,0 +1,200 @@
+/* Search bar με στρογγυλές γωνίες, ίδιο στυλ με το υπόλοιπο UI */
+.skill-selector-container input[type="text"],
+input[type="text"].form-control {
+    width: 100%;
+    border-radius: 20px !important;
+    padding: 10px 14px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    outline: none;
+    max-height: 30px !important;
+    box-sizing: border-box;
+}
+
+
+/* Dropdown: να μην «πετάει» οριζόντιο scroll και να μην ξεχειλίζει */
+.dropdown-suggestions {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    z-index: 10;
+    min-width: 80px;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 40px;
+    padding: 2px;
+}
+
+.dropdown-item-skill {
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid #eee;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-item-skill:hover {
+    background-color: #B7BABC;
+}
+
+.no-match {
+    color: #888;
+    font-style: italic;
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+/* Container για τα badges: κάθετο scroll όταν χρειαστεί, ποτέ οριζόντιο */
+.selected-skills-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0;
+    /* ήταν 16px και δημιουργούσε «κενό» */
+    max-width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.skill-badge {
+    background-color: #F6F6F6 !important;
+    padding: 4px 10px;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+    color: black;
+    font-weight: normal !important;
+    height: 26px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.badge-close {
+    color: black;
+    margin-left: 10px;
+    font-size: 14px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Μικρά breakpoints: λίγο πιο «άνετες» γραμματοσειρές/ύψη */
+@media (max-width: 576px) {
+    .dropdown-item-skill {
+        font-size: 12px;
+    }
+
+    .skill-badge {
+        font-size: 12px;
+        height: 24px;
+    }
+}
+
+/* --- Ellipsis για badges --- */
+.skill-badge {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px;
+    max-width: 100%;
+    overflow: hidden;
+    /* επιτρέπει στο κείμενο να κόβεται */
+}
+
+.skill-badge-text {
+    flex: 1 1 auto;
+    /* γεμίζει τον διαθέσιμο χώρο */
+    min-width: 0;
+    /* ΑΠΑΡΑΙΤΗΤΟ για ellipsis μέσα σε flex */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* να μη “μαζεύει” το X */
+.badge-close {
+    flex: 0 0 auto;
+}
+
+/* --- Ellipsis για dropdown items --- */
+.dropdown-item-skill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dropdown-item-skill-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* === 1) Το box των skills είναι flex column με scroll στη λίστα === */
+.boxStyle.skills-box {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden;
+}
+
+.boxStyle.skills-box>input.form-control {
+    flex: 0 0 40px !important;
+    /* σταθερό ύψος για input */
+    min-height: 40px !important;
+    margin-bottom: 8px;
+}
+
+.boxStyle.skills-box>.skills-scroll {
+    flex: 1 1 auto !important;
+    /* παίρνει ΟΛΟ τον υπόλοιπο χώρο */
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    /* <-- ο ΜΟΝΟΣ scroller */
+    overflow-x: hidden !important;
+}
+
+/* === 2) ΜΗ συρρίκνωση των badges ώστε να εμφανιστεί scroll === */
+.skills-scroll {
+    /* το container που έχει τα badges */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skills-scroll>* {
+    /* ΚΑΘΕ badge/γραμμή μέσα στη λίστα */
+    flex: 0 0 auto !important;
+    /* ΔΕΝ συρρικνώνεται ποτέ */
+}
+
+/* Επιπλέον ασφάλεια για ύψος/ανάγνωση των badges */
+.skill-badge {
+    height: auto !important;
+    min-height: 26px !important;
+    line-height: 1.2 !important;
+}
+
+/* --- Safety ώστε να μη «κλέβονται» px από min-heights/margins --- */
+.desc-col {
+    min-height: 0;
+}
+
+.boxStyle.skills-box {
+    min-height: 0;
+    margin-bottom: 0 !important;
+}
+
+.skills-scroll {
+    overflow-x: hidden;
+}

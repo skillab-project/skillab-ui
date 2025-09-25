@@ -1,0 +1,852 @@
+/* ========== PANELS ========== */
+.panel {
+    background-color: #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+}
+
+.panel__body {
+    overflow-x: hidden;
+}
+
+.panel--short {
+    height: 280px;
+}
+
+.panel__header-row {
+    border-bottom: 1px solid rgb(183, 186, 188);
+}
+
+/* Κοινή ετικέτα τίτλου περιοχών */
+.description-labels {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* ========== ΚΟΙΝΑ LAYOUTS ========== */
+.candidate-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.align-center {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.mt-6 {
+    margin-top: 6px;
+}
+
+.mt-8 {
+    margin-top: 8px;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.mt-12 {
+    margin-top: 12px;
+}
+
+.mt-16 {
+    margin-top: 16px;
+}
+
+/* ========== PRIMARY HEADER BUTTONS (candidate/question headers) ========== */
+.candidate-btn,
+.question-btn {
+    background-color: #F6F6F6 !important;
+    color: black;
+    font-weight: 500;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 14px;
+    width: 100%;
+    padding: 10px 15px;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-btn:hover,
+.question-btn:hover {
+    background-color: #cfd1d2 !important;
+    color: black !important;
+}
+
+.candidate-btn.active,
+.question-btn.active {
+    background-color: #cfd1d2 !important;
+    color: black !important;
+}
+
+/* header τριών στηλών (index, name, status) */
+.candidate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.candidate-index,
+.candidate-name,
+.candidate-status {
+    flex: 1;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.candidate-index {
+    text-align: left;
+}
+
+.candidate-name {
+    text-align: center;
+}
+
+.candidate-status {
+    text-align: right;
+}
+
+/* ========== QUESTION HEADER ROW ========== */
+.question-box {}
+
+.question-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.question-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+/* ========== SECONDARY BUTTONS (steps/questions μέσα σε collapse) ========== */
+.step-btn {
+    display: block;
+    width: 100%;
+    background-color: #dfe1e3;
+    color: black;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    text-align: left;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 12px;
+}
+
+.step-btn:hover {
+    background-color: #cfd1d2;
+}
+
+.steps-wrapper {
+    margin-top: 12px;
+}
+
+/* ========== BADGES ========== */
+.steps-badge {
+    background-color: #E5E7EB !important;
+    color: #111827 !important;
+    font-weight: 700;
+    border-radius: 9999px;
+    padding: 2px 10px;
+    line-height: 1.2;
+    font-size: 12px;
+}
+
+.score-badge,
+.rated-badge {
+    background-color: #374151 !important;
+    color: #fff !important;
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 2px 10px;
+    line-height: 1.2;
+    font-size: 12px;
+}
+
+/* ========== CANDIDATE DETAILS (collapse) ========== */
+.candidate-details {
+    background-color: #F6F6F6;
+    border-radius: 12px;
+    padding: 10px 15px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: black;
+    border: 0.5px solid #bbbbbb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ========== STATUS CHIPS (προαιρετικά) ========== */
+.status-label {
+    background-color: #dfe1e3;
+    border-radius: 8px;
+    padding: 2px 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ========== TOAST (TinyToast) ========== */
+.tiny-toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    color: #fff;
+    padding: 6px 8px;
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+.tiny-toast--info {
+    background: #334155;
+}
+
+.tiny-toast--success {
+    background: #16a34a;
+}
+
+.tiny-toast--warning {
+    background: #f59e0b;
+}
+
+.tiny-toast--error {
+    background: #dc2626;
+}
+
+/* ========== GENERIC BOXES (κοινό layout για γκρι κουτιά) ========== */
+.box {
+    border: 1px solid #e5e7eb;
+    background: #F6F6F6;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.box--fullwidth {
+    margin: 0 -10px 2px -10px;
+}
+
+.box__content-min50 {
+    min-height: 50px;
+    white-space: pre-wrap;
+}
+
+.text-muted {
+    color: #6B7280;
+}
+
+.text-default {
+    color: #111827;
+}
+
+/* ========== LOCK BANNERS ========== */
+.lock-banner {
+    margin-top: 10px;
+    border: 1px solid #e5e7eb;
+    background: #F6F6F6;
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    font-size: 12px;
+}
+
+.lock-banner__title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #334155;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.lock-banner__status {
+    font-weight: 800;
+    font-size: 12.5px;
+    color: #111827;
+}
+
+.lock-banner__desc {
+    margin-top: 4px;
+    color: #475569;
+    line-height: 1.35;
+}
+
+/* ========== INPUTS & BUTTONS (common tweaks) ========== */
+.input-sm {
+    font-size: 12px;
+}
+
+.textarea-sm {
+    font-size: 12px;
+    resize: vertical;
+}
+
+.btn-sm-fixed {
+    min-width: 108px;
+    height: 34px;
+    font-size: 15px;
+}
+
+.btn-lg-fixed {
+    min-width: 120px;
+    height: 40px;
+}
+
+.btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* ========== StepSkills helpers ========== */
+.step-skills {
+    width: 100%;
+}
+
+.step-skills__title {
+    margin-top: 0;
+}
+
+.step-skills__btn {
+    font-size: 12px;
+}
+
+.step-skills__row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.step-skills__comments-wrap {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.step-skills__comments {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.step-skills__card {
+    margin-top: 8px;
+}
+
+.step-skills__item {
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.step-skills__card,
+.step-skills__card .card-body {
+    overflow: hidden;
+}
+
+.bottom-controls {
+    margin-top: 16px;
+}
+
+.comments-card {
+    margin-top: 8px;
+}
+
+/* ========== StepSkills VIEW card inner layout ========== */
+.ss-view-grid {
+    display: grid;
+    grid-template-columns: auto auto 24px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.ss-chip {
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: #e5e7eb;
+    border: 1px solid #d1d5db;
+    justify-self: start;
+}
+
+.ss-comment {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px;
+    min-height: 38px;
+    white-space: pre-wrap;
+}
+
+/* ========== StepSkills EDIT grid ========== */
+.ss-edit-grid {
+    display: grid;
+    grid-template-columns: auto 110px 24px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+/* ========== Utility for vertical color bar holder ========== */
+.vbar-center {
+    display: flex;
+    justify-content: center;
+}
+
+/* ========== CandidateListPanel active labels (unchanged semantics) ========== */
+.active-label {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+
+/* ========== Misc ========== */
+.placeholder-wrap {
+    background: #e5e7eb;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.placeholder-title {
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 6px;
+    color: #374151;
+}
+
+.analytics-scope-breadcrumb {
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.box.mb-1 {
+    margin-bottom: 4px !important;
+    /* μικρό κενάκι */
+}
+
+.lock-banner.mt-1 {
+    margin-top: 4px !important;
+    /* ίδιο κενάκι */
+}
+
+.no-padding {
+    padding: 6px !important;
+    /* ή 4px για ακόμα πιο σφιχτό */
+}
+
+
+
+.fixed-comments-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+/* Panels που τεντώνουν σε ύψος και κάνουν scroll ΜΕΣΑ στο body */
+.panel--flex {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    /* επιτρέπει να “μαζευτεί” σε flex container */
+    overflow: hidden;
+    /* το scroll θα το έχει το CardBody */
+}
+
+.panel__scroll {
+    flex: 1;
+    min-height: 0;
+    /* ΧΩΡΙΣ αυτό, συχνά δεν εμφανίζεται scrollbar */
+    overflow-y: auto;
+    /* scroll μέσα στο περιεχόμενο */
+}
+
+/* ΜΟΝΟ γι’ αυτά τα δύο πάνω panels */
+.card.panel.panel--flex {
+    /* override της .panel */
+    height: auto !important;
+    /* ακυρώνει το fixed 410px */
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    /* ΕΠΙΒΑΛΛΕΤΑΙ για να δουλέψει το scroll */
+}
+
+/* το scroll γίνεται ΜΕΣΑ στο CardBody */
+.card.panel.panel--flex .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* χωρίς αυτό συχνά δεν εμφανίζεται scrollbar */
+    overflow-y: auto;
+}
+
+/* Panels που τεντώνουν σε ύψος και κάνουν scroll ΜΕΣΑ στο body */
+.panel--flex {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    /* επιτρέπει να “μαζευτεί” σε flex container */
+    overflow: hidden;
+    /* το scroll θα το έχει το εσωτερικό */
+}
+
+/* Το εσωτερικό που θα έχει το scroll */
+.panel__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* ΧΩΡΙΣ αυτό, συχνά δεν εμφανίζεται scrollbar */
+    /* scroll ΜΕΣΑ στο περιεχόμενο */
+}
+
+/* Αν το .panel έχει default overflow-y:auto, ακύρωσέ το όταν είναι --flex */
+.card.panel.panel--flex {
+    overflow: hidden !important;
+}
+
+/* Προαιρετικό: το header της λίστας να μη σκρολάρει */
+.panel__header-row {
+    border-bottom: 1px solid rgb(183, 186, 188);
+}
+
+/* --- CandidateListPanel: απομονωμένο panel --- */
+.candidate-panel.card.panel.panel--flex {
+    overflow: hidden !important;
+    /* να ΜΗν σκρολάρει το card */
+}
+
+.candidate-panel.card.panel.panel--flex .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: unset !important;
+    /* ακυρώνει τον γενικό κανόνα που έβαζε scroll/hidden στο CardBody */
+}
+
+/* Το πραγματικό scrollable σώμα της λίστας */
+/* Το πραγματικό scrollable σώμα της λίστας */
+.clp-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+
+/* Δένει το κεντρικό CardBody στο viewport */
+.vh-shell {
+    height: calc(100vh - 300px);
+    /* ρυθμίζεται αν έχεις πιο ψηλό header */
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* δεν αφήνουμε να “ξεχειλίσει” */
+}
+
+/* Η πρώτη γραμμή με τα 3 panels γεμίζει τον διαθέσιμο χώρο */
+.vh-shell>.row {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* Ασφάλεια: σε όλες τις στήλες μέσα στη row */
+.vh-shell .col-md-4,
+.vh-shell .col-md-6,
+.vh-shell .col-md-8 {
+    min-height: 0;
+}
+
+/* Το panel των candidates έχει δικό του scroll (όπως πριν) */
+.candidate-panel.card.panel.panel--flex {
+    overflow: hidden !important;
+}
+
+.candidate-panel.card.panel.panel--flex .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: unset !important;
+}
+
+.clp-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    /* εδώ μένει το scroll */
+}
+
+:root {
+    /* ρύθμισε το κενό που τρως από logo/navbar/margins ώστε να κουμπώσει στο viewport */
+    --app-chrome-gap: 400px;
+}
+
+/* Δένει ΟΛΟ το tab (τα 3 panels + comments) στο ύψος της οθόνης */
+.vh-shell {
+    height: calc(100dvh - var(--app-chrome-gap));
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* δεν αφήνουμε page scroll */
+}
+
+.vh-shell>.row {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.vh-shell .col-md-4,
+.vh-shell .col-md-6,
+.vh-shell .col-md-8 {
+    min-height: 0;
+}
+
+/* ——— βασικά panel helpers ——— */
+.panel {
+    background: #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+}
+
+.panel--flex {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.panel--flex .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.panel__header-row {
+    border-bottom: 1px solid rgb(183, 186, 188);
+}
+
+.panel__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* ——— μόνο για το panel των υποψηφίων ——— */
+.candidate-panel.card.panel.panel--flex {
+    overflow: hidden !important;
+}
+
+.candidate-panel.card.panel.panel--flex .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: unset !important;
+    /* ΜΗ scroll στο CardBody */
+}
+
+.clp-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* scroll ΕΔΩ μόνο */
+
+/* Υπόλοιπα existing styles σου (αντιγράφω όσα χρειάζονται για συνοχή) */
+.description-labels {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.candidate-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.candidate-btn,
+.question-btn {
+    background: #F6F6F6 !important;
+    color: #000;
+    font-weight: 500;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 14px;
+    width: 100%;
+    padding: 10px 15px;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+}
+
+.candidate-btn:hover,
+.question-btn:hover,
+.candidate-btn.active,
+.question-btn.active {
+    background: #cfd1d2 !important;
+    color: #000 !important;
+}
+
+.text-muted {
+    color: #6B7280;
+}
+
+.btn-lg-fixed {
+    min-width: 120px;
+    height: 40px;
+}
+
+:root {
+    /* ρύθμισε το κενό που τρως από logo/navbar/margins ώστε να κουμπώσει στο viewport */
+    --app-chrome-gap: 180px;
+}
+
+/* Δένει ΟΛΟ το tab (τα 3 panels + comments) στο ύψος της οθόνης */
+.vh-shell {
+    height: calc(100dvh - var(--app-chrome-gap));
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* δεν αφήνουμε page scroll */
+}
+
+.vh-shell>.row {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.vh-shell .col-md-4,
+.vh-shell .col-md-6,
+.vh-shell .col-md-8 {
+    min-height: 0;
+}
+
+/* ——— βασικά panel helpers ——— */
+.panel {
+    background: #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+}
+
+.panel--flex {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.panel--flex .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.panel__header-row {
+    border-bottom: 1px solid rgb(183, 186, 188);
+}
+
+.panel__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* ——— μόνο για το panel των υποψηφίων ——— */
+.candidate-panel.card.panel.panel--flex {
+    overflow: hidden !important;
+}
+
+.candidate-panel.card.panel.panel--flex .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: unset !important;
+    /* ΜΗ scroll στο CardBody */
+}
+
+.clp-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* scroll ΕΔΩ μόνο */
+
+/* Υπόλοιπα existing styles σου (αντιγράφω όσα χρειάζονται για συνοχή) */
+.description-labels {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.candidate-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.candidate-btn,
+.question-btn {
+    background: #F6F6F6 !important;
+    color: #000;
+    font-weight: 500;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 14px;
+    width: 100%;
+    padding: 10px 15px;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+}
+
+.candidate-btn:hover,
+.question-btn:hover,
+.candidate-btn.active,
+.question-btn.active {
+    background: #cfd1d2 !important;
+    color: #000 !important;
+}
+
+.text-muted {
+    color: #6B7280;
+}
+
+.btn-lg-fixed {
+    min-width: 120px;
+    height: 40px;
+}

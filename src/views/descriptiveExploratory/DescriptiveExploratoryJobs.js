@@ -69,8 +69,12 @@ const DescriptiveExploratoryJobs = ({filters}) => {
     const filterLimitData = useMemo(() => filters.dataLimit || "", [filters]);
     
     const getCompleteSessionId = () => {
+        var filterLimitDataVar = filterLimitData;
+        if(filterLimitData==""){
+            filterLimitDataVar="null";
+        }
         return "jobs-occupation-"+ filterOccupation.id.replaceAll(/[^a-zA-Z0-9.-]/g, "_")
-                +"-minDate-"+ filterMinDate +"-maxDate-"+ filterMaxDate +"-sources-"+ filterSources +"-limit-" +filterLimitData;
+                +"-minDate-"+ filterMinDate +"-maxDate-"+ filterMaxDate +"-sources-"+ filterSources +"-limit-" +filterLimitDataVar;
     };
 
     // Check if there is same analysis or

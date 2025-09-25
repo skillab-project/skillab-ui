@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-progress": "^1.1.0",
     "ajv": "^8.17.1",

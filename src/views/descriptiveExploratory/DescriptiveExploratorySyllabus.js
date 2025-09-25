@@ -53,8 +53,6 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
     const [dataTrending, setDataTrending] = useState([]);
     const [dataClustering, setDataClustering] = useState([]);
     const [countryFrequencyData, setCountryFrequencyData] = useState([]);
-    const [filterOccupations, setFilterOccupations] = useState([{id: "http://data.europa.eu/esco/isco/C2512",
-                                                                    label: "Software developers"}]);
     var userId="";
     
     
@@ -204,13 +202,13 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
                     </Col>
                 </Row>
                 
-                <Row>
+                {/* <Row>
                     <Col md="12">
                         {dataTrending && dataTrending.length>0 &&
                             <TrendAnalysis data={dataTrending} />
                         }
                     </Col>
-                </Row>
+                </Row> */}
 
                 {/* <Row>
                     <Col md="12">
@@ -227,7 +225,7 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
                 </Row>
 
 
-                {(dataSkills.length==0 || dataExploratory.length==0 || dataTrending==0 || dataClustering==0) &&
+                {(dataSkills.length==0 || dataExploratory.length==0 || dataClustering==0) &&
                     <div class="lds-dual-ring"></div>
                 }
             </>

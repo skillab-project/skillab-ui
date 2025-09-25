@@ -1,0 +1,151 @@
+.department-btn {
+    text-align: center !important;
+    background-color: #E5E7EB !important;
+    color: #000 !important;
+    border: none !important;
+}
+
+.department-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ΧΩΡΙΣ scroll εδώ – το scroll είναι στο .sidebar-scroll */
+.dept-root {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.occupation-box {
+    background-color: #E5E7EB;
+    border-radius: 12px;
+    padding: 5px;
+    color: black;
+    border: .5px solid #bbbbbb;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
+    margin-top: 15px;
+}
+
+.occupation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.occupation-btn {
+    background-color: #F6F6F6 !important;
+    color: black;
+    font-weight: 500;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 14px;
+}
+
+.job-title-box {
+    padding: 5px;
+    background-color: #F6F6F6;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    color: black;
+    margin-bottom: 5px;
+}
+
+.job-title-item {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-top: 6px;
+    border-radius: 8px !important;
+    background: #f9f9f9 !important;
+    border: 1px solid #eee !important;
+    text-align: left;
+    font-size: 13px !important;
+    color: black !important;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 15%);
+}
+
+.job-title-item:hover,
+.job-title-item:focus {
+    background-color: #B7BABC !important;
+}
+
+.job-title-item.selected {
+    background-color: #8f9092 !important;
+    border-color: #8f9092 !important;
+}
+
+.job-title-item.selected .job-title-name {
+    font-weight: 600;
+}
+
+.badge {
+    color: black !important;
+    background-color: #dfe1e3 !important;
+}
+
+.job-title-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.truncate-1 {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width:768px) {
+    .occupation-box {
+        margin-top: 10px;
+        padding: 6px;
+    }
+
+    .occupation-btn {
+        padding: 8px 10px;
+        font-size: 13.5px;
+    }
+
+    .department-btn {
+        padding: 8px 10px !important;
+        font-size: 14px;
+    }
+
+    .job-title-item {
+        padding: 8px 10px;
+        gap: 6px;
+        font-size: 13px !important;
+    }
+}
+
+@media (max-width:576px) {
+    .occupation-header {
+        gap: 6px;
+    }
+
+    .occupation-btn {
+        padding: 8px 10px;
+    }
+
+    .job-title-item {
+        padding: 8px;
+    }
+
+    .department-header span,
+    .occupation-header span,
+    .job-title-name {
+        display: inline-block;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

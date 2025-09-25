@@ -1,0 +1,218 @@
+/* ========== Flex helpers (μην τα πειράξεις) ========== */
+.q-col-flex {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* κρίσιμο για nested scrolls */
+}
+
+.q-fill {
+    flex: 1;
+    min-height: 0;
+    /* κρίσιμο για nested scrolls */
+}
+
+.q-no-x {
+    overflow-x: hidden;
+}
+
+/* ========== Κάρτα Steps (χωρίς δικό της scroll) ========== */
+.q-steps-card {
+    background: #E5E7EB;
+    border: 1px solid #bbb;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    /* το παιδί κάνει scroll */
+    overflow: hidden;
+    /* κόβει εσωτερικές μπάρες */
+    padding-top: 8px;
+}
+
+/* ✅ ΜΟΝΑΔΙΚΟΣ scroller στη λίστα (ύψος δίνεται από JS) */
+.q-steps-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 12px;
+}
+
+/* Κουμπιά κάτω από τη λίστα (εκτός scroller) */
+.q-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* ========== Step & Question cosmetics ========== */
+.q-step-header {
+    cursor: pointer;
+    background: #fff;
+    border: 1px solid #dcdcdc;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 600;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.q-droppable {
+    padding: 8px 12px;
+    border-left: 2px solid #aaa;
+    margin-top: 6px;
+}
+
+.q-draggable {
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    user-select: none;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 34px;
+}
+
+.q-draggable.is-selected {
+    background: #8f9092;
+    border-color: #8f9092;
+}
+
+.q-draggable.is-dragging {
+    background: #ccd1d6;
+}
+
+.q-draggable-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.q-drag-handle {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    opacity: .7;
+    user-select: none;
+}
+
+.q-question-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: black;
+    font-size: 14px;
+}
+
+
+.q-empty {
+    font-size: 12px;
+    opacity: .6;
+    padding-left: 4px;
+}
+
+/* ========== Δεξιά στήλη (skills) ========== */
+/* Σε μερικές οθόνες έχεις ήδη overflow από parent. Κρατάμε και αυτή την κλάση
+   γιατί τη χρησιμοποιείς και σε άλλα tabs. */
+.q-right-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ΝΕΟ: wrapper της κάρτας Skills.
+   Παίρνει fixed height από JS & αφήνει το πραγματικό scroll στη λίστα. */
+.q-skill-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    /* το scroll είναι στο .selected-skills-container */
+}
+
+.q-mt-16 {
+    margin-top: 16px;
+}
+
+
+
+/* safety ώστε να δουλέψει σωστά το εσωτερικό overflow */
+/* Το card-body της δεξιάς στήλης να ΜΗ scrollάρει.
+   Είναι flex ώστε να φιλοξενεί σωστά το q-right-card. */
+.q-col-flex {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.q-fill {
+    flex: 1;
+    min-height: 0;
+}
+
+.q-no-x {
+    overflow-x: hidden;
+}
+
+/* Left card */
+.q-steps-card {
+    background: #E5E7EB;
+    border: 1px solid #bbb;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: 8px;
+}
+
+.q-steps-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 8px 12px;
+}
+
+.q-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* Right column – ΚΑΘΟΛΟΥ height calc */
+.q-right-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding-bottom: 12px;
+}
+
+.q-skill-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.q-right-footer {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 0 0;
+}

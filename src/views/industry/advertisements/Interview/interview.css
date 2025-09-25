@@ -1,0 +1,98 @@
+/* ====== ROOT & columns ====== */
+.iv-root-row {
+    height: 100%;
+    min-height: 0
+}
+
+.iv-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 0
+}
+
+.iv-fill {
+    flex: 1;
+    min-height: 0
+}
+
+.iv-no-x {
+    overflow-x: hidden
+}
+
+/* ====== Left card ====== */
+.iv-card {
+    padding: 0;
+    min-height: 375px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* κλειδώνει το εξωτερικό */
+    flex-grow: 1;
+}
+
+/* ====== Header πάνω από τη λίστα steps ====== */
+.iv-steps-head {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #b7babc;
+}
+
+/* ✅ Ο ΜΟΝΑΔΙΚΟΣ scroller για τα STEPS (μέσα στο component) */
+.iv-dnd-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    /* εδώ η μπάρα */
+    overflow-x: hidden;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}
+
+/* κόψε τα negative margins της .row όταν τη χρησιμοποιούμε ως scroller */
+.row.iv-dnd-scroll {
+    margin-left: 0 !important;
+    margin-right: 0 !important
+}
+
+/* ====== Container της λίστας DnD (χωρίς δικό του scroll) ====== */
+.iv-dnd-list {
+    padding: 8px 10px;
+    overflow: initial
+}
+
+/* ====== Right column / skills ====== */
+.iv-right-fill {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden
+}
+
+.iv-right-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}
+
+/* Να μπορούν τα cols να «σπάνε» σωστά και να δουλέψει το εσωτερικό overflow */
+.iv-col {
+    min-height: 0;
+}
+
+/* Αν υπήρχε παλιό wrapper με scroll, μην το χρησιμοποιείς πια.
+   Το scroll γίνεται ΜΟΝΟ μέσα στη λίστα του SkillSelectorReadOnly. */
+.iv-right-scroll {
+    overflow: visible !important;
+    height: auto !important;
+}

@@ -3,6 +3,7 @@ import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import Configuration from "views/dataConfiguration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
 import Artifacts from "views/industry/Artifacts";
+import JobAdvertisements from "views/industry/JobAdvertisements";
 import KnowleageUnits from "views/industry/KnowledgeUnits";
 import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
 import DemandForecasting from "views/demand/forecasting/DemandForecasting"
@@ -23,6 +24,13 @@ var routes = [
     name: "Gap With Competition",
     icon: "nc-icon nc-single-02",
     component: <GapCompetition />,
+    layout: "/industry",
+  },
+  {
+    path: "/account/advertisements",
+    name: "My Advertisements",
+    icon: "nc-icon nc-single-02",
+    component: <JobAdvertisements />,
     layout: "/industry",
   },
   {

@@ -66,7 +66,11 @@ const DescriptiveExploratoryShortCourses = ({filters}) => {
     const filterLimitData = useMemo(() => filters.dataLimit || "", [filters]);
 
     const getCompleteSessionId = () => {
-        return "courses-sources-"+ filterSources +"-limit-" +filterLimitData;
+        var filterLimitDataVar = filterLimitData;
+        if(filterLimitData==""){
+            filterLimitDataVar="null";
+        }
+        return "courses-sources-"+ filterSources +"-limit-" +filterLimitDataVar;
     };
 
     

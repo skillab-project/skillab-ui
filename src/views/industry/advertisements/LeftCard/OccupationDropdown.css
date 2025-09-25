@@ -1,0 +1,132 @@
+.occupation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.occupation-btn {
+    width: 100%;
+    text-align: left;
+    background: #fff !important;
+    border: 1px solid #dcdcdc !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+    color: black !important;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+
+.job-title-box {
+    margin: 6px 0;
+    padding: 5px;
+    background-color: #F6F6F6;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: black;
+}
+
+.job-title-item {
+    width: 100%;
+    justify-content: space-between;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-top: 6px;
+    border-radius: 8px !important;
+    background: #f9f9f9 !important;
+    border: 1px solid #eee !important;
+    text-align: left;
+    font-size: 13px !important;
+    color: black !important;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 32%);
+}
+
+.job-title-item:hover,
+.job-title-item:focus {
+    background-color: #B7BABC !important;
+}
+
+.job-title-item.selected {
+    border-color: #9db7ff !important;
+    background: #eef4ff !important;
+}
+
+.job-title-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.status-label {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: capitalize;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: black;
+}
+
+.status-label.published {
+    border-color: #16a34a;
+    color: #166534;
+}
+
+.status-label.pending,
+.status-label.pedding,
+.status-label.draft {
+    border-color: #a3a3a3;
+    color: #525252;
+}
+
+.truncate-1 {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mobile fine-tuning */
+@media (max-width: 768px) {
+    .occupation-btn {
+        padding: 8px 10px !important;
+        font-size: 13.5px;
+    }
+
+    .job-title-item {
+        padding: 8px 10px;
+        gap: 6px;
+        font-size: 13px !important;
+    }
+
+    .status-label {
+        font-size: 10.5px;
+    }
+}
+
+@media (max-width: 576px) {
+    .occupation-header {
+        gap: 6px;
+    }
+
+    .occupation-btn {
+        padding: 8px 10px !important;
+    }
+
+    .job-title-item {
+        padding: 8px;
+    }
+
+    .department-header span,
+    .occupation-header span,
+    .job-title-name {
+        display: inline-block;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

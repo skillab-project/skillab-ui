@@ -36,6 +36,9 @@ function IndustryAccount() {
     }, []);
     
 
+    function handelClickJobAdvertisements() {
+        window.location.href = "/industry/account/advertisements";
+    }
     function handelClickArtifactRepositories() {
         window.location.href = "/industry/account/artifacts";
     }
@@ -238,7 +241,7 @@ function IndustryAccount() {
                             </Row>
                             <Row>
                                 <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickJobAdvertisements()}>
                                         <CardBody>
                                             <TfiAnnouncement size="50"/>
                                         </CardBody>

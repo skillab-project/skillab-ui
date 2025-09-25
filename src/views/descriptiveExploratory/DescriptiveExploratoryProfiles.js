@@ -70,7 +70,11 @@ const DescriptiveExploratoryProfiles = ({filters}) => {
     const filterLimitData = useMemo(() => filters.dataLimit || "", [filters]);
 
     const getCompleteSessionId = () => {
-        return "profiles-sources-"+ filterSources +"-limit-" +filterLimitData;
+        var filterLimitDataVar = filterLimitData;
+        if(filterLimitData==""){
+            filterLimitDataVar="null";
+        }
+        return "profiles-sources-"+ filterSources +"-limit-" +filterLimitDataVar;
     };
     
     // Check if there is same analysis or
