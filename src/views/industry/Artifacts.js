@@ -62,6 +62,11 @@ function Artifacts() {
         } catch (error) {
           console.error('Error deleting repo:', error);
         }
+        setFormData({repo_name: '',
+            url: '',
+            organization: '',
+            description: '',
+            comments: ''});
     };
 
 
@@ -70,17 +75,18 @@ function Artifacts() {
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (selectedRepoForEdit!=null) {
-          handleUpdate();
+          await handleUpdate();
         } else {
-          handleCreate();
+          await handleCreate();
         }
         setFormData({repo_name: '',
             url: '',
             organization: '',
             description: '',
-            comments: ''})
+            comments: ''});
+        getRepos();
     };
 
     const handleUpdate = async () => {
@@ -102,7 +108,6 @@ function Artifacts() {
         try {
             const response = await axios.post(process.env.REACT_APP_API_URL_KU+`/repos`, formData);
             console.log('Success:', response.data);
-            getRepos();
         } catch (error) {
           console.error('Error:', error);
           alert('An error occurred while creating the repository.');
