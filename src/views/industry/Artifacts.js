@@ -33,6 +33,11 @@ function Artifacts() {
     };
     
     const handleEditRepo = (repo) => {
+        setFormData({repo_name: '',
+            url: '',
+            organization: '',
+            description: '',
+            comments: ''});
         setRepoCreation(false);
         setSelectedRepoForEdit(repo);
         setFormData({
@@ -110,8 +115,11 @@ function Artifacts() {
         axios
             .get(process.env.REACT_APP_API_URL_KU + "/repos")
             .then((res) => {
-                console.log("repos: "+res.data);
-                setRepos(res.data);
+                const sortedRepos = res.data.sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                );
+                console.log("sorted repos:", sortedRepos);
+                setRepos(sortedRepos);
             });
     };
 
