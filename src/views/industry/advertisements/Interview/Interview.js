@@ -16,7 +16,7 @@ import ConfirmModal from "../Hire/ConfirmModal";
 
 import "./interview.css";
 
-const API = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS;
+const API = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 const normalizeStatus = (s) =>
     String(s ?? "").replace(/\u00A0/g, " ").trim().toLowerCase().replace(/\s+/g, "");
 const isEditableStatus = (raw) => {

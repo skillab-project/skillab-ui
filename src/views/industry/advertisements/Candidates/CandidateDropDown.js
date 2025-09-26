@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Collapse, Button } from "reactstrap";
 import { FaDownload } from "react-icons/fa";
 
-const API_BASE = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS;
+const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 
 /** Μικρό toast χωρίς libs */
 function TinyToast({ show, text, type = "info", onHide }) {

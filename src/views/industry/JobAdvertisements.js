@@ -59,7 +59,7 @@ function JobAdvertisements() {
     }, [jobStatus]);
 
     React.useEffect(() => {
-        fetch(`${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/skills`)
+        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/skills`)
             .then((res) => {
                 if (!res.ok) throw new Error('Failed to fetch all skills');
                 return res.json();
@@ -78,7 +78,7 @@ function JobAdvertisements() {
         }
         const load = async () => {
             try {
-                const r = await fetch(`${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/details?jobAdId=${selectedJobAdId}`, {
+                const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/details?jobAdId=${selectedJobAdId}`, {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache' },
                 });

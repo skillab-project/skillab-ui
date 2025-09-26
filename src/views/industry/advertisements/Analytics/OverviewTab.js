@@ -5,7 +5,7 @@ import OccupationOverview from './OccupationOverview';
 import OrganizationOverview from './OrganizationOverview';
 
 export default function OverviewTab({ level = 'organization', data = {} }) {
-    const base = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS +"/api";
+    const base = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api";
 
     // Τα ids έρχονται από το parent όπως πριν. Δεν αλλάζω καμία υλοποίηση –
     // απλώς περνάω τα σωστά props στα επί μέρους components.

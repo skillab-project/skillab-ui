@@ -47,7 +47,7 @@ export default function Analytics({
     jobAdData,
     onGoToOrganization,
 }) {
-    const apiBase = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS +"/api";
+    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api";
 
     const deptId = getId(departmentData || {}, ['id', 'departmentId']);
     const occId = getId(occupationData || {}, ['id', 'occupationId']);

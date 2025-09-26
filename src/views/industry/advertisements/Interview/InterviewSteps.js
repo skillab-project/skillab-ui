@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import StepsDnd from "./StepsDnd";
 import "./interview.css";
 
-const API_STEP = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS +"/api/v1/step";
+const API_STEP = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api/v1/step";
 
 export default function InterviewSteps({
     interviewsteps = [],

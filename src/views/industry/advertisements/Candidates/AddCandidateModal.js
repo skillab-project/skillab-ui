@@ -205,7 +205,7 @@ import {
     Button, Form, FormGroup, Label, Input, Spinner,
 } from "reactstrap";
 
-const API_BASE = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS;
+const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 
 /* mini i18n (μένει όπως έχεις) */
 const STR = {

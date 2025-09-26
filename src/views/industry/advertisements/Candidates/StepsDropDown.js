@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Badge, Collapse } from 'reactstrap';
 import './Candidates.css';
 
-const API_BASE = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS;
+const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 
 /* --------- helpers για το χρώμα & το μικρό “swatch” ---------- */
 function scoreColor(value) {

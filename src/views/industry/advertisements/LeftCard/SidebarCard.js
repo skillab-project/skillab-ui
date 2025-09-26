@@ -60,7 +60,7 @@ const SidebarCard = ({
     /** ⬇️ Επιπλέον “ανάσα” κάτω (px). Default: 80 */
     bottomReserve = 80,
 }) => {
-    const baseUrl = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS;
+    const baseUrl = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 
     const [departments, setDepartments] = useState([]);
     const [error, setError] = useState(null);

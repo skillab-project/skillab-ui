@@ -46,7 +46,7 @@ export default function AddQuestionModal({
         setSaving(true);
         setError("");
         try {
-            const r = await fetch(`${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/api/v1/step/${stepId}/questions`, {
+            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/step/${stepId}/questions`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name: name.trim() }),

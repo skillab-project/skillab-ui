@@ -65,7 +65,7 @@ export default function RecommendedSkillsPanel({
 
     const hitEndpoint = async () => {
         try {
-            const url = `${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/${jobAdId}/recommended-skills`;
+            const url = `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${jobAdId}/recommended-skills`;
             await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

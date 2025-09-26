@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Button, Input } from "reactstrap";
 import './Candidates.css';
 
-const API_BASE = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS;
+const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 
 /** Tiny toast using CSS classes */
 function TinyToast({ show, text, type = "info", onHide }) {

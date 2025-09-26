@@ -76,7 +76,7 @@ export default function SkillsTab({
     selectedSkillId,
     onSelectSkill,
 }) {
-    const apiBase = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS +"/api";
+    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api";
 
     const [skills, setSkills] = useState([]);
     const [skillsLoading, setSkillsLoading] = useState(false);

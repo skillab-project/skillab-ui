@@ -56,11 +56,11 @@ export default function DescriptionCard({
         setLoading(true);
         setError("");
 
-        const detailsUrl = `${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/details?jobAdId=${selectedJobAdId}`;
+        const detailsUrl = `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/details?jobAdId=${selectedJobAdId}`;
         const skillUrlsInPriority = [
-            `${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/${selectedJobAdId}/interview-skills`,
-            `${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/${selectedJobAdId}/skills`,
-            `${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/${selectedJobAdId}/required-skills`,
+            `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/interview-skills`,
+            `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/skills`,
+            `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/required-skills`,
         ];
 
         try {
@@ -111,7 +111,7 @@ export default function DescriptionCard({
         setSaving(true);
         setError("");
         try {
-            const r = await fetch(`${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/${selectedJobAdId}/details`, {
+            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/details`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ description, skills: requiredSkills }),
@@ -135,7 +135,7 @@ export default function DescriptionCard({
         setError("");
         try {
             await handleUpdate();
-            const r = await fetch(`${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/${selectedJobAdId}/publish`, {
+            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/publish`, {
                 method: "POST",
             });
             if (!r.ok) throw new Error();
@@ -165,7 +165,7 @@ export default function DescriptionCard({
         setDeleting(true);
         setError("");
         try {
-            const r = await fetch(`${process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS}/jobAds/${selectedJobAdId}`, {
+            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}`, {
                 method: "DELETE",
             });
             if (!r.ok) throw new Error();

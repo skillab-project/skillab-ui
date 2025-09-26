@@ -5,7 +5,7 @@ import {
 } from "reactstrap";
 
 export default function CreateJobAd({ isOpen, toggle, onCreated }) {
-    const baseUrl = process.env.REACT_APP_API_URL_JOB_ADVERTISEMENTS;
+    const baseUrl = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
     
     const [name, setName] = useState("");
     const [deptId, setDeptId] = useState("");
