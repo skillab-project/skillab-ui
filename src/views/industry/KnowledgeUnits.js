@@ -162,7 +162,10 @@ function KnowleageUnits() {
         axios
             .get(process.env.REACT_APP_API_URL_KU + "/repos")
             .then((res) => {
-                console.log("repos: "+res.data);
+                const sortedRepos = res.data.sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                );
+                console.log("sorted repos:", sortedRepos);
                 setRepos(res.data);
             });
     };
