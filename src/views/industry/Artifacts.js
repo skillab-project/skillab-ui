@@ -33,19 +33,14 @@ function Artifacts() {
     };
     
     const handleEditRepo = (repo) => {
-        setFormData({repo_name: '',
-            url: '',
-            organization: '',
-            description: '',
-            comments: ''});
         setRepoCreation(false);
         setSelectedRepoForEdit(repo);
         setFormData({
-            repo_name: repo.name,
-            url: repo.url,
-            organization: repo.organization,
-            description: repo.description,
-            comments: repo.comments
+            repo_name: repo.name || '',
+            url: repo.url || '',
+            organization: repo.organization || '',
+            description: repo.description || '',
+            comments: repo.comments || ''
         });
     };
 
