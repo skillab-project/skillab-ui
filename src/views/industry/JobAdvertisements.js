@@ -129,60 +129,63 @@ function JobAdvertisements() {
 
     return (
         <div className="content">
-            <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <Nav tabs style={{marginBottom:"5px"}}>
-                    <NavItem key="description" style={{cursor:"pointer"}}>
-                        <NavLink
-                            className={classnames({ active: selectedTab === "description"})}
-                            onClick={() => { toggleTab("description"); }}
-                        >
-                            Description
-                        </NavLink>
-                    </NavItem>
-                    <NavItem key="interview" style={{cursor:"pointer"}}>
-                        <NavLink
-                            className={classnames({ active: selectedTab === "interview" })}
-                            onClick={() => { toggleTab("interview"); }}
-                        >
-                            Interview
-                        </NavLink>
-                    </NavItem>
-                    <NavItem key="questions" style={{cursor:"pointer"}}>
-                        <NavLink
-                            className={classnames({ active: selectedTab === "questions" })}
-                            onClick={() => { toggleTab("questions"); }}
-                        >
-                            Questions
-                        </NavLink>
-                    </NavItem>
-                    <NavItem key="candidates" style={{cursor:"pointer"}}> {/*  disabled?? */}
-                        <NavLink
-                            className={classnames({ active: selectedTab === "candidates" })}
-                            onClick={() => { toggleTab("candidates"); }}
-                        >
-                            Candidates
-                        </NavLink>
-                    </NavItem>
-                    <NavItem key="analytics" style={{cursor:"pointer"}}> {/*  disabled?? */}
-                        <NavLink
-                            className={classnames({ active: selectedTab === "analytics" })}
-                            onClick={() => { toggleTab("analytics"); }}
-                        >
-                            Analytics
-                        </NavLink>
-                    </NavItem>
-                    <NavItem key="hire" style={{cursor:"pointer"}}> {/*  disabled?? */}
-                        <NavLink
-                            className={classnames({ active: selectedTab === "hire" })}
-                            onClick={() => { toggleTab("hire"); }}
-                        >
-                            Hire
-                        </NavLink>
-                    </NavItem>
-                </Nav>
+            <Row>
+                <Col md="12">
+                    <Nav tabs style={{marginBottom:"5px"}}>
+                        <NavItem key="description" style={{cursor:"pointer"}}>
+                            <NavLink
+                                className={classnames({ active: selectedTab === "description"})}
+                                onClick={() => { toggleTab("description"); }}
+                            >
+                                Description
+                            </NavLink>
+                        </NavItem>
+                        <NavItem key="interview" style={{cursor:"pointer"}}>
+                            <NavLink
+                                className={classnames({ active: selectedTab === "interview" })}
+                                onClick={() => { toggleTab("interview"); }}
+                            >
+                                Interview
+                            </NavLink>
+                        </NavItem>
+                        <NavItem key="questions" style={{cursor:"pointer"}}>
+                            <NavLink
+                                className={classnames({ active: selectedTab === "questions" })}
+                                onClick={() => { toggleTab("questions"); }}
+                            >
+                                Questions
+                            </NavLink>
+                        </NavItem>
+                        <NavItem key="candidates" style={{cursor:"pointer"}}> {/*  disabled?? */}
+                            <NavLink
+                                className={classnames({ active: selectedTab === "candidates" })}
+                                onClick={() => { toggleTab("candidates"); }}
+                            >
+                                Candidates
+                            </NavLink>
+                        </NavItem>
+                        <NavItem key="analytics" style={{cursor:"pointer"}}> {/*  disabled?? */}
+                            <NavLink
+                                className={classnames({ active: selectedTab === "analytics" })}
+                                onClick={() => { toggleTab("analytics"); }}
+                            >
+                                Analytics
+                            </NavLink>
+                        </NavItem>
+                        <NavItem key="hire" style={{cursor:"pointer"}}> {/*  disabled?? */}
+                            <NavLink
+                                className={classnames({ active: selectedTab === "hire" })}
+                                onClick={() => { toggleTab("hire"); }}
+                            >
+                                Hire
+                            </NavLink>
+                        </NavItem>
+                    </Nav>
+                </Col>
+            </Row>
 
-
-                <Row style={{ flex: 1, minHeight: 0, width: '100%' }}>
+            <Row>
+                <Col lg="3" md="12">
                     <SidebarCard
                         onJobAdSelect={(jobOrId) => {
                             const id =
@@ -241,86 +244,87 @@ function JobAdvertisements() {
                         }}
                         selectedOccupationId={selectedOccupation?.id ?? null}
                     />
+                </Col>
+                    
 
-                    <Col md="8" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                        <Card
-                            className="shadow-sm"
+                <Col lg="9" md="12" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                    <Card
+                        className="shadow-sm"
+                        style={{
+                            flex: 1,
+                            minHeight: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <CardBody
                             style={{
                                 flex: 1,
                                 minHeight: 0,
+                                overflow: 'hidden',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                overflow: 'hidden',
                             }}
                         >
-                            <CardBody
-                                style={{
-                                    flex: 1,
-                                    minHeight: 0,
-                                    overflow: 'hidden',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                }}
-                            >
-                                {selectedTab === 'description' && (
-                                    <DescriptionCard
-                                        selectedJobAdId={selectedJobAdId}
-                                        allskills={allskills}
-                                        onDeleted={handleJobAdDeleted}
-                                        onPublished={() => {
-                                            setJobStatus('Published');
-                                            window.dispatchEvent(
-                                                new CustomEvent('hf:jobad-updated', {
-                                                    detail: { id: selectedJobAdId, status: 'Published' },
-                                                })
-                                            );
+                            {selectedTab === 'description' && (
+                                <DescriptionCard
+                                    selectedJobAdId={selectedJobAdId}
+                                    allskills={allskills}
+                                    onDeleted={handleJobAdDeleted}
+                                    onPublished={() => {
+                                        setJobStatus('Published');
+                                        window.dispatchEvent(
+                                            new CustomEvent('hf:jobad-updated', {
+                                                detail: { id: selectedJobAdId, status: 'Published' },
+                                            })
+                                        );
+                                    }}
+                                />
+                            )}
+
+                            {selectedTab === 'questions' && <Questions selectedJobAdId={selectedJobAdId} />}
+
+                            {selectedTab === 'interview' && <Interview selectedJobAdId={selectedJobAdId} />}
+
+                            {selectedTab === 'candidates' &&
+                                (isPending ? (
+                                    <LockNotice statusLabel={statusLabel} />
+                                ) : (
+                                    <Candidates key={selectedJobAdId ?? 'no-job'} jobAdId={selectedJobAdId} />
+                                ))}
+
+                            {selectedTab === 'analytics' &&
+                                (isPending ? (
+                                    <LockNotice statusLabel={statusLabel} />
+                                ) : (
+                                    <Analytics
+                                        orgId={3}
+                                        departmentData={selectedDepartment}
+                                        occupationData={selectedOccupation}
+                                        jobAdData={selectedJobAdMeta}
+                                        onGoToOrganization={() => {
+                                            setSelectedJobAdId(null);
+                                            setSelectedJobAdMeta(null);
+                                            setSelectedDepartment(null);
+                                            setSelectedOccupation(null);
                                         }}
                                     />
-                                )}
+                                ))}
 
-                                {selectedTab === 'questions' && <Questions selectedJobAdId={selectedJobAdId} />}
+                            {selectedTab === 'hire' &&
+                                (isPending ? (
+                                    <LockNotice statusLabel={statusLabel} />
+                                ) : (
+                                    <Hire key={selectedJobAdId ?? 'no-job'} jobAdId={selectedJobAdId} />
+                                ))}
+                        </CardBody>
+                    </Card>
+                </Col>
+            </Row>
 
-                                {selectedTab === 'interview' && <Interview selectedJobAdId={selectedJobAdId} />}
-
-                                {selectedTab === 'candidates' &&
-                                    (isPending ? (
-                                        <LockNotice statusLabel={statusLabel} />
-                                    ) : (
-                                        <Candidates key={selectedJobAdId ?? 'no-job'} jobAdId={selectedJobAdId} />
-                                    ))}
-
-                                {selectedTab === 'analytics' &&
-                                    (isPending ? (
-                                        <LockNotice statusLabel={statusLabel} />
-                                    ) : (
-                                        <Analytics
-                                            orgId={3}
-                                            departmentData={selectedDepartment}
-                                            occupationData={selectedOccupation}
-                                            jobAdData={selectedJobAdMeta}
-                                            onGoToOrganization={() => {
-                                                setSelectedJobAdId(null);
-                                                setSelectedJobAdMeta(null);
-                                                setSelectedDepartment(null);
-                                                setSelectedOccupation(null);
-                                            }}
-                                        />
-                                    ))}
-
-                                {selectedTab === 'hire' &&
-                                    (isPending ? (
-                                        <LockNotice statusLabel={statusLabel} />
-                                    ) : (
-                                        <Hire key={selectedJobAdId ?? 'no-job'} jobAdId={selectedJobAdId} />
-                                    ))}
-                            </CardBody>
-                        </Card>
-                    </Col>
-                </Row>
-
-                {/* Mount once, global για όλα τα toasts */}
-                <ToastHost />
-            </div>
+            {/* Mount once, global για όλα τα toasts */}
+            <ToastHost />
 
         </div>
     );

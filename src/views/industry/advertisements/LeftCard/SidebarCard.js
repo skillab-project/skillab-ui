@@ -242,11 +242,9 @@ const SidebarCard = ({
     }, [bottomReserve]);
 
     return (
-        <Col xs="12" md="4" className="sidebar-col">
-            <Card className="shadow-sm sidebar-card">
-                <CardBody className="sidebar-body">
-                    {/* ΜΟΝΟ αυτό το Row είναι scroller */}
-                    <Row className="sidebar-scroll" ref={scrollRef}>
+            <Card>
+                <CardBody >
+                    <Row >
                         {error ? (
                             <div className="text-center" style={{ width: "100%" }}>
                                 <p>Failed to load.</p>
@@ -283,7 +281,6 @@ const SidebarCard = ({
                     />
                 </CardBody>
             </Card>
-        </Col>
     );
 };
 
