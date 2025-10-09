@@ -44,53 +44,23 @@ function KnowleageUnits() {
 
     const handleViewOrganizationSkills = async () => {
         try {
-            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/detected_kus');
+            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/organizationskills/'+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const analysisData = await response.json();
-            const aggregatedData = {};
 
-            // Process each item in the fetched data
-            analysisData.forEach((item, index) => {
-                const { kus, author } = item;
-
-                for (const [key, value] of Object.entries(kus)) {
-                    if (typeof value === 'number') {
-                        // Initialize KU entry if not present
-                        if (!aggregatedData[key]) {
-                            aggregatedData[key] = {
-                                files: 0,
-                                authors: new Set(),
-                                employeeCount: 0,
-                            };
-                        }
-
-                        // Update number of files
-                        aggregatedData[key].files += value;
-
-                        // Add author only if value is 1
-                        if (value === 1) {
-                            aggregatedData[key].authors.add(author);
-                        }
-
-                        // Update employee count (number of unique authors)
-                        aggregatedData[key].employeeCount = aggregatedData[key].authors.size;
-                    }
-                }
-            });
-
-            // Sort KU keys numerically (e.g., KU1, KU2, ...)
-            const sortedKeys = Object.keys(aggregatedData).sort((a, b) => {
-                const numA = parseInt(a.slice(2)); // Skip 'KU'
-                const numB = parseInt(b.slice(2));
+            // Sort the data by KU
+            const sortedData = analysisData.sort((a, b) => {
+                const numA = parseInt(a.ku_name.slice(1)); // Extracts number from "K1", "K10",
+                const numB = parseInt(b.ku_name.slice(1));
                 return numA - numB;
             });
 
-            // Prepare chart labels and datasets
-            const labels = sortedKeys;
-            const dataFiles = sortedKeys.map(key => aggregatedData[key].files);
-            const dataEmployees = sortedKeys.map(key => aggregatedData[key].employeeCount);
+            // Map the sorted data directly to chart labels and datasets
+            const labels = sortedData.map(item => item.ku_name);
+            const dataFiles = sortedData.map(item => item.total_files);
+            const dataEmployees = sortedData.map(item => item.total_authors);
 
             // Set chart data
             setChartData({
@@ -160,7 +130,7 @@ function KnowleageUnits() {
 
     const getRepos = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/repos")
+            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME)
             .then((res) => {
                 const sortedRepos = res.data.sort(
                     (a, b) => new Date(b.created_at) - new Date(a.created_at)

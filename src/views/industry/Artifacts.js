@@ -17,7 +17,7 @@ function Artifacts() {
     const [formData, setFormData] = useState({
         repo_name: '',
         url: '',
-        organization: '',
+        organization: ''+process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME,
         description: '',
         comments: '',
       });
@@ -27,7 +27,7 @@ function Artifacts() {
         setSelectedRepoForEdit(null);
         setFormData({repo_name: '',
             url: '',
-            organization: '',
+            organization: ''+process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME,
             description: '',
             comments: ''});
     };
@@ -59,7 +59,7 @@ function Artifacts() {
         }
         setFormData({repo_name: '',
             url: '',
-            organization: '',
+            organization: ''+process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME,
             description: '',
             comments: ''});
     };
@@ -113,7 +113,7 @@ function Artifacts() {
 
     const getRepos = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/repos")
+            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME)
             .then((res) => {
                 const sortedRepos = res.data.sort(
                     (a, b) => new Date(b.created_at) - new Date(a.created_at)

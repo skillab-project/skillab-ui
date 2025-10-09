@@ -48,6 +48,9 @@ function IndustryAccount() {
     function handelClickGapWithCompetition() {
         window.location.href = "/industry/account/gap-competition";
     }
+    function handelClickSkillsAtRisk() {
+        window.location.href = "/industry/account/at-risk";
+    }
 
     const handleViewOrganizationSkills = async () => {
         try {
@@ -203,12 +206,12 @@ function IndustryAccount() {
                                     </Card>
                                 </Col>
                                 <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickSkillsAtRisk()}>
                                         <CardBody>
                                             <AiFillAlert size="50" />
                                         </CardBody>
                                         <CardFooter>
-                                            Knowleage Units at Risk
+                                            Skills at Risk
                                         </CardFooter>
                                     </Card>
                                 </Col>
