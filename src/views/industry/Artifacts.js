@@ -78,7 +78,7 @@ function Artifacts() {
         }
         setFormData({repo_name: '',
             url: '',
-            organization: '',
+            organization: ''+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME,
             description: '',
             comments: ''});
         getRepos();
