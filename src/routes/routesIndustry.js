@@ -4,13 +4,13 @@ import Configuration from "views/dataConfiguration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
 import Artifacts from "views/industry/Artifacts";
 import JobAdvertisements from "views/industry/JobAdvertisements";
-import KnowleageUnits from "views/industry/KnowledgeUnits";
 import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
 import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import GapCompetition from "views/industry/GapCompetition";
 import AtRisk from "views/industry/AtRisk";
+import EmployeeSkills from "views/industry/EmployeeSkills";
 
 var routes = [
   {
@@ -52,7 +52,7 @@ var routes = [
     path: "/account/ku",
     name: "Employee KU",
     icon: "nc-icon nc-single-02",
-    component: <KnowleageUnits />,
+    component: <EmployeeSkills />,
     layout: "/industry",
   },
   {

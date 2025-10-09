@@ -305,7 +305,7 @@ function IndustryAccount() {
                                             <FaPeopleRoof size="50"/>
                                         </CardBody>
                                         <CardFooter>
-                                            Employee Skills and Knowleage Units
+                                            Employee Skills
                                         </CardFooter>
                                     </Card>
                                 </Col>

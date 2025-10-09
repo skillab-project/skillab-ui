@@ -6,7 +6,6 @@ import {
   Row,
   Col } from "reactstrap";
 import axios from 'axios';
-import '../../assets/css/industry.css';
 import { Bar } from 'react-chartjs-2';
 import Heatmap from "./ku/Heatmap";
 import Commits from "./ku/Commits";
@@ -145,7 +144,7 @@ function KnowleageUnits() {
     }, []);
 
     return (
-        <div className="content">
+        <>
             <Row>
                 <Col lg="12" xl="4">
                     <Card>
@@ -223,7 +222,7 @@ function KnowleageUnits() {
                     </Col>
                 }
             </Row>
-        </div>
+        </>
     );
 }
 
