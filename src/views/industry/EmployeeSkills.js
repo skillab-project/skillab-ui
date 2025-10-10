@@ -14,6 +14,7 @@ import {
 import axios from 'axios';
 import classnames from 'classnames';
 import KnowleageUnits from "./employeeSkills/KnowledgeUnits";
+import GeneralSkills from "./employeeSkills/GeneralSkills";
 
 
 function EmployeeSkills() {
@@ -65,7 +66,7 @@ function EmployeeSkills() {
                  */}
                 <TabPane tabId="2">
                     {currentActiveTab == 2 &&
-                        <KnowleageUnits />
+                        <GeneralSkills />
                     }
                 </TabPane>
             </TabContent>

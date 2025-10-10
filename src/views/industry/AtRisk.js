@@ -14,6 +14,7 @@ import {
 import axios from 'axios';
 import classnames from 'classnames';
 import KuAtRisk from "./skillsAtRisk/KuAtRisk";
+import SkillsAtRisk from "./skillsAtRisk/SkillsAtRisk";
 
 
 function AtRisk() {
@@ -65,7 +66,7 @@ function AtRisk() {
                  */}
                 <TabPane tabId="2">
                     {currentActiveTab == 2 &&
-                        <KuAtRisk />
+                        <SkillsAtRisk />
                     }
                 </TabPane>
             </TabContent>

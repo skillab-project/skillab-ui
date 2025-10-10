@@ -49,7 +49,7 @@ var routes = [
     layout: "/industry",
   },
   {
-    path: "/account/ku",
+    path: "/account/employee-skills",
     name: "Employee KU",
     icon: "nc-icon nc-single-02",
     component: <EmployeeSkills />,

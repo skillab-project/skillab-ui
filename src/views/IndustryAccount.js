@@ -43,7 +43,7 @@ function IndustryAccount() {
         window.location.href = "/industry/account/artifacts";
     }
     function handelClickEmployeeKnowleageUnits() {
-        window.location.href = "/industry/account/ku";
+        window.location.href = "/industry/account/employee-skills";
     }
     function handelClickGapWithCompetition() {
         window.location.href = "/industry/account/gap-competition";
