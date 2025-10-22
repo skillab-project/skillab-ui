@@ -20,6 +20,7 @@ import axios from 'axios';
 import "../../../assets/css/loader.css";
 import { FaFilter } from "react-icons/fa";
 import JobAdsFilter from "../JobAdsFilter";
+import ForecastingAgeing from "../../forecasting/ForecastingAgeing";
 
 const DemandForecasting = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
@@ -71,7 +72,7 @@ const DemandForecasting = () => {
                             })}
                             onClick={() => { toggle('1'); }}
                         >
-                            XAI
+                            Ageing
                         </NavLink>
                     </NavItem>
                     <NavItem style={{cursor:"pointer"}}>
@@ -118,11 +119,11 @@ const DemandForecasting = () => {
                 <TabContent activeTab={currentActiveTab}>
         
                     {/**
-                     * Tab: XAI
+                     * Tab: Ageing
                      */}
                     <TabPane tabId="1">
                         {currentActiveTab == 1 &&
-                            <>1</>
+                            <ForecastingAgeing parentDatasource="jobs"/>
                         }
                     </TabPane>
         

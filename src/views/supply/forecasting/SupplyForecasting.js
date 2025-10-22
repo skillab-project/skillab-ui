@@ -19,8 +19,7 @@ import {
 import classnames from 'classnames';
 import axios from 'axios';
 import "../../../assets/css/loader.css";
-import { FaFilter } from "react-icons/fa";
-import ProfilesShortCoursesFilter from "../ProfilesShortCoursesFilter";
+import ForecastingAgeing from "../../forecasting/ForecastingAgeing";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
@@ -30,36 +29,22 @@ const allTabs = [
 
 // Map data sources to the tabs they support
 const tabVisibilityConfig = {
-    'EU profiles': ['1', '2'],
     'Short Courses': ['1', '2'],
-    'EU KUs': ['1', '2'],
-    'EU Syllabus': ['1']
+    'EU KUs': ['1', '2']
 };
 
-const dataSources = ['EU profiles', 'Short Courses', 'EU KUs', 'EU Syllabus'];
+const dataSources = ['Short Courses', 'EU KUs'];
 
 const SupplyForecasting = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
-    const [showFilters, setShowFilters] = useState(false);
-    const [numberOfFilters, setNumberOfFilters] = useState(0);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [selectedDataSource, setSelectedDataSource] = useState(dataSources[0]); // Default to 'EU profiles'
+    const [selectedDataSource, setSelectedDataSource] = useState(dataSources[0]); // Default to 'Short Courses'
 
     const toggleTab = tab => {
         if (currentActiveTab !== tab) setCurrentActiveTab(tab);
     }
     
     const toggleDropdown = () => setDropdownOpen(prevState => !prevState);
-
-    const handelClickShowFilter = () => {
-        setShowFilters(!showFilters);
-    };
-
-    //toDO functionality of filter to data
-    const handleApplyFilters = (numberOfFilters) => {
-        console.log('Filters received:', numberOfFilters);
-        setNumberOfFilters(numberOfFilters);
-    };
 
     // UseEffect to handle side-effects of changing the data source
     useEffect(() => {
@@ -71,25 +56,6 @@ const SupplyForecasting = () => {
         //     setCurrentActiveTab(availableTabs[0]);
         // }
     }, [selectedDataSource]); // Rerun when data source changes
-
-    const getFilterBadge = (count) => 
-        count !== 0 && (
-            <span
-                style={{
-                backgroundColor: "green",
-                color: "white",
-                padding: "3px 8px",
-                borderRadius: "10px",
-                fontSize: "14px",
-                fontWeight: "bold",
-                marginLeft: "8px",
-                display: "flex",
-                alignItems: "center",
-                }}
-            >
-                {count}
-            </span>
-    );
 
     // Get the list of tabs that should be visible based on the current selection
     const visibleTabs = allTabs.filter(tab => 
@@ -133,56 +99,31 @@ const SupplyForecasting = () => {
                             </NavLink>
                         </NavItem>
                     ))}
-                    <span style={{margin:"auto", marginRight:"5px"}} >
-                        <button
-                            onClick={handelClickShowFilter}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                borderRadius: "8px",
-                                padding: "5px 10px",
-                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                color: "white",
-                                fontSize: "16px",
-                                fontWeight: "500",
-                            }}
-                        >
-                            <FaFilter style={{ color:"black" }} />
-                            {getFilterBadge(numberOfFilters)}
-                        </button>
-                    </span>
                 </Nav>
-
-                {showFilters &&
-                    <Row>
-                        <Col md="12">
-                            {selectedDataSource === 'EU profiles' &&
-                                <ProfilesShortCoursesFilter supply={"profiles"} onApplyFilters={handleApplyFilters}/>
-                            }
-                            {selectedDataSource === 'Short Courses' &&
-                                <ProfilesShortCoursesFilter supply={"courses"} onApplyFilters={handleApplyFilters}/>
-                            }
-                        </Col>
-                    </Row>
-                }
         
                 <TabContent activeTab={currentActiveTab}>
                     <TabPane tabId="1">
-                        {currentActiveTab === '1' && <>1, {selectedDataSource}</>}
+                        {currentActiveTab === '1' && selectedDataSource === 'Short Courses' &&
+                        <>
+                            <ForecastingAgeing parentDatasource="courses"/>
+                        </>}
+
+                        {currentActiveTab === '1' && selectedDataSource === 'EU KUs' &&
+                        <>
+                            <ForecastingAgeing parentDatasource="ku"/>
+                        </>}
                     </TabPane>
         
                     <TabPane tabId="2">
-                        {currentActiveTab === '2' && <>2, {selectedDataSource}</>}
-                    </TabPane>
-                    
-                    <TabPane tabId="3">
-                        {currentActiveTab === '3' && <>3, {selectedDataSource}</>}
-                    </TabPane>
-                    
-                    <TabPane tabId="4">
-                        {currentActiveTab === '4' && <>4, {selectedDataSource}</>}
+                        {currentActiveTab === '2' && selectedDataSource === 'Short Courses' &&
+                        <>
+                            2, Short Courses
+                        </>}
+
+                        {currentActiveTab === '2' && selectedDataSource === 'EU KUs' &&
+                        <>
+                            2, EU KUs
+                        </>}
                     </TabPane>
                 </TabContent>
               </div>
