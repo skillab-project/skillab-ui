@@ -23,7 +23,7 @@ import ForecastingAgeing from "../../forecasting/ForecastingAgeing";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
-    { id: '1', name: 'XAI' },
+    { id: '1', name: 'Ageing' },
     { id: '2', name: 'Timeseries' },
 ];
 

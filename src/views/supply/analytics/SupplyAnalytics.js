@@ -25,6 +25,7 @@ import DescriptiveExploratorySyllabus from "../../descriptiveExploratory/Descrip
 import DescriptiveExploratoryKU from "views/descriptiveExploratory/DescriptiveExploratoryKU";
 import DescriptiveExploratoryShortCourses from "views/descriptiveExploratory/DescriptiveExploratoryShortCourses";
 import DescriptiveExploratoryProfiles from "views/descriptiveExploratory/DescriptiveExploratoryProfiles";
+import CoOccurrence from "../../coOccurrence/CoOccurrence";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
@@ -32,14 +33,15 @@ const allTabs = [
     { id: '2', name: 'HCV' },
     { id: '3', name: 'Biodiversity' },
     { id: '4', name: 'Archetypal' },
+    { id: '5', name: 'Co-occurrence' },
 ];
 
 // Map data sources to the tabs they support
 const tabVisibilityConfig = {
-    'EU profiles': ['1', '2', '3', '4'], // All tabs are visible
-    'Short Courses': ['1', '2', '3', '4'], // All tabs are visible
-    'EU KUs': ['1', '3', '4'],           // HCV is hidden
-    'EU Syllabus': ['1', '3', '4'],       // All tabs are visible
+    'EU profiles': ['1', '2', '3', '4', '5'], // All tabs are visible
+    'Short Courses': ['1', '2', '3', '4', '5'], // All tabs are visible
+    'EU KUs': ['1', '3', '4', '5'],           // HCV is hidden
+    'EU Syllabus': ['1', '3', '4', '5'],       // All tabs are visible
 };
 
 const dataSources = ['EU profiles', 'Short Courses', 'EU KUs', 'EU Syllabus'];
@@ -208,6 +210,29 @@ const SupplyAnalytics = () => {
                     
                     <TabPane tabId="4">
                         {currentActiveTab === '4' && <>4, {selectedDataSource}</>}
+                    </TabPane>
+
+                    <TabPane tabId="5">
+                        {currentActiveTab === '5' && selectedDataSource === 'EU KUs' &&
+                            <>
+                                <CoOccurrence parentDatasource="ku"/>
+                            </>
+                        }
+                        {currentActiveTab === '5' && selectedDataSource === 'Short Courses' &&
+                            <>
+                                <CoOccurrence parentDatasource="courses"/>
+                            </>
+                        }
+                        {currentActiveTab === '5' && selectedDataSource === 'EU profiles' &&
+                            <>
+                                <CoOccurrence parentDatasource="profiles"/>
+                            </>
+                        }
+                        {currentActiveTab === '5' && selectedDataSource === 'EU Syllabus' &&
+                            <>
+                                EU Syllabus
+                            </>
+                        }
                     </TabPane>
                 </TabContent>
               </div>

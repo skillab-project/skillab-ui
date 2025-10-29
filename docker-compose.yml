@@ -25,6 +25,7 @@ services:
       - REACT_APP_API_URL_HIRING_MANAGEMENT=https://portal.skillab-project.eu/hiring-management
       - REACT_APP_API_URL_EMPLOYEE_MANAGEMENT=https://portal.skillab-project.eu/employee-management
       - REACT_APP_API_URL_SKILL_AGEING=https://portal.skillab-project.eu/skill-ageing
+      - REACT_APP_API_URL_GIANT_COMPONENT_NETWORKS=https://portal.skillab-project.eu/giant-component-networks
     ports:
       - '3000:3000'
     labels:

@@ -22,6 +22,7 @@ import { FaFilter } from "react-icons/fa";
 import JobAdsFilter from "../JobAdsFilter";
 import SkillDemandMatrix from "../../hcv/HCV"
 import DescriptiveExploratoryJobs from "../../descriptiveExploratory/DescriptiveExploratoryJobs";
+import CoOccurrence from "../../coOccurrence/CoOccurrence";
 
 const DemandAnalytics = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
@@ -113,6 +114,17 @@ const DemandAnalytics = () => {
                             Archetypal
                         </NavLink>
                     </NavItem>
+                    <NavItem style={{cursor:"pointer"}}>
+                        <NavLink
+                            className={classnames({
+                                active:
+                                    currentActiveTab === '5'
+                            })}
+                            onClick={() => { toggle('5'); }}
+                        >
+                            Co-occurrence
+                        </NavLink>
+                    </NavItem>
                     <span style={{margin:"auto", marginRight:"5px"}} >
                         <button
                             onClick={handelClickShowFilter}
@@ -180,6 +192,16 @@ const DemandAnalytics = () => {
                     <TabPane tabId="4">
                         {currentActiveTab == 4 &&
                             <>4</>
+                        }
+                    </TabPane>
+
+
+                    {/**
+                     * Tab: Archetypal
+                     */}
+                    <TabPane tabId="5">
+                        {currentActiveTab == 5 &&
+                            <CoOccurrence parentDatasource="jobs"/>
                         }
                     </TabPane>
                 </TabContent>
