@@ -33,6 +33,10 @@ function EducationAccount() {
         window.location.href = "/education/account/management";
     }
 
+    const handelClickTaxonomy =()=> {
+        window.location.href = "/education/account/taxonomy";
+    }
+
     return (
     <>
       <div className="content">
@@ -54,6 +58,16 @@ function EducationAccount() {
                                         </CardBody>
                                         <CardFooter>
                                             Management
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickTaxonomy()}>
+                                        <CardBody>
+                                            <MdManageAccounts size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Taxonomy
                                         </CardFooter>
                                     </Card>
                                 </Col>

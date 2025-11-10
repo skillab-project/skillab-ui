@@ -7,6 +7,7 @@ import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
 import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
+import TaxonomyManagement from "views/taxonomies/TaxonomyManagement";
 
 var routes = [
   {
@@ -22,6 +23,13 @@ var routes = [
     icon: "nc-icon nc-single-02",
     component: <ManagePolicies />,
     layout: "/policy-industry",
+  },
+  {
+    path: "/account/taxonomy",
+    name: "Taxonomy",
+    icon: "nc-icon nc-single-02",
+    component: <TaxonomyManagement />,
+    layout: "/education",
   },
   {
     name: "Demand",

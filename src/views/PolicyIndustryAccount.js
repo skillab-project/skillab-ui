@@ -33,6 +33,11 @@ function PolicyIndustryAccount() {
         window.location.href = "/policy-industry/account/manage-policies";
     }
 
+    const handelClickTaxonomy =()=> {
+        window.location.href = "/policy-industry/account/taxonomy";
+    }
+
+
     return (
     <>
       <div className="content">
@@ -50,9 +55,20 @@ function PolicyIndustryAccount() {
                                 <Col md="3">
                                     <Card style={{cursor:"pointer"}} onClick={()=>handelClickManagePolicies()}>
                                         <CardBody>
-                                            <MdPolicy size="50"/>                                        </CardBody>
+                                            <MdPolicy size="50"/>
+                                        </CardBody>
                                         <CardFooter>
                                             Manage Policies
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}}onClick={()=>handelClickTaxonomy()}>
+                                        <CardBody>
+                                            <MdPolicy size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Taxonomy
                                         </CardFooter>
                                     </Card>
                                 </Col>

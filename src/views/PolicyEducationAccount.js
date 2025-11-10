@@ -33,6 +33,10 @@ function PolicyEducationAccount() {
         window.location.href = "/policy-education/account/manage-policies";
     }
 
+    const handelClickTaxonomy =()=> {
+        window.location.href = "/policy-education/account/taxonomy";
+    }
+
     return (
     <>
       <div className="content">
@@ -54,6 +58,16 @@ function PolicyEducationAccount() {
                                         </CardBody>
                                         <CardFooter>
                                             Manage Policies
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}}onClick={()=>handelClickTaxonomy()}>
+                                        <CardBody>
+                                            <MdPolicy size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Taxonomy
                                         </CardFooter>
                                     </Card>
                                 </Col>
