@@ -20,17 +20,19 @@ import classnames from 'classnames';
 import axios from 'axios';
 import "../../../assets/css/loader.css";
 import ForecastingAgeing from "../../forecasting/ForecastingAgeing";
+import ForecastingCoOccurence from "../../forecasting/ForecastingCoOccurence";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
     { id: '1', name: 'Ageing' },
     { id: '2', name: 'Timeseries' },
+    { id: '3', name: 'Link Prediction' },
 ];
 
 // Map data sources to the tabs they support
 const tabVisibilityConfig = {
     'Short Courses': ['1', '2'],
-    'EU KUs': ['1', '2']
+    'EU KUs': ['1', '2', '3']
 };
 
 const dataSources = ['Short Courses', 'EU KUs'];
@@ -123,6 +125,13 @@ const SupplyForecasting = () => {
                         {currentActiveTab === '2' && selectedDataSource === 'EU KUs' &&
                         <>
                             2, EU KUs
+                        </>}
+                    </TabPane>
+
+                    <TabPane tabId="3">
+                        {currentActiveTab === '3' && selectedDataSource === 'EU KUs' &&
+                        <>
+                            <ForecastingCoOccurence />
                         </>}
                     </TabPane>
                 </TabContent>

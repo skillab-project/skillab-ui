@@ -18,7 +18,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 
 import "../../assets/css/loader.css";
 
-const BASE_URL = "https://portal.skillab-project.eu/giant-component-networks";
+const BASE_URL = process.env.REACT_APP_API_URL_GIANT_COMPONENT_NETWORKS;
 const ALL_KUS = "K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21,K22,K23,K24,K25,K26,K27";
 
 function CoOccurrence({ parentDatasource }) {
