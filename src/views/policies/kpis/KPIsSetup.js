@@ -1,162 +1,153 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "./css/KPIsSetup.css";
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardTitle,
+  Row,
+  Col,
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  ListGroup,
+  ListGroupItem,
+} from "reactstrap";
 
-const KPIsSetup = () => {
-  const [equation, setEquation] = useState(""); // State to store the equation
-  const [newMetricName, setNewMetricName] = useState("");
-  const [newMetricDescription, setNewMetricDescription] = useState("");
-  const [metrics, setMetrics] = useState([]);
-  const [indicators, setIndicators] = useState([]);
 
-  const handleButtonClicked = (text) => {
-      setEquation((prevEquation) => prevEquation + " " + text);
-  };
+function KPIsSetup({ policies, availableMetrics, onKpiCreated }) {
+    const [kpiName, setKpiName] = useState('');
+    const [equation, setEquation] = useState('');
+    const [selectedPolicyName, setSelectedPolicyName] = useState('');
+    const [targetValue, setTargetValue] = useState('');
+    const [targetTime, setTargetTime] = useState('');
 
-  const handleCreation = async () => {
-    const myHeaders = {
-      "Content-Type": "application/json"
-    };
 
-    const requestData = {
-      name: newMetricName,
-      equation: equation,
-    };
-
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL_KPI}/metric`,
-        requestData,
-        {
-          headers: myHeaders,
+    // Set the default policy when the prop is available.
+    useEffect(() => {
+        if (policies.length > 0 && !selectedPolicyName) {
+            setSelectedPolicyName(policies[0].name);
         }
-      );
+    }, [policies, selectedPolicyName]);
 
-      console.log(response.data);
 
-      // Refresh the page after the request succeeds
-      window.location.reload();
-    } catch (error) {
-      console.error("Error:", error);
+    const handleSymbolClick = (symbol) => {
+        setEquation(prev => `${prev}${prev ? ' ' : ''}${symbol} `);
+    };
+
+    const resetForm = () => {
+        setKpiName('');
+        setEquation('');
+        setTargetValue('');
+        setTargetTime('');
+        if (policies.length > 0) {
+            setSelectedPolicyName(policies[0].name);
+        }
     }
-  };
 
-  useEffect(() => {
-    const fetchIndicatorData = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          redirect: "follow",
-        };
-
-        // Step 1: Make an initial API call to fetch the JSON table
-        const response = await fetch(
-          process.env.REACT_APP_API_URL_KPI + `/indicator/all`,
-          requestOptions
-        );
-        const result = await response.json();
-
-        if (Array.isArray(result) && result.length > 0) {
-          // const indicatorNames = result.map((item) => item.name);
-          // setIndicatorNames(indicatorNames);
-          setIndicators(result);
-        } else {
-          console.log("API response is empty or not an array:", result);
+    const handleCreateKPI = async (e) => {
+        e.preventDefault();
+        if (!kpiName || !equation || !selectedPolicyName) {
+            alert('Please fill in KPI Name, Equation, and select a Policy.');
+            return;
         }
-      } catch (error) {
-        console.error("Error:", error);
-      }
+
+        // Call the parent handler
+        await onKpiCreated({
+            name: kpiName,
+            equation: equation.trim(),
+            policyName: selectedPolicyName,
+            targetValue,
+            targetTime
+        });
+        resetForm();
     };
+    
+    const operatorButtons = ['+', '-', '*', '/', '%', '(', ')', '^'];
 
-    const fetchMetricData = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          redirect: "follow",
-        };
+    return (
+        <Row>
+            <Col md="7">
+                <Card>
+                    <CardHeader>
+                        <CardTitle tag="h4">Create new KPI</CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <Form onSubmit={handleCreateKPI}>
+                            <FormGroup>
+                                <Label for="kpiName">KPI Name</Label>
+                                <Input id="kpiName" placeholder="New KPI name" value={kpiName} onChange={e => setKpiName(e.target.value)} />
+                            </FormGroup>
 
-        // Step 1: Make an initial API call to fetch the JSON table
-        const response = await fetch(
-          process.env.REACT_APP_API_URL_KPI + "/metric/all",
-          requestOptions
-        );
-        const result = await response.json();
+                            <FormGroup>
+                                <Label for="policySelect">Policy</Label>
+                                <Input type="select" id="policySelect" value={selectedPolicyName} onChange={e => setSelectedPolicyName(e.target.value)}>
+                                    {policies.length === 0 && <option disabled>Loading policies...</option>}
+                                    {policies.map(policy => (
+                                        <option key={policy.id} value={policy.name}>{policy.name}</option>
+                                    ))}
+                                </Input>
+                            </FormGroup>
 
-        if (Array.isArray(result) && result.length > 0) {
-          setMetrics(result);
-        } else {
-          console.log("API response is empty or not an array:", result);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    };
+                            <FormGroup>
+                                <Label for="equation">Equation</Label>
+                                <Input type="textarea" id="equation" rows="3" value={equation} onChange={e => setEquation(e.target.value)} />
+                            </FormGroup>
+                            
+                            <div className="d-flex flex-wrap" style={{gap: '10px', marginBottom: '20px'}}>
+                                {operatorButtons.map(op => (
+                                    <Button key={op} color="success" outline style={{width: '45px'}} onClick={() => handleSymbolClick(op)}>
+                                        {op}
+                                    </Button>
+                                ))}
+                            </div>
 
-    fetchIndicatorData();
-    fetchMetricData();
-  }, []); // Empty dependency array to run once on component mount
+                            <Row>
+                                <Col md="6">
+                                    <FormGroup>
+                                        <Label for="targetValue">Target Value (Optional)</Label>
+                                        <Input type="number" id="targetValue" placeholder="e.g., 95.5" value={targetValue} onChange={e => setTargetValue(e.target.value)} />
+                                    </FormGroup>
+                                </Col>
+                                <Col md="6">
+                                    <FormGroup>
+                                        <Label for="targetTime">Target Time (Optional)</Label>
+                                        <Input type="text" id="targetTime" placeholder="e.g., 25/10/2027" value={targetTime} onChange={e => setTargetTime(e.target.value)} />
+                                    </FormGroup>
+                                </Col>
+                            </Row>
+                            
+                            <Button color="primary" type="submit" block>Create KPI</Button>
+                        </Form>
+                    </CardBody>
+                </Card>
+            </Col>
 
-  return (
-    <div className="metrics-setup">
-      <div className="left">
-        <h3 className="section-title">Existing KPIs</h3>
-        {metrics.map((metric) => (
-          <div key={metric.id}>
-            <b>{metric.name}</b> = {metric.equation}
-          </div>
-        ))}
-      </div>
-      <div className="center">
-        <h3 className="section-title">Create new KPI</h3>
-        <input
-          type="text"
-          placeholder="New KPI name"
-          value={newMetricName}
-          onChange={(e) => setNewMetricName(e.target.value)}
-        />
-        {/* <input
-          type="text"
-          placeholder="New metric description"
-          value={newMetricDescription}
-          onChange={(e) => setNewMetricDescription(e.target.value)}
-        /> */}
-        <div className="seperator" />
-        <textarea
-          className="equation-input"
-          type="text"
-          value={equation}
-          onChange={(e) => setEquation(e.target.value)}
-          placeholder="Enter equation"
-        />
-        <div className="operators" >
-          <button onClick={() => handleButtonClicked("+")}>+</button>
-          <button onClick={() => handleButtonClicked("-")}>-</button>
-          <button onClick={() => handleButtonClicked("*")}>*</button>
-          <button onClick={() => handleButtonClicked("/")}>/</button>
-          <button onClick={() => handleButtonClicked("%")}>%</button>
-          <button onClick={() => handleButtonClicked("(")}>(</button>
-          <button onClick={() => handleButtonClicked(")")}>)</button>
-          <button onClick={() => handleButtonClicked("^")}>^</button>
-        </div>
-
-        <div className="seperator" />
-        <button className="create-button" onClick={handleCreation}>
-          Create KPI
-        </button>
-      </div>
-      <div className="right">
-        <h3 className="section-title">Available Metrics</h3>
-        {indicators.map((indicator) => (
-          <button
-            key={indicator.id}
-            onClick={() => handleButtonClicked(indicator.symbol)}
-          >
-            <b>{indicator.name}</b> - {indicator.symbol}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
+            <Col md="5">
+                <Card>
+                    <CardHeader>
+                        <CardTitle tag="h4">Available Metrics</CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <ListGroup flush>
+                            {availableMetrics.map(metric => (
+                                <ListGroupItem 
+                                    key={metric.id} 
+                                    action 
+                                    tag="button"
+                                    type="button" // Important to prevent form submission
+                                    onClick={() => handleSymbolClick(metric.symbol)}
+                                >
+                                    {metric.name} - <strong>{metric.symbol}</strong>
+                                </ListGroupItem>
+                            ))}
+                        </ListGroup>
+                    </CardBody>
+                </Card>
+            </Col>
+        </Row>
+    );
+}
 
 export default KPIsSetup;

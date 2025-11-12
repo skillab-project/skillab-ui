@@ -1,90 +1,151 @@
-import React, { useState, useEffect } from "react";
-import Metric from "./Metric"; // Import the Metric component
-import "./css/KPIsMain.css";
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardTitle,
+  Row,
+  Col,
+  ListGroup,
+  ListGroupItem,
+  Spinner,
+} from "reactstrap";
+import axios from 'axios';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+
+const REPORT_API_URL = process.env.REACT_APP_API_URL_KPI + '/report/kpi';
+
+function KPIsMain({ kpis }) {
+  const [selectedKpi, setSelectedKpi] = useState(null);
+  const [kpiData, setKpiData] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
 
-const KPIsMain = ({}) => {
-  // Initialize state to track which Metric is expanded
-  const [expandedMetricId, setExpandedMetricId] = useState(null);
-  const [data, setData] = useState([]);
-  const [metricNames, setMetricNames] = useState([]);
-  const [apiResponses, setApiResponses] = useState([]);
+  const handleSelectKpi = async (kpi) => {
+    if (selectedKpi?.id === kpi.id) return; // Avoid re-fetching if already selected
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const requestOptions = {
-          method: "GET",
-          redirect: "follow",
-        };
+    setSelectedKpi(kpi);
+    setIsLoadingData(true);
+    setKpiData([]); // Clear previous data
 
-        // Step 1: Make an initial API call to fetch the JSON table
-        const response = await fetch(
-          process.env.REACT_APP_API_URL_KPI + "/metric/all",
-          requestOptions
-        );
-        const result = await response.json();
-
-        if (Array.isArray(result) && result.length > 0) {
-          const metricNames = result.map((item) => item.name);
-          setMetricNames(metricNames);
-
-          // Step 2: Iterate through the JSON table and make API calls
-          const apiPromises = metricNames.map(async (metricName) => {
-            const apiResponse = await fetch(
-              process.env.REACT_APP_API_URL_KPI + `/report/metric?metricName=${metricName}`,
-              requestOptions
-            );
-            return apiResponse.json();
-          });
-
-          // Step 3: Wait for all API calls to complete and update state
-          const responses = await Promise.all(apiPromises);
-          const newData = responses.map((response, i) => ({
-            metric_name: metricNames[i],
-            metric_data: response,
-          }));
-          setData(newData);
-          setApiResponses(responses);
-
-          // console.log("responses --> " + JSON.stringify(responses));
-          // console.log("newData --> " + JSON.stringify(newData));
-        } else {
-          console.log("API response is empty or not an array:", result);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    };
-
-    fetchData();
-  }, []); // Empty dependency array to run once on component mount
-
-  // Function to toggle the expanded state of an Metric
-  const toggleMetric = (metricId) => {
-    setExpandedMetricId((prevId) => (prevId === metricId ? null : metricId));
+    try {
+      const url = `${REPORT_API_URL}?kpiName=${encodeURIComponent(kpi.name)}`;
+      const response = await axios.get(url);
+      setKpiData(response.data);
+    } catch (error) {
+      alert(`Failed to fetch data for ${kpi.name}`);
+      console.error("Error fetching KPI data:", error);
+    } finally {
+      setIsLoadingData(false);
+    }
   };
 
+  // Format data for the chart
+  const formattedChartData = kpiData.map(item => ({
+    ...item,
+    date: new Date(item.date).toLocaleDateString(),
+  }));
+
   return (
-    <div className="Metric main_container">
-      {data.map((metric_component) => (
-        <div className={"metric_component_panel"}>
-          <div
-            key={metric_component.metric_name}
-            onClick={() => toggleMetric(metric_component.metric_name)}
-            className={`metric-button ${
-              expandedMetricId === metric_component.metric_name ? "active" : ""
-            }`}
-          >
-            {metric_component.metric_name}
-          </div>
-          {expandedMetricId === metric_component.metric_name && (
-            <Metric data={metric_component.metric_data} />
-          )}
-        </div>
-      ))}
-    </div>
+    <Row>
+      <Col md="4">
+        <Card>
+          <CardHeader>
+            <CardTitle tag="h5">Available KPIs</CardTitle>
+          </CardHeader>
+          <CardBody style={{ padding: 0 }}>
+            <ListGroup flush>
+              {kpis.map(kpi => (
+                <ListGroupItem
+                  key={kpi.id}
+                  action
+                  tag="button"
+                  active={selectedKpi?.id === kpi.id}
+                  onClick={() => handleSelectKpi(kpi)}
+                >
+                  {kpi.name}
+                </ListGroupItem>
+              ))}
+            </ListGroup>
+          </CardBody>
+        </Card>
+      </Col>
+
+      <Col md="8">
+        {selectedKpi ? (
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h5">Details for: {selectedKpi.name}</CardTitle>
+            </CardHeader>
+            <CardBody>
+              {isLoadingData ? (
+                <div className="text-center p-5"><Spinner>Loading...</Spinner></div>
+              ) : (
+                <>
+                  {/* Target Information */}
+                  <Row className="mb-3">
+                    <Col>
+                      <strong>Target Value:</strong> {selectedKpi.targetValue ?? 'Not set'}
+                    </Col>
+                    <Col>
+                      <strong>Target Time:</strong> {selectedKpi.targetTime ?? 'Not set'}
+                    </Col>
+                  </Row>
+                  <hr />
+                  
+                  {/* Data Chart */}
+                  <CardTitle tag="h6">Historical Performance</CardTitle>
+                  {kpiData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={formattedChartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="value" name={selectedKpi.name} stroke="#8884d8" strokeWidth={2} />
+                        {/* Add a reference line for the target value if it exists */}
+                        {selectedKpi.targetValue && (
+                          <ReferenceLine y={selectedKpi.targetValue} label="Target" stroke="red" strokeDasharray="3 3" />
+                        )}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p>No historical data available to display a chart.</p>
+                  )}
+                  <hr />
+
+                  {/* Data Points List */}
+                  <CardTitle tag="h6">Data Points</CardTitle>
+                  {kpiData.length > 0 ? (
+                    <ListGroup style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                      {kpiData.slice().reverse().map((item, index) => ( // Show newest first
+                        <ListGroupItem key={index} className="d-flex justify-content-between align-items-center">
+                          <span>Date: {new Date(item.date).toLocaleDateString()}</span>
+                          <span>Value: {item.value}</span>
+                        </ListGroupItem>
+                      ))}
+                    </ListGroup>
+                  ) : (
+                    <p>No data points found.</p>
+                  )}
+                </>
+              )}
+            </CardBody>
+          </Card>
+        ) : (
+          <Card>
+            <CardBody className="text-center d-flex align-items-center justify-content-center" style={{ minHeight: '300px' }}>
+              <div>
+                <CardTitle tag="h5" className="text-muted">No KPI Selected</CardTitle>
+                <p className="text-muted">Please select a KPI from the list to view its details.</p>
+              </div>
+            </CardBody>
+          </Card>
+        )}
+      </Col>
+    </Row>
   );
-};
+}
 
 export default KPIsMain;
