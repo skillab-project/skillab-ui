@@ -37,6 +37,10 @@ function PolicyIndustryAccount() {
         window.location.href = "/policy-industry/account/taxonomy";
     }
 
+    const handelClickFutureTechnologyTrends =()=> {
+        window.location.href = "/policy-industry/account/future-technology-trends";
+    }
+
 
     return (
     <>
@@ -63,7 +67,7 @@ function PolicyIndustryAccount() {
                                     </Card>
                                 </Col>
                                 <Col md="3">
-                                    <Card style={{cursor:"pointer"}}onClick={()=>handelClickTaxonomy()}>
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickTaxonomy()}>
                                         <CardBody>
                                             <MdPolicy size="50"/>
                                         </CardBody>
@@ -81,7 +85,7 @@ function PolicyIndustryAccount() {
                             </Row>
                             <Row>
                                 <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickFutureTechnologyTrends()}>
                                         <CardBody>
                                             <LuTrendingUpDown size="50"/>
                                         </CardBody>

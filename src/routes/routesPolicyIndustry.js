@@ -8,6 +8,7 @@ import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import TaxonomyManagement from "views/taxonomies/TaxonomyManagement";
+import FutureTechnologyTrends from "views/policies/FutureTechnologyTrends";
 
 var routes = [
   {
@@ -29,7 +30,14 @@ var routes = [
     name: "Taxonomy",
     icon: "nc-icon nc-single-02",
     component: <TaxonomyManagement />,
-    layout: "/education",
+    layout: "/policy-industry",
+  },
+  {
+    path: "/account/future-technology-trends",
+    name: "Future Technology Trends",
+    icon: "nc-icon nc-single-02",
+    component: <FutureTechnologyTrends />,
+    layout: "/policy-industry",
   },
   {
     name: "Demand",
