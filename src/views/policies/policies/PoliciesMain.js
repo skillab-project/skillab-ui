@@ -31,7 +31,7 @@ function PoliciesMain({ policies, onPolicyCreated }) {
     const [newPolicy, setNewPolicy] = useState({
         name: '',
         description: '',
-        sector: 'Technology',
+        sector: '',
         region: ''
     });
     const [selectedPolicy, setSelectedPolicy] = useState(null);
@@ -52,7 +52,7 @@ function PoliciesMain({ policies, onPolicyCreated }) {
             return;
         }
         await onPolicyCreated(newPolicy);
-        setNewPolicy({ name: '', description: '', sector: 'Technology', region: '' });
+        setNewPolicy({ name: '', description: '', sector: '', region: '' });
     };
     
     // Set first policy as selected by default when policies are loaded
@@ -87,13 +87,7 @@ function PoliciesMain({ policies, onPolicyCreated }) {
                                 <Col md="6">
                                     <FormGroup>
                                         <Label for="policySector">Sector</Label>
-                                        <Input type="select" name="sector" id="policySector" value={newPolicy.sector} onChange={handleInputChange}>
-                                            <option>Technology</option>
-                                            <option>Healthcare</option>
-                                            <option>Finance</option>
-                                            <option>Corporate</option>
-                                            <option>Other</option>
-                                        </Input>
+                                        <Input type="text" name="sector" id="policySector" placeholder="e.g., Technology" value={newPolicy.sector} onChange={handleInputChange} required />
                                     </FormGroup>
                                 </Col>
                                 <Col md="6">
