@@ -29,6 +29,7 @@ services:
       - REACT_APP_API_URL_ESCOPLUS_SKILLS_EXTENDER=https://portal.skillab-project.eu/escoplus-skills-extender
       - REACT_APP_API_URL_OCCUPATIONAL_DEMAND_FORECASTER=https://portal.skillab-project.eu/occupational-demand-forecaster
       - REACT_APP_API_URL_FUTURE_TECHNOLOGY_TRENDS_IDENTIFIER=https://portal.skillab-project.eu/future-technology-trends-identifier
+      - REACT_APP_API_URL_POLICY_SUCCESS_EVALUATOR=https://portal.skillab-project.eu/policy-success-evaluator
     ports:
       - '3000:3000'
     labels:
