@@ -28,7 +28,6 @@ import {
 import classnames from 'classnames';
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL_KPI + '/policy';
 const EVAL_API_URL = process.env.REACT_APP_API_URL_POLICY_SUCCESS_EVALUATOR + "/policy/recommendations";
 
 function PoliciesMain({ policies, onPolicyCreated }) {
