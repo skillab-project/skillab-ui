@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Card,
   CardHeader,
@@ -22,13 +22,12 @@ import {
   TabPane,
   Spinner,
   Badge,
-  UncontrolledCollapse,
-  Table
+  UncontrolledCollapse
 } from "reactstrap";
 import classnames from 'classnames';
 import axios from 'axios';
 
-const EVAL_API_URL = process.env.REACT_APP_API_URL_POLICY_SUCCESS_EVALUATOR + "/policy/recommendations";
+const EVAL_API_URL = process.env.REACT_APP_API_URL_POLICY_SUCCESS_EVALUATOR;
 
 function PoliciesMain({ policies, onPolicyCreated }) {
     const [newPolicy, setNewPolicy] = useState({
@@ -41,6 +40,9 @@ function PoliciesMain({ policies, onPolicyCreated }) {
     const [activePolicyTab, setActivePolicyTab] = useState('1');
     const [evaluationResults, setEvaluationResults] = useState(null);
     const [isLoadingEvaluation, setIsLoadingEvaluation] = useState(false);
+    
+    // Ref to store the timeout ID so we can clear it if the user switches tabs/policies
+    const pollTimeoutRef = useRef(null);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -67,10 +69,25 @@ function PoliciesMain({ policies, onPolicyCreated }) {
         }
     }, [policies, selectedPolicy]);
 
-    // Reset evaluation results when switching policies
+    // Reset evaluation results and stop polling when switching policies
     useEffect(() => {
         setEvaluationResults(null);
+        setIsLoadingEvaluation(false);
+        
+        // Cleanup function to stop polling if user switches policy
+        if (pollTimeoutRef.current) {
+            clearTimeout(pollTimeoutRef.current);
+        }
     }, [selectedPolicy]);
+
+    // Cleanup on component unmount
+    useEffect(() => {
+        return () => {
+            if (pollTimeoutRef.current) {
+                clearTimeout(pollTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const togglePolicyTab = tab => {
         if (activePolicyTab !== tab) setActivePolicyTab(tab);
@@ -83,23 +100,56 @@ function PoliciesMain({ policies, onPolicyCreated }) {
         setIsLoadingEvaluation(true);
         setEvaluationResults(null);
 
+        // Clear any existing polling timers just in case
+        if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+
         try {
-            const response = await axios.post(EVAL_API_URL, {
+            // Initiate the Job
+            const initResponse = await axios.post(EVAL_API_URL+"/jobs/policy", {
                 policy_name: selectedPolicy.name
             });
-            
-            const resultsMap = {};
-            if (Array.isArray(response.data)) {
-                response.data.forEach(item => {
-                    resultsMap[item.kpi_id] = item;
-                });
+            const { job_id } = initResponse.data;
+            if (!job_id) {
+                throw new Error("No job_id returned from initialization");
             }
-            setEvaluationResults(resultsMap);
 
+            // Polling Function
+            const checkStatus = async () => {
+                try {
+                    const statusResponse = await axios.get(EVAL_API_URL+"/jobs/"+job_id);
+                    const { status, result, error } = statusResponse.data;
+
+                    if (status === 'running') {
+                        pollTimeoutRef.current = setTimeout(checkStatus, 5000);
+                    } else if (status === 'success') {
+                        const resultsMap = {};
+                        
+                        if (Array.isArray(result)) {
+                            result.forEach(item => {
+                                // Convert ID to string for consistency
+                                resultsMap[String(item.kpi_id)] = item;
+                            });
+                        }
+                        
+                        setEvaluationResults(resultsMap);
+                        setIsLoadingEvaluation(false);
+                    } else {
+                        // Job failed or unknown status
+                        console.error("Evaluation Job Error:", error);
+                        alert(`Evaluation failed: ${error || 'Unknown error occurred'}`);
+                        setIsLoadingEvaluation(false);
+                    }
+                } catch (pollError) {
+                    console.error("Error polling job status:", pollError);
+                    setIsLoadingEvaluation(false);
+                }
+            };
+
+            // Start the first status check
+            checkStatus();
         } catch (error) {
-            console.error("Error evaluating policy:", error);
-            alert("Failed to retrieve policy evaluation. Check console for details.");
-        } finally {
+            console.error("Error initiating evaluation:", error);
+            alert("Failed to start policy evaluation. Check console for details.");
             setIsLoadingEvaluation(false);
         }
     };
@@ -228,9 +278,7 @@ function PoliciesMain({ policies, onPolicyCreated }) {
                                         <div>
                                             {selectedPolicy.kpiList.map(kpi => {
                                                 // Check if we have results for this specific KPI
-                                                // Convert IDs to strings for safe comparison
                                                 const result = evaluationResults ? evaluationResults[String(kpi.id)] : null;
-                                                const collapseId = `rec-collapse-${kpi.id}`;
 
                                                 return (
                                                     <Card key={kpi.id} className="mb-3 border">
