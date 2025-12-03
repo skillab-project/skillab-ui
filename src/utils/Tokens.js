@@ -94,3 +94,12 @@ export async function getId() {
   }
   return "";
 }
+
+export async function getInstallation() {
+  var token = localStorage.getItem("accessTokenSkillab");
+  if (token !== "" && token !== null) {
+    var decoded = jwtDecode(token);
+    return decoded.installation;
+  }
+  return "";
+}

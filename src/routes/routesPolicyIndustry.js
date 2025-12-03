@@ -1,4 +1,4 @@
-import Configuration from "views/dataConfiguration/Configuration";
+import Configuration from "views/configuration/Configuration";
 import PolicyIndustryAccount from "views/PolicyIndustryAccount";
 import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import ManagePolicies from "../views/policies/ManagePolicies";

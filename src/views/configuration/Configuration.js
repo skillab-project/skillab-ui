@@ -15,10 +15,12 @@ import {
   TabPane
 } from "reactstrap";
 import classnames from 'classnames';
-import JobSources from "./JobSources";
-import CVDatabases from "./CVDatabases"
-import ProfileSources from "./ProfileSources";
-import CourseSources from "./CourseSources";
+import JobSources from "./dataConfiguration/JobSources";
+import CVDatabases from "./dataConfiguration/CVDatabases"
+import ProfileSources from "./dataConfiguration/ProfileSources";
+import CourseSources from "./dataConfiguration/CourseSources";
+import {isPrivileged} from "../../utils/Tokens";
+import AdminConfiguration from "./AdminConfiguration";
 
 
 function DataAnalysis() {
@@ -74,16 +76,21 @@ function DataAnalysis() {
                     CV Databases
                 </NavLink>
             </NavItem> */}
-            {/* <NavItem style={{cursor:"pointer"}}>
-                <NavLink>
-                    Artifact Analysis
-                </NavLink>
-            </NavItem>
-            <NavItem style={{cursor:"pointer"}}>
-                <NavLink>
-                    Document Text Mining
-                </NavLink>
-            </NavItem> */}
+            {
+                (isPrivileged() &&
+                    <NavItem style={{cursor:"pointer"}}>
+                        <NavLink
+                            className={classnames({
+                                active:
+                                    currentActiveTab === '5'
+                            })}
+                            onClick={() => { toggle('5'); }}
+                        >
+                            Admin
+                        </NavLink>
+                    </NavItem>
+                )
+            }
         </Nav>
 
         <TabContent activeTab={currentActiveTab}>
@@ -115,6 +122,17 @@ function DataAnalysis() {
                     </Col>
                 </Row>
             </TabPane> */}
+            {
+                (isPrivileged() &&
+                    <TabPane tabId="5">
+                        <Row>
+                            <Col md="12">
+                                <AdminConfiguration />
+                            </Col>
+                        </Row>
+                    </TabPane>
+                )
+            }
         </TabContent>
     </div>
   );
