@@ -14,6 +14,8 @@ import {
   TabPane,
   Badge,
   Input,
+  Label,
+  FormGroup,
   Button
 } from "reactstrap";
 import axios from 'axios';
@@ -55,6 +57,8 @@ function ForecastingAgeing({parentDatasource}) {
     const [activeTab, setActiveTab] = useState('1');
     const [orgName, setOrgName] = useState('');
     const [courseKeyword, setCourseKeyword] = useState('');
+    const [keyword, setKeywords] = useState('');
+    const [maxPages, setMaxPages] = useState(10);
 
     // To hold sorting configurations for each table
     const [sortConfigs, setSortConfigs] = useState({
@@ -133,13 +137,13 @@ function ForecastingAgeing({parentDatasource}) {
     };
 
     
-    const handleApplyOccupationSelection = (selectedOccupation, selectedItem) => {
+    const handleApplyOccupationSelection = () => {
         setSearch(true);
         setLoading(true);
         setAnalysisData(null);
         axios
-            .get(process.env.REACT_APP_API_URL_SKILL_AGEING + "/jobs?occupation="+
-                                selectedOccupation.id + "&source="+ selectedItem)
+            .get(process.env.REACT_APP_API_URL_SKILL_AGEING + "/jobs-with-keywords?keywords="+
+                                keyword + "&max_pages="+ maxPages)
             .then(async (res) => {
                 setAnalysisData(res.data);
                 setLoading(false);
@@ -212,7 +216,19 @@ function ForecastingAgeing({parentDatasource}) {
                                 <Button color="info" onClick={handleApplyCourses}>Apply</Button>
                             </CardTitle>
                         ) : (
-                            <OccupationSelection onApplySelection={handleApplyOccupationSelection}/>
+                            <CardTitle>
+                                <Col md="6" style={{justifySelf:"center"}}>
+                                    <FormGroup>
+                                        <Label for="keywordInput">Keywords (required)</Label>
+                                        <Input id="keywordInput" type="text" placeholder="e.g., python, software developer" value={keyword} onChange={e => setKeywords(e.target.value)} />
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label for="maxPagesInput">Max Pages</Label>
+                                        <Input id="maxPagesInput" type="number" value={maxPages} onChange={e => setMaxPages(parseInt(e.target.value, 10))} />
+                                    </FormGroup>
+                                </Col>
+                                <Button color="info" onClick={handleApplyOccupationSelection}>Apply</Button>
+                            </CardTitle>
                         )}
                     </CardHeader>
                     <CardBody>
