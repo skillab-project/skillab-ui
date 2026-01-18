@@ -21,6 +21,8 @@ import axios from 'axios';
 import "../../../assets/css/loader.css";
 import ForecastingAgeing from "../../forecasting/ForecastingAgeing";
 import ForecastingCoOccurence from "../../forecasting/ForecastingCoOccurence";
+import KUForecast from "views/forecasting/KUForecast";
+import PolicyForecast from "views/forecasting/PolicyForecast";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
@@ -31,11 +33,12 @@ const allTabs = [
 
 // Map data sources to the tabs they support
 const tabVisibilityConfig = {
-    'Short Courses': ['1', '2'],
+    'Short Courses': ['1'],
+    'Policies': ['1', '2'],
     'EU KUs': ['1', '2', '3']
 };
 
-const dataSources = ['Short Courses', 'EU KUs'];
+const dataSources = ['Short Courses', 'Policies', 'EU KUs'];
 
 const SupplyForecasting = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
@@ -110,6 +113,11 @@ const SupplyForecasting = () => {
                             <ForecastingAgeing parentDatasource="courses"/>
                         </>}
 
+                        {currentActiveTab === '1' && selectedDataSource === 'Policies' &&
+                        <>
+                            <ForecastingAgeing parentDatasource="policies"/>
+                        </>}
+
                         {currentActiveTab === '1' && selectedDataSource === 'EU KUs' &&
                         <>
                             <ForecastingAgeing parentDatasource="ku"/>
@@ -117,14 +125,14 @@ const SupplyForecasting = () => {
                     </TabPane>
         
                     <TabPane tabId="2">
-                        {currentActiveTab === '2' && selectedDataSource === 'Short Courses' &&
+                        {currentActiveTab === '2' && selectedDataSource === 'Policies' &&
                         <>
-                            2, Short Courses
+                            <PolicyForecast />
                         </>}
 
                         {currentActiveTab === '2' && selectedDataSource === 'EU KUs' &&
                         <>
-                            2, EU KUs
+                            <KUForecast />
                         </>}
                     </TabPane>
 

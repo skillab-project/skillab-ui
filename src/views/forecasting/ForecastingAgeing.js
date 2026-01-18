@@ -182,6 +182,19 @@ function ForecastingAgeing({parentDatasource}) {
             });
     };
 
+    const handleApplyPolicy = () => {
+        setSearch(true); setLoading(true); setAnalysisData(null);
+        const q = keyword ? `?keywords=${encodeURIComponent(keyword)}` : '';
+        axios.get(process.env.REACT_APP_API_URL_SKILL_AGEING + `/law-policy${q}`)
+            .then(res => {
+                setAnalysisData(res.data); setLoading(false); setActiveTab('1');
+            })
+            .catch(err => {
+                console.error("Error fetching courses data:", err); setLoading(false);
+                setAnalysisData(null);
+            });
+    }
+
     return (
         <Row>
             <Col md="12">
@@ -190,6 +203,7 @@ function ForecastingAgeing({parentDatasource}) {
                         <CardTitle tag="h5">
                             {parentDatasource === 'ku' ? 'Select organization (optional)' :
                             parentDatasource === 'courses' ? 'Enter keyword (optional)' :
+                            parentDatasource === 'policies' ? 'Enter keywords (required)' :
                             'Select occupation'}
                         </CardTitle>
 
@@ -215,7 +229,18 @@ function ForecastingAgeing({parentDatasource}) {
                                 />
                                 <Button color="info" onClick={handleApplyCourses}>Apply</Button>
                             </CardTitle>
-                        ) : (
+                        ) : parentDatasource === 'policies' ? (
+                             <CardTitle>
+                                <Col md="6" style={{justifySelf:"center"}}>
+                                    <FormGroup>
+                                        <Label for="keywordInput">Keywords (required)</Label>
+                                        <Input id="keywordInput" type="text" placeholder="e.g., python, software developer" value={keyword} onChange={e => setKeywords(e.target.value)} />
+                                    </FormGroup>
+                                </Col>
+                                <Button color="info" onClick={handleApplyPolicy}>Apply</Button>
+                            </CardTitle>
+                        )
+                        : (
                             <CardTitle>
                                 <Col md="6" style={{justifySelf:"center"}}>
                                     <FormGroup>
