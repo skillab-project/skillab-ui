@@ -40,16 +40,13 @@ function PoliciesMain({ policies, onPolicyCreated }) {
     const [activePolicyTab, setActivePolicyTab] = useState('1');
     const [evaluationResults, setEvaluationResults] = useState(null);
     const [isLoadingEvaluation, setIsLoadingEvaluation] = useState(false);
+    const [loadingKpis, setLoadingKpis] = useState({});
     
-    // Ref to store the timeout ID so we can clear it if the user switches tabs/policies
-    const pollTimeoutRef = useRef(null);
+    const pollTimeoutsRef = useRef({});
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setNewPolicy(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        setNewPolicy(prevState => ({ ...prevState, [name]: value }));
     };
 
     const handleCreatePolicy = async (e) => {
@@ -73,19 +70,15 @@ function PoliciesMain({ policies, onPolicyCreated }) {
     useEffect(() => {
         setEvaluationResults(null);
         setIsLoadingEvaluation(false);
-        
-        // Cleanup function to stop polling if user switches policy
-        if (pollTimeoutRef.current) {
-            clearTimeout(pollTimeoutRef.current);
-        }
+        setLoadingKpis({});
+        Object.values(pollTimeoutsRef.current).forEach(clearTimeout);
+        pollTimeoutsRef.current = {};
     }, [selectedPolicy]);
 
     // Cleanup on component unmount
     useEffect(() => {
         return () => {
-            if (pollTimeoutRef.current) {
-                clearTimeout(pollTimeoutRef.current);
-            }
+            Object.values(pollTimeoutsRef.current).forEach(clearTimeout);
         };
     }, []);
 
@@ -95,63 +88,80 @@ function PoliciesMain({ policies, onPolicyCreated }) {
 
     // Evaluation Logic
     const handleEvaluatePolicy = async () => {
-        if (!selectedPolicy) return;
+        if (!selectedPolicy || !selectedPolicy.kpiList) return;
 
         setIsLoadingEvaluation(true);
-        setEvaluationResults(null);
+        setEvaluationResults({});
+        
+        // Initialize loading state for ALL KPIs in the list
+        const initialLoadingState = {};
+        selectedPolicy.kpiList.forEach(kpi => {
+            initialLoadingState[kpi.id] = true;
+        });
+        setLoadingKpis(initialLoadingState);
 
-        // Clear any existing polling timers just in case
-        if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+        Object.values(pollTimeoutsRef.current).forEach(timeout => clearTimeout(timeout));
+        pollTimeoutsRef.current = {};
 
-        try {
-            // Initiate the Job
-            const initResponse = await axios.post(EVAL_API_URL+"/jobs/policy", {
-                policy_name: selectedPolicy.name
-            });
-            const { job_id } = initResponse.data;
-            if (!job_id) {
-                throw new Error("No job_id returned from initialization");
+        let activeJobsCount = selectedPolicy.kpiList.length;
+        
+        const finishKpiJob = (kpiId) => {
+            // Remove loading for this specific KPI
+            setLoadingKpis(prev => ({ ...prev, [kpiId]: false }));
+            
+            activeJobsCount -= 1;
+            if (activeJobsCount <= 0) {
+                setIsLoadingEvaluation(false);
             }
+        };
 
-            // Polling Function
-            const checkStatus = async () => {
-                try {
-                    const statusResponse = await axios.get(EVAL_API_URL+"/jobs/"+job_id);
-                    const { status, result, error } = statusResponse.data;
+        selectedPolicy.kpiList.forEach(async (kpi) => {
+            try {
+                const initResponse = await axios.post(EVAL_API_URL + "/jobs/policy", {
+                    policy_name: selectedPolicy.name,
+                    kpi_name: kpi.name
+                });
 
-                    if (status === 'running') {
-                        pollTimeoutRef.current = setTimeout(checkStatus, 5000);
-                    } else if (status === 'success') {
-                        const resultsMap = {};
-                        
-                        if (Array.isArray(result)) {
-                            result.forEach(item => {
-                                // Convert ID to string for consistency
-                                resultsMap[String(item.kpi_id)] = item;
+                const { job_id } = initResponse.data;
+                if (!job_id) throw new Error("No job_id returned");
+
+                const checkStatus = async () => {
+                    try {
+                        const statusResponse = await axios.get(EVAL_API_URL + "/jobs/" + job_id);
+                        const { status, result, error } = statusResponse.data;
+
+                        if (status === 'running') {
+                            pollTimeoutsRef.current[kpi.id] = setTimeout(checkStatus, 5000);
+                        } else if (status === 'success') {
+                            setEvaluationResults(prev => {
+                                const newResults = { ...prev };
+                                if (Array.isArray(result)) {
+                                    result.forEach(item => {
+                                        newResults[String(item.kpi_id)] = item;
+                                    });
+                                } else {
+                                    newResults[String(kpi.id)] = result;
+                                }
+                                return newResults;
                             });
+                            finishKpiJob(kpi.id);
+                        } else {
+                            console.error(`KPI ${kpi.name} failed:`, error);
+                            finishKpiJob(kpi.id);
                         }
-                        
-                        setEvaluationResults(resultsMap);
-                        setIsLoadingEvaluation(false);
-                    } else {
-                        // Job failed or unknown status
-                        console.error("Evaluation Job Error:", error);
-                        alert(`Evaluation failed: ${error || 'Unknown error occurred'}`);
-                        setIsLoadingEvaluation(false);
+                    } catch (pollError) {
+                        console.error("Error polling:", pollError);
+                        finishKpiJob(kpi.id);
                     }
-                } catch (pollError) {
-                    console.error("Error polling job status:", pollError);
-                    setIsLoadingEvaluation(false);
-                }
-            };
+                };
 
-            // Start the first status check
-            checkStatus();
-        } catch (error) {
-            console.error("Error initiating evaluation:", error);
-            alert("Failed to start policy evaluation. Check console for details.");
-            setIsLoadingEvaluation(false);
-        }
+                checkStatus();
+
+            } catch (error) {
+                console.error(`Error initiating KPI ${kpi.name}:`, error);
+                finishKpiJob(kpi.id);
+            }
+        });
     };
 
     // Helper to render recommendation items
@@ -269,22 +279,26 @@ function PoliciesMain({ policies, onPolicyCreated }) {
                                             onClick={handleEvaluatePolicy} 
                                             disabled={isLoadingEvaluation}
                                         >
-                                            {isLoadingEvaluation ? <Spinner size="sm" /> : <i className="fa fa-cogs" />} 
-                                            {isLoadingEvaluation ? ' Evaluating...' : ' Evaluate Success'}
+                                            <i className={isLoadingEvaluation ? "fa fa-spinner fa-spin" : "fa fa-cogs"} /> 
+                                            {isLoadingEvaluation ? ' Evaluating KPIs...' : ' Evaluate Success'}
                                         </Button>
                                     </div>
 
                                     {selectedPolicy.kpiList && selectedPolicy.kpiList.length > 0 ? (
                                         <div>
                                             {selectedPolicy.kpiList.map(kpi => {
-                                                // Check if we have results for this specific KPI
                                                 const result = evaluationResults ? evaluationResults[String(kpi.id)] : null;
+                                                const isKpiLoading = loadingKpis[kpi.id];
 
                                                 return (
                                                     <Card key={kpi.id} className="mb-3 border">
                                                         <CardBody>
-                                                            <CardTitle tag="h5">{kpi.name}</CardTitle>
-                                                            
+                                                            <div className="d-flex justify-content-between">
+                                                                <CardTitle tag="h5">{kpi.name}</CardTitle>
+                                                                {/* Individual Spinner */}
+                                                                {isKpiLoading && <Spinner size="sm" color="primary" />}
+                                                            </div>
+
                                                             {/* Show Trend Analysis if result exists */}
                                                             {result && (
                                                                 <div className="mt-2 p-2" style={{backgroundColor: '#f8f9fa', borderLeft: '4px solid #007bff'}}>

@@ -26,7 +26,6 @@ const JobClassifier = () => {
         setResult(null);
 
         try {
-            // Note: Even though it's a POST, your URL uses Query Parameters
             const response = await axios.post(`${API_BASE_URL}/api/analysis/jobs_emergingdck_train`, null, {
                 params: {
                     keywords: keywords,
