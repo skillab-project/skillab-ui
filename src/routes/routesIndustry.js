@@ -1,5 +1,4 @@
 import IndustryAccount from "views/IndustryAccount";
-import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import Configuration from "views/configuration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
 import Artifacts from "views/industry/Artifacts";

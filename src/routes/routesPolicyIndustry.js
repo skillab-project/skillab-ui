@@ -1,6 +1,5 @@
 import Configuration from "views/configuration/Configuration";
 import PolicyIndustryAccount from "views/PolicyIndustryAccount";
-import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import ManagePolicies from "../views/policies/ManagePolicies";
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics";
 import DemandAnalytics from "views/demand/analytics/DemandAnalytics"

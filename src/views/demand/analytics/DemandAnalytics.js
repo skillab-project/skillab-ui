@@ -20,7 +20,7 @@ import axios from 'axios';
 import "../../../assets/css/loader.css";
 import { FaFilter } from "react-icons/fa";
 import JobAdsFilter from "../JobAdsFilter";
-import SkillDemandMatrix from "../../hcv/HCV"
+import HCV from "../../hcv/HCV"
 import DescriptiveExploratoryJobs from "../../descriptiveExploratory/DescriptiveExploratoryJobs";
 import CoOccurrence from "../../coOccurrence/CoOccurrence";
 
@@ -171,7 +171,7 @@ const DemandAnalytics = () => {
                      */}
                     <TabPane tabId="2">
                         {currentActiveTab == 2 &&
-                            <SkillDemandMatrix datasource="jobs"/>
+                            <HCV datasource="jobs"/>
                         }
                     </TabPane>
                     

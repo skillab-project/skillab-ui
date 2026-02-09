@@ -1,6 +1,5 @@
 import EducationAccount from "views/EducationAccount"
 import Configuration from "views/configuration/Configuration"
-import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics";
 import EducationManagement from "views/education/EducationManagement";
 import DemandAnalytics from "views/demand/analytics/DemandAnalytics"

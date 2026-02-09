@@ -1,5 +1,4 @@
 import PolicyEducationAccount from "views/PolicyEducationAccount";
-import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix";
 import Configuration from "views/configuration/Configuration";
 import ManagePolicies from "../views/policies/ManagePolicies";
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics";

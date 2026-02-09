@@ -1,5 +1,4 @@
 import CitizenAccount from "views/CitizenAccount";
-import SkillDemandMatrix from "views/skillDemandMatrix/SkillDemandMatrix"
 import Configuration from "views/configuration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
 import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
