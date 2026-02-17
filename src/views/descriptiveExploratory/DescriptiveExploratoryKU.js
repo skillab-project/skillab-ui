@@ -17,12 +17,12 @@ import {
 } from "reactstrap";
 import classnames from 'classnames';
 import axios from 'axios';
-import InterconnectedSkills from "./InterconnectedSkills";
 import ExploratoryAnalytics from "./ExploratoryAnalytics";
 import TrendAnalysis from "./TrendAnalysis";
 import DescriptiveAnalytics from "./DescriptiveAnalytics";
 import SkillClustering from "./SkillClustering";
-import {getId} from "../../utils/Tokens";
+import { or } from "ajv/dist/compile/codegen";
+import TopOrganizations from "./TopOrganizations";
 
 
 const DescriptiveExploratoryKU = ({filters}) => {
@@ -31,11 +31,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
     const [dataExploratory, setDataExploratory] = useState([]);
     const [dataTrending, setDataTrending] = useState([]);
     const [dataClustering, setDataClustering] = useState([]);
-    const [countryFrequencyData, setCountryFrequencyData] = useState([]);
     const [organizationFrequencyData, setOrganizationFrequencyData] = useState([]);
-    const [filterOccupations, setFilterOccupations] = useState([{id: "http://data.europa.eu/esco/isco/C2512",
-                                                                    label: "Software developers"}]);
-    var userId="";
     
     
     // Get Data for Descriptive component
@@ -149,9 +145,6 @@ const DescriptiveExploratoryKU = ({filters}) => {
 
     useEffect(() => {
         const load =async () => {
-            userId= await getId();
-            if(userId=="")
-                userId=1;
             fetchDataSkills();
         }
         
@@ -190,6 +183,14 @@ const DescriptiveExploratoryKU = ({filters}) => {
                         }
                     </Col>
                 </Row>
+
+                <Row>
+                    <Col md="12">
+                        {organizationFrequencyData && organizationFrequencyData.length>0 &&
+                            <TopOrganizations data={organizationFrequencyData}/>
+                        }
+                    </Col>
+                </Row>
                 
                 <Row>
                     <Col md="12">
@@ -207,12 +208,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
                     </Col>
                 </Row>
 
-                {/* <Row>
-                    <Col md="12">
-                        <InterconnectedSkills/>
-                    </Col>
-                </Row> */}
-
+                {/* Maybe to remove? */}
                 <Row>
                     <Col md="12">
                         {dataClustering && dataClustering.length>0 &&

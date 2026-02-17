@@ -81,14 +81,27 @@ function ExploratoryAnalytics(props) {
 
 
     useEffect(() => {
-      if(dataExploratory){
-        var allSkills= Object.keys(dataExploratory[0]).filter((key) => key !== "country");
-        setAllSkillsExploratory(allSkills);
-        setVisibleSkillsExploratory(allSkills.slice(0,10));
-        setVisibleSkillsExploratoryNumber(10);
-        setSelectedSkills([allSkills[0],allSkills[1]]);
+      // Check if data exists and has at least one country entry
+      if (props.data && props.data.length > 0) {
+          setDataExploratory(props.data); // Update internal state if props change
+          
+          // Find all unique keys across all countries that are NOT 'country'
+          const skillSet = new Set();
+          props.data.forEach(item => {
+              Object.keys(item).forEach(key => {
+                  if (key !== "country") skillSet.add(key);
+              });
+          });
+          
+          const allSkills = Array.from(skillSet);
+          setAllSkillsExploratory(allSkills);
+          setVisibleSkillsExploratory(allSkills.slice(0, 10));
+          setVisibleSkillsExploratoryNumber(10);
+          
+          // Default selection: first two skills found
+          setSelectedSkills(allSkills.slice(0, 2));
       }
-    }, []);
+  }, [props.data]);
 
 
     const handleMoreSkills = () => {

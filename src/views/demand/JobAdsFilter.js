@@ -3,22 +3,18 @@ import { Card, CardBody, Button, Input, Label } from 'reactstrap';
 import Select from 'react-select';
 import axios from 'axios';
 
-const JobAdsFilter = ({ onApplyFilters }) => {
+const JobAdsFilter = ({ filters, onApplyFilters }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [allOccupations, setAllOccupations] = useState([]);
     const [filteredOccupations, setFilteredOccupations] = useState([]);
-    const [selectedOccupations, setSelectedOccupations] = useState([]);
+    const [selectedOccupation, setSelectedOccupation] = useState(filters.occupation || {id: "http://data.europa.eu/esco/isco/C2512", label: "Software developers"});
     const [isLoading, setIsLoading] = useState(false);
-
-    const [minDate, setMinDate] = useState('');
-    const [maxDate, setMaxDate] = useState('');
-    const [dataSource, setDataSource] = useState([]);
-    const [dataLimit, setDataLimit] = useState('20000');
-    const [dateError, setDateError] = useState('');
+    const [dataSource, setDataSource] = useState(filters.dataSource || []);
+    const [dataLimit, setDataLimit] = useState(filters.dataLimit || '1000');
 
     const dataSources = ['OJA', 'kariera.gr', 'kariera.fr', 'jobbguru', 'jobbguru.se', 'jobbland', 
         'jobbland.se', 'jobmedic', 'jobmedic.co.uk', 'jobscentral', 'jobs.de',
-        'lesjeudis', 'lesjeudis.com', ]; // Get dynamicaly?
+        'lesjeudis', 'lesjeudis.com', ];
     const dataSourceOptions = dataSources.map(s => ({ label: s, value: s }));
 
     // Occupation search
@@ -81,38 +77,23 @@ const JobAdsFilter = ({ onApplyFilters }) => {
     }, [searchTerm, allOccupations]);
 
     const handleSelectOccupation = (occupation) => {
-        if (!selectedOccupations.find((o) => o.id === occupation.id)) {
-            setSelectedOccupations([...selectedOccupations, occupation]);
-        }
+        setSelectedOccupation(occupation);
         setSearchTerm('');
         setFilteredOccupations([]);
     };
 
-    const handleRemoveOccupation = (id) => {
-        setSelectedOccupations(selectedOccupations.filter((o) => o.id !== id));
-    };
-
     const handleApplyFilter = () => {
-        // --- Date Validation ---
-        if (minDate && maxDate && new Date(maxDate) < new Date(minDate)) {
-            setDateError('Max Date cannot be earlier than Min Date.');
-            return;
-        }
-        setDateError('');
-
+        // Ensure dataLimit is a multiple of 100 if a value exists
+        const finalLimit = dataLimit ? Math.round(dataLimit / 100) * 100 : '';
         const filters = {
-            minDate,
-            maxDate,
             dataSource,
-            dataLimit,
-            occupations: selectedOccupations
+            dataLimit: finalLimit,
+            occupation: selectedOccupation
         };
         const activeFilterCount = [
-            minDate,
-            maxDate,
-            dataLimit,
+            finalLimit,
             ...dataSource,
-            ...selectedOccupations
+            selectedOccupation
         ].filter(Boolean).length;
 
         console.log("Applying filters:", filters);
@@ -125,19 +106,6 @@ const JobAdsFilter = ({ onApplyFilters }) => {
             <CardBody>
                 <i className="fa fa-filter"></i>
                 <div style={{ marginBottom: '16px' }}>
-                    <Label>Min Date:</Label>
-                    <Input type="date" value={minDate} onChange={(e) => setMinDate(e.target.value)} />
-
-                    <Label className="mt-2">Max Date:</Label>
-                    <Input type="date" value={maxDate} onChange={(e) => setMaxDate(e.target.value)} />
-
-                    {/* Display validation error message here */}
-                    {dateError && (
-                        <div className="text-danger mt-1" style={{ fontSize: '0.875em' }}>
-                            {dateError}
-                        </div>
-                    )}
-
                     <Label className="mt-2">Data Source:</Label>
                     <Select
                         isMulti
@@ -176,16 +144,18 @@ const JobAdsFilter = ({ onApplyFilters }) => {
                     <Label className="mt-2">Data Limit:</Label>
                     <Input
                         type="number"
+                        step="100"
+                        min="1000"
                         placeholder="Enter max number of results"
                         value={dataLimit}
                         onChange={(e) => setDataLimit(e.target.value)}
                     />
 
-                    <Label className="mt-3">Occupations:</Label>
+                    <Label className="mt-3">Occupation:</Label>
                     <div className="d-flex flex-wrap mb-2">
-                        {selectedOccupations.map((occupation) => (
+                        {selectedOccupation && (
                             <div
-                                key={occupation.id}
+                                key={selectedOccupation.id}
                                 style={{
                                     background: '#e0e0e0',
                                     borderRadius: '16px',
@@ -196,21 +166,9 @@ const JobAdsFilter = ({ onApplyFilters }) => {
                                     alignItems: 'center',
                                 }}
                             >
-                                {occupation.label}
-                                <button
-                                    onClick={() => handleRemoveOccupation(occupation.id)}
-                                    style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        marginLeft: '6px',
-                                        fontWeight: 'bold',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    ×
-                                </button>
+                                {selectedOccupation.label}
                             </div>
-                        ))}
+                        )}
                     </div>
 
                     <Input

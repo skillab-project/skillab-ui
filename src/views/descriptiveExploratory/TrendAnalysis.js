@@ -36,8 +36,15 @@ function TrendAnalysis({ data }) {
                 }
             });
         });
-
-        return Array.from(dateSet).sort((a, b) => parseInt(a) - parseInt(b));
+        // Sort dates like "MM/YYYY" chronologically
+        return Array.from(dateSet).sort((a, b) => {
+            const [m1, y1] = a.split('/').map(Number);
+            const [m2, y2] = b.split('/').map(Number);
+            
+            // Compare years first, then months
+            if (y1 !== y2) return y1 - y2;
+            return m1 - m2;
+        });
     }, [data]);
 
   

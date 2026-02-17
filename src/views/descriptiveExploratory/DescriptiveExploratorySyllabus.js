@@ -17,43 +17,18 @@ import {
 } from "reactstrap";
 import classnames from 'classnames';
 import axios from 'axios';
-import InterconnectedSkills from "./InterconnectedSkills";
 import ExploratoryAnalytics from "./ExploratoryAnalytics";
-import TrendAnalysis from "./TrendAnalysis";
 import DescriptiveAnalytics from "./DescriptiveAnalytics";
 import SkillClustering from "./SkillClustering";
-import {getId} from "../../utils/Tokens";
+import TopCountries from "./TopCountries";
 
-const countryNameMap = {
-    "France": "France",
-    "Sweden": "Sweden",
-    "Česko": "Czech Republic",
-    "ITALIA": "Italy",
-    "Polska": "Poland",
-    "Greece": "Greece",
-    "Sverige": "Sweden",
-    "Österreich": "Austria",
-    "ESPAÑA": "Spain",
-    "UnitedKingdom": "United Kingdom",
-    "Suomi/Finland": "Finland",
-    "Magyarország": "Hungary",
-    "Nederland": "Netherlands",
-    "Danmark": "Denmark",
-    "Latvija": "Latvia",
-    "Κύπρος": "Cyprus",
-    "Belgique/België": "Belgium",
-    "Slovensko": "Slovakia",
-    "Germany": "Germany"
-};
 
 const DescriptiveExploratorySyllabus = ({filters}) => {
     const [dataAreReady, setDataAreReady] = useState(false);
     const [dataSkills, setDataSkills] = useState([]);
     const [dataExploratory, setDataExploratory] = useState([]);
-    const [dataTrending, setDataTrending] = useState([]);
     const [dataClustering, setDataClustering] = useState([]);
     const [countryFrequencyData, setCountryFrequencyData] = useState([]);
-    var userId="";
     
     
     // Get Data for Descriptive component
@@ -112,25 +87,11 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
             });
             setDataExploratory(transformedData);
             
-            // Fetch trending data
-            // fetchDataTrending();
-            
             // Fetch clustering data
             fetchDataClustering(10);
         }
         catch (error) {
             console.error('Error fetching location data:', error);
-        }
-    };
-
-    // Get Data for Trending component 
-    const fetchDataTrending = async () => {
-        try{
-            const response = await axios.get(process.env.REACT_APP_API_URL_CURRICULUM_SKILLS + "/trend/location");
-            setDataTrending(response.data);
-        }
-        catch (error) {
-            console.error('Error fetching trending data:', error);
         }
     };
 
@@ -155,9 +116,6 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
 
     useEffect(() => {
         const load =async () => {
-            userId= await getId();
-            if(userId=="")
-                userId=1;
             fetchDataSkills();
         }
         
@@ -189,7 +147,15 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
                 <Row>
                     <Col md="12">
                         {(dataSkills && dataSkills.length>0) &&
-                            <DescriptiveAnalytics data={dataSkills} dataCountries={countryFrequencyData}/>
+                            <DescriptiveAnalytics data={dataSkills}/>
+                        }
+                    </Col>
+                </Row>
+
+                <Row>
+                    <Col md="12">
+                        {countryFrequencyData && countryFrequencyData.length>0 &&
+                            <TopCountries data={countryFrequencyData}/>
                         }
                     </Col>
                 </Row>
@@ -201,20 +167,6 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
                         }
                     </Col>
                 </Row>
-                
-                {/* <Row>
-                    <Col md="12">
-                        {dataTrending && dataTrending.length>0 &&
-                            <TrendAnalysis data={dataTrending} />
-                        }
-                    </Col>
-                </Row> */}
-
-                {/* <Row>
-                    <Col md="12">
-                        <InterconnectedSkills/>
-                    </Col>
-                </Row> */}
 
                 <Row>
                     <Col md="12">

@@ -27,10 +27,11 @@ import CoOccurrence from "../../coOccurrence/CoOccurrence";
 const DemandAnalytics = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
     const [showFilters, setShowFilters] = useState(false);
-    const [numberOfFilters, setNumberOfFilters] = useState(1);
-    const [filters, setFilters] = useState({dataLimit: "20000", dataSource: [],
-                                            maxDate: "", minDate: "", occupations: []}); //initial filters to not wait a lot
-                                            //{id: "http://data.europa.eu/esco/isco/C2512", label: "Software developers"});
+    const [numberOfFilters, setNumberOfFilters] = useState(2);
+    const [filters, setFilters] = useState({dataSource: [],
+                                            dataLimit: '1000',
+                                            occupation: {id: "http://data.europa.eu/esco/isco/C2512", label: "Software developers"}
+                                            });
 
     const toggle = tab => {
         if (currentActiveTab !== tab) setCurrentActiveTab(tab);
@@ -45,6 +46,7 @@ const DemandAnalytics = () => {
         console.log('activeFilterCount:', filters.activeFilterCount);
         setNumberOfFilters(filters.activeFilterCount);
         setFilters(filters.filters);
+        setShowFilters(false);
     };
 
     const getFilterBadge = (count) => 
@@ -125,32 +127,34 @@ const DemandAnalytics = () => {
                             Co-occurrence
                         </NavLink>
                     </NavItem>
-                    <span style={{margin:"auto", marginRight:"5px"}} >
-                        <button
-                            onClick={handelClickShowFilter}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                backgroundColor: "transparent",
-                                border: "none",
-                                borderRadius: "8px",
-                                padding: "5px 10px",
-                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                color: "white",
-                                fontSize: "16px",
-                                fontWeight: "500",
-                            }}
-                        >
-                            <FaFilter style={{ color:"black" }} />
-                            {getFilterBadge(numberOfFilters)}
-                        </button>
-                    </span>
+                    {currentActiveTab == '1' &&
+                        <span style={{margin:"auto", marginRight:"5px"}} >
+                            <button
+                                onClick={handelClickShowFilter}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    backgroundColor: "transparent",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    padding: "5px 10px",
+                                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                    color: "white",
+                                    fontSize: "16px",
+                                    fontWeight: "500",
+                                }}
+                            >
+                                <FaFilter style={{ color:"black" }} />
+                                {getFilterBadge(numberOfFilters)}
+                            </button>
+                        </span>
+                    }
                 </Nav>
 
-                {showFilters &&
+                {showFilters && currentActiveTab == '1' &&
                     <Row>
                         <Col md="12">
-                            <JobAdsFilter onApplyFilters={handleApplyFilters}/>
+                            <JobAdsFilter filters={filters} onApplyFilters={handleApplyFilters}/>
                         </Col>
                     </Row>
                 }

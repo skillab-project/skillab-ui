@@ -26,6 +26,7 @@ import DescriptiveExploratoryKU from "views/descriptiveExploratory/DescriptiveEx
 import DescriptiveExploratoryShortCourses from "views/descriptiveExploratory/DescriptiveExploratoryShortCourses";
 import DescriptiveExploratoryProfiles from "views/descriptiveExploratory/DescriptiveExploratoryProfiles";
 import CoOccurrence from "../../coOccurrence/CoOccurrence";
+import DescriptiveExploratoryPolicies from "views/descriptiveExploratory/DescriptiveExploratoryPolicies";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
@@ -41,21 +42,25 @@ const tabVisibilityConfig = {
     'EU profiles': ['1', '2', '3', '4', '5'], // All tabs are visible
     'Short Courses': ['1', '2', '3', '4', '5'], // All tabs are visible
     'EU KUs': ['1', '3', '4', '5'],           // HCV is hidden
-    'EU Syllabus': ['1', '3', '4', '5'],       // All tabs are visible
+    'EU Syllabus': ['1', '3', '4', '5'],       // HCV is hidden
+    'EU Policies': ['1', '2', '3', '4', '5'],       // All tabs are visible
 };
 
-const dataSources = ['EU profiles', 'Short Courses', 'EU KUs', 'EU Syllabus'];
+const dataSources = ['EU profiles', 'Short Courses', 'EU KUs', 'EU Syllabus', 'EU Policies'];
 
 const SupplyAnalytics = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState('1');
     const [showFilters, setShowFilters] = useState(false);
-    const [numberOfFilters, setNumberOfFilters] = useState(1);
+    const [numberOfFilters, setNumberOfFilters] = useState(0);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [selectedDataSource, setSelectedDataSource] = useState(dataSources[0]); // Default to 'EU profiles'
-    const [filters, setFilters] = useState({dataLimit: "20000", dataSource: []}); //initial filters to not wait a lot
+    const [filters, setFilters] = useState({dataLimit: "", dataSource: []}); //initial filters to not wait a lot
 
     const toggleTab = tab => {
-        if (currentActiveTab !== tab) setCurrentActiveTab(tab);
+        if (currentActiveTab !== tab) {
+            setCurrentActiveTab(tab);
+            setShowFilters(false);
+        }
     }
     
     const toggleDropdown = () => setDropdownOpen(prevState => !prevState);
@@ -140,6 +145,7 @@ const SupplyAnalytics = () => {
                     ))}
 
                     {(selectedDataSource === 'EU profiles' || selectedDataSource === 'Short Courses') &&
+                        (currentActiveTab === '1' || currentActiveTab === '3' || currentActiveTab === '4' ) &&
                         <span style={{margin:"auto", marginRight:"5px"}} >
                             <button
                                 onClick={handelClickShowFilter}
@@ -196,6 +202,11 @@ const SupplyAnalytics = () => {
                         {currentActiveTab === '1' && selectedDataSource === 'EU profiles' &&
                             <>
                                 <DescriptiveExploratoryProfiles filters={filters}/>
+                            </>
+                        }
+                        {currentActiveTab === '1' && selectedDataSource === 'EU Policies' &&
+                            <>
+                                <DescriptiveExploratoryPolicies filters={filters}/>
                             </>
                         }
                     </TabPane>

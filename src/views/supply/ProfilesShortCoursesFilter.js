@@ -4,13 +4,14 @@ import Select from 'react-select';
 
 const ProfilesShortCoursesFilter = ({supply, onApplyFilters}) => {
     const [dataSource, setDataSource] = useState([]);
-    const [dataLimit, setDataLimit] = useState('20000');
+    const [dataKeyword, setDataKeyword] = useState('');
+    const [dataLimit, setDataLimit] = useState('');
 
     // toDo Get dynamicaly?
     const dataSources = supply === "profiles"
-        ? ["linkedin", "stack-biology", "stack-chemistry", "stack-earthscience", "stack-electronics",
+        ? ["linkedin", "stack-stackoverflow", "stack-biology", "stack-chemistry", "stack-earthscience", "stack-electronics",
             "stack-interpersonal", "stack-law", "stack-linguistics", "stack-literature", "stack-math",
-            "stack-philosophy", "stack-physics", "stack-politics", "stack-sports", "stack-stackoverflow"]
+            "stack-philosophy", "stack-physics", "stack-politics", "stack-sports"]
         : supply === "courses"
         ? ["europass", "Udacity"]
         : [];
@@ -21,10 +22,12 @@ const ProfilesShortCoursesFilter = ({supply, onApplyFilters}) => {
     const handleApplyFilter = () => {
         const filters = {
             dataSource,
+            // dataKeyword,
             dataLimit
         };
         const activeFilterCount = [
             dataLimit,
+            // dataKeyword,
             ...dataSource,
         ].filter(Boolean).length;
 
@@ -38,12 +41,20 @@ const ProfilesShortCoursesFilter = ({supply, onApplyFilters}) => {
             <CardBody>
                 <i className="fa fa-filter"></i>
                 <div style={{ marginBottom: '16px' }}>
+                    {/* <Label className="mt-2">Keyword:</Label>
+                    <Input
+                        type="text"
+                        placeholder="Enter keyword to search"
+                        value={dataKeyword}
+                        onChange={(e) => setDataKeyword(e.target.value)}
+                    /> */}
+
                     <Label className="mt-2">Data Source:</Label>
                     <Select
-                        isMulti
+                        isClearable={true} 
                         options={dataSourceOptions}
-                        value={dataSourceOptions.filter(opt => dataSource.includes(opt.value))}
-                        onChange={(selected) => setDataSource(selected.map(opt => opt.value))}
+                        value={dataSourceOptions.find(opt => opt.value === dataSource[0]) || null}
+                        onChange={(selected) => setDataSource(selected ? [selected.value] : [])}
                         className="mt-1"
                         classNamePrefix="select"
                         styles={{
@@ -73,13 +84,13 @@ const ProfilesShortCoursesFilter = ({supply, onApplyFilters}) => {
                         }}
                     />
 
-                    <Label className="mt-2">Data Limit:</Label>
+                    {/* <Label className="mt-2">Data Limit:</Label>
                     <Input
                         type="number"
                         placeholder="Enter max number of results"
                         value={dataLimit}
                         onChange={(e) => setDataLimit(e.target.value)}
-                    />
+                    /> */}
 
                     <Button
                         color="info"

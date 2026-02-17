@@ -5,83 +5,70 @@ import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { scaleLinear } from "d3-scale";
 
 const geoUrl = require('../../assets/europe.geojson');
-const countryNameMap = {
-    "France": "France",
-    "Sweden": "Sweden",
-    "Česko": "Czech Republic",
-    "ITALIA": "Italy",
-    "Polska": "Poland",
-    "Greece": "Greece",
-    "Sverige": "Sweden",
-    "Österreich": "Austria",
-    "ESPAÑA": "Spain",
-    "UnitedKingdom": "United Kingdom",
-    "Suomi/Finland": "Finland",
-    "Magyarország": "Hungary",
-    "Nederland": "Netherlands",
-    "Danmark": "Denmark",
-    "Latvija": "Latvia",
-    "Κύπρος": "Cyprus",
-    "Belgique/België": "Belgium",
-    "Slovensko": "Slovakia",
-    "Germany": "Germany"
+
+// Ensure these keys match the "NAME" property inside your europe.geojson
+const geoJsonNameMap = {
+    "Czechia": "Czech Republic",
+    "Republic of Serbia": "Serbia",
+    // Add any others if the map doesn't light up correctly
 };
 
 function TopCountries(props) {
-    const [countryFrequencyMap, setCountryFrequencyMap] = useState([]);
+    const [countryFrequencyMap, setCountryFrequencyMap] = useState({});
     const [colorMaxScale, setColorMaxScale] = useState(0);
     const [standardizedData, setStandardizedData] = useState([]);
     const [hoveredCountry, setHoveredCountry] = useState(null);
 
-    var colorScale = scaleLinear()
-            .domain([0, colorMaxScale])
-            .range(["#e0f3f8", "#005824"]);
-    
+    const colorScale = scaleLinear()
+        .domain([0, colorMaxScale || 1]) // Avoid division by zero
+        .range(["#e0f3f8", "#005824"]);
     
     useEffect(() => {
-        if(props.data && props.data.length>0){
-            //set data for bar chart
-            const updatedData = props.data.map(item => {
-                const standardizedCountry = countryNameMap[item.country] || item.country;
-                return { ...item, country: standardizedCountry };
-            });
+        if (props.data && props.data.length > 0) {
+            console.log("Received country data:", props.data);
+            // 1. Prepare Bar Chart Data
+            // Data is already mostly clean from parent, but we ensure it matches GeoJSON expectations
+            const updatedData = props.data.map(item => ({
+                ...item,
+                country: geoJsonNameMap[item.country] || item.country
+            }));
             setStandardizedData(updatedData);
 
-            //set data for graph
-            var countryFrequencyMapNew = props.data.reduce((acc, item) => {
-                const standardizedCountry = countryNameMap[item.country] || item.country;
-                acc[standardizedCountry] = item.frequency;
-                return acc;
-            }, {});
-            setCountryFrequencyMap(countryFrequencyMapNew);
-            var maxFrequencyValue = Math.max(
-                ...props.data.map((item) => item.frequency)
-            );
-            setColorMaxScale(maxFrequencyValue);
+            // 2. Prepare Map Data (Lookup object)
+            const freqMap = {};
+            let maxFreq = 0;
+
+            updatedData.forEach(item => {
+                freqMap[item.country] = item.frequency;
+                if (item.frequency > maxFreq) maxFreq = item.frequency;
+            });
+
+            setCountryFrequencyMap(freqMap);
+            setColorMaxScale(maxFreq);
         }
     }, [props.data]);
-
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle tag="h6">Countries</CardTitle>
+                <CardTitle tag="h4">Top Countries</CardTitle>
             </CardHeader>
-            <CardBody>
-                {props.data && props.data.length>0 && 
+            <CardBody style={{ position: "relative" }}>
+                {props.data && props.data.length > 0 && 
                     <Row>
                         <Col sm="12" md="6">
                             <ComposableMap
                                 projection="geoMercator"
                                 projectionConfig={{
-                                    scale: 550, // Adjust to zoom in/out
-                                    center: [10, 56], // Adjust to center the EU (longitude, latitude)
+                                    scale: 550,
+                                    center: [10, 56], 
                                 }}
-                                style={{width: "100%", height: "500px"}}
+                                style={{ width: "100%", height: "500px" }}
                             >
                                 <Geographies geography={geoUrl}>
                                     {({ geographies }) =>
                                         geographies.map((geo) => {
+                                            // Make sure geo.properties.NAME matches your map keys
                                             const { NAME } = geo.properties;
                                             const frequency = countryFrequencyMap[NAME] || 0;
                                             const isCountryInData = NAME in countryFrequencyMap;
@@ -96,9 +83,15 @@ function TopCountries(props) {
                                                         default: {
                                                             fill: isCountryInData
                                                                 ? colorScale(frequency)
-                                                                : "red",
+                                                                : "#F5F5F5", // Light grey for no data
                                                             outline: "none",
+                                                            stroke: "#607D8B", // Country borders
+                                                            strokeWidth: 0.5
                                                         },
+                                                        hover: {
+                                                            fill: "#f39423",
+                                                            outline: "none"
+                                                        }
                                                     }}
                                                 />
                                             );
@@ -108,41 +101,41 @@ function TopCountries(props) {
                             </ComposableMap>
                         </Col>
 
-                        <Col sm="12" md="6" style={{margin:"auto"}}>
-                            <ResponsiveContainer width="100%" height={standardizedData.length * 60}>
+                        <Col sm="12" md="6" style={{ margin: "auto" }}>
+                            <ResponsiveContainer width="100%" height={Math.max(standardizedData.length * 40, 300)}>
                                 <BarChart
                                     data={standardizedData}
                                     layout="vertical"
-                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                    barSize={30}
+                                    margin={{ top: 20, right: 30, left: 40, bottom: 5 }}
+                                    barSize={20}
                                 >
-                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                                     <XAxis type="number" />
-                                    <YAxis dataKey="country" type="category" width={100} />
+                                    <YAxis dataKey="country" type="category" width={120} tick={{ fontSize: 12 }} />
                                     <Tooltip />
-                                    <Bar dataKey="frequency" fill="#f39423"/>
+                                    <Bar dataKey="frequency" fill="#f39423" />
                                 </BarChart>
                             </ResponsiveContainer>
                         </Col>
                     </Row>
                 }
 
-                {/* Display hover info when a country is hovered */}
                 {hoveredCountry && (
                     <div
                         style={{
                             position: "absolute",
-                            top: 50,  // Adjust position as needed
-                            left: 50, // Adjust position as needed
+                            top: "10px",
+                            right: "10px",
                             padding: "10px",
-                            backgroundColor: "#f4f4f4",
+                            backgroundColor: "rgba(255, 255, 255, 0.9)",
                             borderRadius: "5px",
                             boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
-                            pointerEvents: "none",  // Ensure it doesn't block other events
+                            pointerEvents: "none",
+                            zIndex: 10
                         }}
                     >
-                        <h5>{hoveredCountry.name}</h5>
-                        <p>Frequency: {hoveredCountry.frequency}</p>
+                        <h6 style={{ margin: 0 }}>{hoveredCountry.name}</h6>
+                        <p style={{ margin: 0 }}>Frequency: {hoveredCountry.frequency.toLocaleString()}</p>
                     </div>
                 )}
             </CardBody>

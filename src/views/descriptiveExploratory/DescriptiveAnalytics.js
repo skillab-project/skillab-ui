@@ -16,8 +16,6 @@ import {
     TabPane,
     CardSubtitle
   } from "reactstrap";
-import TopCountries from "./TopCountries";
-import TopOrganizations from "./TopOrganizations";
 
 
 function DescriptiveAnalytics(props) {
@@ -43,57 +41,37 @@ function DescriptiveAnalytics(props) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle tag="h4">Descriptive Analytics</CardTitle>
+                <CardTitle tag="h4">Top Instances</CardTitle>
             </CardHeader>
             <CardBody>
-                <Row>
-                    <Col md="12">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle tag="h6">Top Instances</CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                <ResponsiveContainer width="100%" height={dataSkillsShown.length * 60}>
-                                    <BarChart
-                                        data={dataSkillsShown}
-                                        layout="vertical"
-                                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                        barSize={30}
-                                    >
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis type="number" />
-                                        <YAxis dataKey="label" type="category" width={200} />
-                                        <Tooltip />
-                                        <Bar dataKey="Freq" fill="#f39423"/>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </CardBody>
-                            {dataSkillsShown.length>0 &&
-                                <CardFooter>
-                                    <Button
-                                            color="success"
-                                            outline
-                                            size="m"
-                                            onClick={() => handleMoreSkills()}
-                                        >
-                                            More
-                                    </Button>
-                                </CardFooter>
-                            }
-                        </Card>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col md="12">
-                        {(props.dataCountries && props.dataCountries.length>0) &&
-                            <TopCountries data={props.dataCountries}/>
-                        }
-                        {(props.dataOrganizarion && props.dataOrganizarion.length>0) &&
-                            <TopOrganizations data={props.dataOrganizarion}/>
-                        }
-                    </Col>
-                </Row>
+                
+                <ResponsiveContainer width="100%" height={dataSkillsShown.length * 60}>
+                    <BarChart
+                        data={dataSkillsShown}
+                        layout="vertical"
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        barSize={30}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="label" type="category" width={200} />
+                        <Tooltip />
+                        <Bar dataKey="Freq" fill="#f39423"/>
+                    </BarChart>
+                </ResponsiveContainer>
             </CardBody>
+            {dataSkillsShown.length>0 &&
+                <CardFooter>
+                    <Button
+                            color="success"
+                            outline
+                            size="m"
+                            onClick={() => handleMoreSkills()}
+                        >
+                            More
+                    </Button>
+                </CardFooter>
+            }
         </Card>
     );
 }

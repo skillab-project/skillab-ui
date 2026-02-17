@@ -84,7 +84,7 @@ function TopOrganizations({ data }) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle tag="h6">Top Organizations</CardTitle>
+                <CardTitle tag="h4">Top Organizations</CardTitle>
             </CardHeader>
             <CardBody>
                 {orgData.length > 0 && (
