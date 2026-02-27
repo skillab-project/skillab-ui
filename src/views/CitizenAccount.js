@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   DropdownItem
 } from "reactstrap";
+import RecommendOccupation from "./citizen/RecommendOccupation";
 import TargetOccupation from "./citizen/TargetOccupation";
 import CitizenSkills from "./citizen/CitizenSkills";
 import {getId} from "../utils/Tokens";
@@ -224,6 +225,8 @@ function CitizenAccount() {
         </Row>
         
         <TargetOccupation skills={skills}/>
+
+        <RecommendOccupation skills={skills}/>
       </div>
     </>
   );

@@ -36,10 +36,109 @@ function HCV({datasource}) {
 
         if(datasource=="jobs"){
             axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting?url="+
-                                    process.env.REACT_APP_API_URL_TRACKER + "/api/jobs" +
-                                    "&pillar=" + pillar + "&occupation=" + occupation +
-                                    "&source=OJA")
+                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/jobs?pillar=" + pillar +
+                                "&occupation=" + occupation + "&source=OJA")
+                .then(async (res) => {
+                    setLoading(false);
+                    // Grouping data by level
+                    const groupedData = res.data.reduce((acc, item) => {
+                        // Check if the level already exists in the accumulator
+                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
+                
+                        const simplifiedItem = {
+                            skill: item.skill,
+                            level: item.level,
+                            normalized_priority: item["normalized priority"],
+                            rank: item.rank,
+                        };
+                
+                        if (levelIndex !== -1) {
+                            acc[levelIndex].push(simplifiedItem);
+                        } else {
+                            acc.push([simplifiedItem]);
+                        }
+                
+                        return acc;
+                    }, []);
+                    console.log("Grouped Data:", groupedData);
+                    
+                    setData(groupedData);
+                })
+                .catch((err) => {
+                console.error("Error fetching data:", err);
+                });
+        }
+        else if(datasource=="EU profiles"){
+            axios
+                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/profiles?pillar=" + pillar +
+                                "&occupation=" + occupation)
+                .then(async (res) => {
+                    setLoading(false);
+                    // Grouping data by level
+                    const groupedData = res.data.reduce((acc, item) => {
+                        // Check if the level already exists in the accumulator
+                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
+                
+                        const simplifiedItem = {
+                            skill: item.skill,
+                            level: item.level,
+                            normalized_priority: item["normalized priority"],
+                            rank: item.rank,
+                        };
+                
+                        if (levelIndex !== -1) {
+                            acc[levelIndex].push(simplifiedItem);
+                        } else {
+                            acc.push([simplifiedItem]);
+                        }
+                
+                        return acc;
+                    }, []);
+                    console.log("Grouped Data:", groupedData);
+                    
+                    setData(groupedData);
+                })
+                .catch((err) => {
+                console.error("Error fetching data:", err);
+                });
+        }
+        else if(datasource=="Short Courses"){
+            axios
+                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/courses?pillar=" + pillar +
+                                "&occupation=" + occupation)
+                .then(async (res) => {
+                    setLoading(false);
+                    // Grouping data by level
+                    const groupedData = res.data.reduce((acc, item) => {
+                        // Check if the level already exists in the accumulator
+                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
+                
+                        const simplifiedItem = {
+                            skill: item.skill,
+                            level: item.level,
+                            normalized_priority: item["normalized priority"],
+                            rank: item.rank,
+                        };
+                
+                        if (levelIndex !== -1) {
+                            acc[levelIndex].push(simplifiedItem);
+                        } else {
+                            acc.push([simplifiedItem]);
+                        }
+                
+                        return acc;
+                    }, []);
+                    console.log("Grouped Data:", groupedData);
+                    
+                    setData(groupedData);
+                })
+                .catch((err) => {
+                console.error("Error fetching data:", err);
+                });
+        }
+        else if(datasource=="EU Policies"){
+            axios
+                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/policies?pillar=" + pillar)
                 .then(async (res) => {
                     setLoading(false);
                     // Grouping data by level
@@ -78,7 +177,7 @@ function HCV({datasource}) {
                 <Card>
                     <CardHeader>
                         <CardTitle tag="h5">Select occupation</CardTitle>
-                        <OccupationSelectionAndPillar onApplySelection={handleApplyOccupationSelection}/>
+                        <OccupationSelectionAndPillar onApplySelection={handleApplyOccupationSelection} datasource={datasource}/>
                     </CardHeader>
                     <CardBody>
                         {loading ? (

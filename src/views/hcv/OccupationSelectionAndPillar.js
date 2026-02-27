@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, CardBody, Button, Dropdown, DropdownMenu, DropdownToggle, DropdownItem } from 'reactstrap';
 import axios from 'axios';
 
-const OccupationSelectionAndPillar = ({onApplySelection}) => {
+const OccupationSelectionAndPillar = ({onApplySelection, datasource}) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [allOccupations, setAllOccupations] = useState([]); // Holds the full list fetched from the API
     const [filteredOccupations, setFilteredOccupations] = useState([]); // Filtered Occupations for the dropdown
@@ -100,6 +100,11 @@ const OccupationSelectionAndPillar = ({onApplySelection}) => {
 
     // Handle Apply Filter Button
     const handleApplyFilter = () => {
+        if(selectedItem!="Select Pillar" && selectedOccupations.length==0 && datasource=="EU Policies"){
+            if (onApplySelection) {
+                onApplySelection("", selectedItem);
+            }
+        }
         if(selectedItem!="Select Pillar" && selectedOccupations.length!=0){
             if (onApplySelection) {
                 onApplySelection(selectedOccupations[0], selectedItem);
@@ -111,102 +116,107 @@ const OccupationSelectionAndPillar = ({onApplySelection}) => {
         <Card>
             <CardBody>
                 <div>
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '8px',
-                            marginBottom: '8px',
-                            justifyContent: 'center'
-                        }}
-                    >
-                        {selectedOccupations.map((occupation) => (
+                    {
+                        datasource!=="EU Policies" && 
+                        <>
                             <div
-                                key={occupation.id}
                                 style={{
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    background: '#e0e0e0',
-                                    borderRadius: '16px',
-                                    padding: '4px 8px',
+                                    flexWrap: 'wrap',
+                                    gap: '8px',
+                                    marginBottom: '8px',
+                                    justifyContent: 'center'
                                 }}
                             >
-                                <span style={{ marginRight: '8px' }}>{occupation.label}</span>
-                                <button
-                                    onClick={() => handleRemoveOccupation(occupation.label)}
-                                    style={{
-                                        background: 'transparent',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        fontSize: '16px',
-                                        lineHeight: '1',
-                                    }}
-                                >
-                                    &times;
-                                </button>
+                                {selectedOccupations.map((occupation) => (
+                                    <div
+                                        key={occupation.id}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            background: '#e0e0e0',
+                                            borderRadius: '16px',
+                                            padding: '4px 8px',
+                                        }}
+                                    >
+                                        <span style={{ marginRight: '8px' }}>{occupation.label}</span>
+                                        <button
+                                            onClick={() => handleRemoveOccupation(occupation.label)}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                fontSize: '16px',
+                                                lineHeight: '1',
+                                            }}
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                    {selectedOccupations.length==0 && (<input
-                        id="occupation-input"
-                        type="text"
-                        placeholder="Type an occupation..."
-                        autoComplete="off"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '8px',
-                            borderRadius: '4px',
-                            border: '1px solid #ccc',
-                            marginTop: '8px',
-                            fontSize: '14px',
-                        }}
-                    />)}
-                    {isLoading && (
-                        <div style={{ marginTop: '8px', fontStyle: 'italic' }}>
-                            Loading...
-                        </div>
-                    )}
-                    {filteredOccupations.length > 0 && (
-                        <ul
-                            style={{
-                                listStyleType: 'none',
-                                padding: 0,
-                                margin: 0,
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                position: 'absolute',
-                                background: '#fff',
-                                width: '95%',
-                                maxHeight: '200px',
-                                overflowY: 'auto',
-                                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                                zIndex: 1000,
-                            }}
-                        >
-                            {filteredOccupations.map((occupation) => (
-                                <li
-                                    key={occupation.id}
-                                    onClick={() => handleSelectOccupation(occupation)}
+                            {selectedOccupations.length==0 && (<input
+                                id="occupation-input"
+                                type="text"
+                                placeholder="Type an occupation..."
+                                autoComplete="off"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #ccc',
+                                    marginTop: '8px',
+                                    fontSize: '14px',
+                                }}
+                            />)}
+                            {isLoading && (
+                                <div style={{ marginTop: '8px', fontStyle: 'italic' }}>
+                                    Loading...
+                                </div>
+                            )}
+                            {filteredOccupations.length > 0 && (
+                                <ul
                                     style={{
-                                        padding: '10px',
-                                        cursor: 'pointer',
-                                        borderBottom: '1px solid #f0f0f0',
+                                        listStyleType: 'none',
+                                        padding: 0,
+                                        margin: 0,
+                                        border: '1px solid #ddd',
+                                        borderRadius: '4px',
+                                        position: 'absolute',
                                         background: '#fff',
+                                        width: '95%',
+                                        maxHeight: '200px',
+                                        overflowY: 'auto',
+                                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                                        zIndex: 1000,
                                     }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.background = '#f5f5f5')
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.background = '#fff')
-                                    }
                                 >
-                                    {occupation.label}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                                    {filteredOccupations.map((occupation) => (
+                                        <li
+                                            key={occupation.id}
+                                            onClick={() => handleSelectOccupation(occupation)}
+                                            style={{
+                                                padding: '10px',
+                                                cursor: 'pointer',
+                                                borderBottom: '1px solid #f0f0f0',
+                                                background: '#fff',
+                                            }}
+                                            onMouseEnter={(e) =>
+                                                (e.currentTarget.style.background = '#f5f5f5')
+                                            }
+                                            onMouseLeave={(e) =>
+                                                (e.currentTarget.style.background = '#fff')
+                                            }
+                                        >
+                                            {occupation.label}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </>
+                    }
                     <div style={{margin: "auto", marginTop: "15px"}}>
                         Select Pillar: 
                         <Dropdown isOpen={dropdownOpen} toggle={toggle}>

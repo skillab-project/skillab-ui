@@ -27,6 +27,7 @@ import DescriptiveExploratoryShortCourses from "views/descriptiveExploratory/Des
 import DescriptiveExploratoryProfiles from "views/descriptiveExploratory/DescriptiveExploratoryProfiles";
 import CoOccurrence from "../../coOccurrence/CoOccurrence";
 import DescriptiveExploratoryPolicies from "views/descriptiveExploratory/DescriptiveExploratoryPolicies";
+import HCV from "../../hcv/HCV"
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
@@ -212,7 +213,7 @@ const SupplyAnalytics = () => {
                     </TabPane>
         
                     <TabPane tabId="2">
-                        {currentActiveTab === '2' && <>2, {selectedDataSource}</>}
+                        {currentActiveTab === '2' && <HCV datasource={selectedDataSource}/>}
                     </TabPane>
                     
                     <TabPane tabId="3">

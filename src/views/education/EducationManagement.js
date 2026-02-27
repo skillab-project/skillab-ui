@@ -31,7 +31,7 @@ const EducationManagement = () => {
                         Courses
                     </NavLink>
                 </NavItem>
-                <NavItem style={{cursor:"pointer"}}>
+                {/* <NavItem style={{cursor:"pointer"}}>
                     <NavLink
                         className={classnames({
                             active:
@@ -41,7 +41,7 @@ const EducationManagement = () => {
                     >
                         Taxonomies
                     </NavLink>
-                </NavItem>
+                </NavItem> */}
             </Nav>
     
             <TabContent activeTab={currentActiveTab}>
