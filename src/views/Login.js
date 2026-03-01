@@ -11,7 +11,7 @@ import { isAuthenticatedTracker } from "utils/TrackerAuth";
 const InitPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [loadingAuth, setLoadingAuth] = useState(false);
+    const [loadingAuth, setLoadingAuth] = useState(true);
     const [invalidLoginRequest, setInvalidLoginRequest] = useState(false);
 
     const notificationAlert = useRef();
@@ -35,6 +35,7 @@ const InitPage = () => {
     const handleLogin = async () => {
         console.log("Logging in with", { email, password });
         setLoadingAuth(true);
+        setInvalidLoginRequest(false);
         try {
             var urlencoded = new URLSearchParams();
             urlencoded.append("email", email);
@@ -45,30 +46,31 @@ const InitPage = () => {
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: urlencoded,
             });
-            if(response.status === 200) {
+
+            if (response.status === 200) {
                 var body = await response.json();
                 localStorage.setItem("accessTokenSkillab", body.accessToken);
                 localStorage.setItem("refreshTokenSkillab", body.refreshToken);
 
-                //authenticate Tracker
                 await authenticateTracker();
 
-                if(await isAuthenticated()){
-                    // toDO
-                    //depending on roles
-                    window.location.href='/citizen';
+                if (await isAuthenticated()) {
+                    window.location.href = '/citizen';
+                    return; 
                 }
-            }
-            else if(response.status === 401 || response.status === 403) {
+            } else if (response.status === 401 || response.status === 403) {
                 notify("Invalid email or password");
                 setInvalidLoginRequest(true);
-            }
-            else {
+            } else {
                 console.log("API error");
+                notify("An error occurred. Please try again later.");
             }
         } catch (error) {
             console.error("Error:", error);
+            notify("Connection error");
         }
+
+        // This line only runs if we didn't redirect (i.e., login failed)
         setLoadingAuth(false);
     };
 
@@ -77,14 +79,14 @@ const InitPage = () => {
             const authStatus = await isAuthenticated();
             if (authStatus) {
                 await isAuthenticatedTracker();
-
-                // toDO
-                //depending on installation
-                if(process.env.REACT_APP_INSTALLATION=="citizen")
-                    window.location.href='/citizen/account';
+                if(process.env.REACT_APP_INSTALLATION === "citizen") {
+                    window.location.href = '/citizen/account';
+                    return; // Keep loading true
+                }
             }
+            setLoadingAuth(false); // Only stop loading if NOT authenticated
         };
-    
+
         checkAuth();
     }, []);
 

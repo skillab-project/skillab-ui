@@ -281,7 +281,7 @@ function IndustryAccount() {
                                         </CardFooter>
                                     </Card>
                                 </Col>
-                                <Col md="3">
+                                {/* <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
                                             <SiJfrogpipelines size="50"/>
@@ -290,7 +290,7 @@ function IndustryAccount() {
                                             Data Analysis Pipelines
                                         </CardFooter>
                                     </Card>
-                                </Col>
+                                </Col> */}
                             </Row>
 
                             <Row>

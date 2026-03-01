@@ -37,7 +37,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
     // Get Data for Descriptive component
     const fetchDataSkills = async () => {
         try {
-            const response = await axios.get(process.env.REACT_APP_API_URL_KU + "/ku_statistics");
+            const response = await axios.get(process.env.REACT_APP_API_URL_KU_PUBLIC + "/ku_statistics");
             const transformedData = response.data.map(item => ({
                 label: item.ku_id,
                 Freq: item.count
@@ -57,7 +57,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
     // Get Data for Location component
     const fetchLocationData = async () => {
         try{
-            const response = await axios.get(process.env.REACT_APP_API_URL_KU + "/organization_stats");
+            const response = await axios.get(process.env.REACT_APP_API_URL_KU_PUBLIC + "/organization_stats");
             const transformedOrgData = response.data.map(item => ({
                 organization: item.organization,
                 frequency: item.count
@@ -76,7 +76,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
     // Get Data for Exploratory component 
     const fetchDataExploratory = async () => {
         try{
-            const response = await axios.get(process.env.REACT_APP_API_URL_KU + "/ku_by_organization");
+            const response = await axios.get(process.env.REACT_APP_API_URL_KU_PUBLIC + "/ku_by_organization");
             const transformedData = response.data.map(item => {
                 const kuData = {};
                 item.ku_counts.forEach(ku => {
@@ -100,7 +100,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
     // Get Data for Trending component 
     const fetchDataTrending = async () => {
         try{
-            const response = await axios.get(process.env.REACT_APP_API_URL_KU + "/monthly_analysis_stats");
+            const response = await axios.get(process.env.REACT_APP_API_URL_KU_PUBLIC + "/monthly_analysis_stats");
             const transformedData = response.data.map(item => {
                 const monthData = {};
                 item.monthly_counts.forEach(entry => {
@@ -125,7 +125,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
     const fetchDataClustering = async (noClustNow) => {
         try {
             const response = await axios.post(
-                process.env.REACT_APP_API_URL_KU + "/cluster_repos",
+                process.env.REACT_APP_API_URL_KU_PUBLIC + "/cluster_repos",
                 {
                     'num_clusters': noClustNow
                 });
@@ -155,7 +155,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
     const handleApplyChangeValueK = async (noClustNow) => {
         try {
             const response = await axios.post(
-                process.env.REACT_APP_API_URL_KU + "/cluster_repos",
+                process.env.REACT_APP_API_URL_KU_PUBLIC + "/cluster_repos",
                 {
                     'num_clusters': noClustNow
                 });

@@ -44,16 +44,16 @@ const RecommendOccupation = ({ skills }) => {
                         <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
                             <CardTitle tag="h5">Recommended Occupations</CardTitle>
                             <FaInfoCircle
-                                id="occupationInfo"
+                                id="recommendedOccupationInfo"
                                 className="ms-2"
                                 style={{ cursor: 'pointer', marginLeft:'10px' }}
                             />
                             <Tooltip
                                 isOpen={tooltipOpen}
-                                target="occupationInfo"
+                                target="recommendedOccupationInfo"
                                 toggle={() => setTooltipOpen(!tooltipOpen)}
                             >
-                                This is the role that matches your skills.
+                                This are the roles that match your skills.
                             </Tooltip>
                         </div>
                         <Button

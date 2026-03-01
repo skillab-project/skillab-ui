@@ -4,6 +4,7 @@ import { Nav, Collapse } from "reactstrap";
 import PerfectScrollbar from "perfect-scrollbar";
 
 import skillabLogo from '../../assets/img/skillab-logo.png';
+import euFlag from '../../assets/img/european-union-logo.png'; 
 
 var ps;
 
@@ -58,7 +59,7 @@ function Sidebar(props) {
           SKILLAB
         </a>
       </div>
-      <div className="sidebar-wrapper" ref={sidebar}>
+      <div className="sidebar-wrapper" ref={sidebar} style={{ flex: 1, overflow: 'auto' }}>
         <Nav>
           {props.routes.map((prop, key) => {
             // ** If it's a category, render a collapsible menu **
@@ -121,6 +122,19 @@ function Sidebar(props) {
             return null;
           })}
         </Nav>
+      </div>
+      <div className="sidebar-footer">
+        <div className="footer-content">
+          <img 
+            src={euFlag} 
+            alt="EU Flag" 
+            className="eu-flag"
+          />
+          <p className="funding-statement">
+            This project has received funding from the European Union’s Horizon Europe Framework Programme
+            under grant agreement No 101132663
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -13,27 +13,56 @@
 .off-canvas-sidebar{
     position: fixed;
     top: 0;
-    height: 100%;
+    height: 100vh;
     bottom: 0;
     width: 260px;
     left: 0;
     z-index: 1030;
     border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; 
 
     .sidebar-wrapper{
         position: relative;
-        height: calc(100vh - 75px);
+        flex: 1; 
         overflow: auto;
         width: 260px;
         z-index: 4;
-        padding-bottom: 100px;
+        overflow-y: auto; 
 
-        .dropdown .dropdown-backdrop{
+        .dropdown .dropdown-backdrop {
           display: none !important;
         }
-
-        .navbar-form{
+        .navbar-form {
             border: none;
+        }
+    }
+    
+    .sidebar-footer {
+        flex-shrink: 0;
+        padding: 3px;
+        background-color: transparent;
+        z-index: 4;
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eu-flag {
+            width: 5rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .funding-statement {
+            font-size: 10px;
+            line-height: 1.3;
+            margin: 0;
+            color: inherit;
+            font-weight: 400;
         }
     }
 
@@ -358,4 +387,31 @@
 
 .panel-header-lg{
   height: 380px
+}
+
+
+.sidebar-footer {
+    padding: 15px;
+    background-color: inherit; // Keeps the same color as the sidebar
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    z-index: 10; // Ensures it stays above any background decorations
+    
+    .footer-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .eu-flag {
+        width: 35px;
+        flex-shrink: 0;
+    }
+
+    .funding-statement {
+        font-size: 10px;
+        line-height: 1.2;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.8);
+    }
 }

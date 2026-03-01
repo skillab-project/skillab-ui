@@ -43,7 +43,7 @@ const tabVisibilityConfig = {
     'EU profiles': ['1', '2', '3', '4', '5'], // All tabs are visible
     'Short Courses': ['1', '2', '3', '4', '5'], // All tabs are visible
     'EU KUs': ['1', '3', '4', '5'],           // HCV is hidden
-    'EU Syllabus': ['1', '3', '4', '5'],       // HCV is hidden
+    'EU Syllabus': ['1', '3', '4'],       // HCV is hidden
     'EU Policies': ['1', '2', '3', '4', '5'],       // All tabs are visible
 };
 
@@ -240,9 +240,9 @@ const SupplyAnalytics = () => {
                                 <CoOccurrence parentDatasource="profiles"/>
                             </>
                         }
-                        {currentActiveTab === '5' && selectedDataSource === 'EU Syllabus' &&
+                        {currentActiveTab === '5' && selectedDataSource === 'EU Policies' &&
                             <>
-                                EU Syllabus
+                                <CoOccurrence parentDatasource="policies"/>
                             </>
                         }
                     </TabPane>

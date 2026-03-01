@@ -64,7 +64,6 @@ function CoOccurrence({ parentDatasource }) {
             params.append('max_edges', maxEdges);
             params.append('max_pages', maxPages);
             break;
-        // CHANGE 1: ADDED 'profiles' CASE
         case 'profiles':
             url = `${BASE_URL}/api/profiles_mapped`;
             params.append('keywords', keywords);
@@ -78,6 +77,12 @@ function CoOccurrence({ parentDatasource }) {
             params.append('max_nodes', maxNodes);
             params.append('max_edges', maxEdges);
             if (source) params.append('source', source);
+            break;
+        case 'policies':
+            url = `${BASE_URL}/api/law-policies_mapped`;
+            params.append('keywords', keywords);
+            params.append('max_nodes', maxNodes);
+            params.append('max_edges', maxEdges);
             break;
         default:
             setError("Invalid data source selected.");

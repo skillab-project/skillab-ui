@@ -18,6 +18,7 @@ import {
   Input,
 } from "reactstrap";
 import { FiLogOut } from "react-icons/fi";
+import { FaUserCircle, FaExchangeAlt } from "react-icons/fa";
 
 import routesCitizen from "routes/routesCitizen";
 import routesIndustry from "routes/routesIndustry";
@@ -31,6 +32,24 @@ function Header(props) {
   const [color, setColor] = React.useState("transparent");
   const sidebarToggle = React.useRef();
   const location = useLocation();
+  const installation = process.env.REACT_APP_INSTALLATION;
+
+  // Logic for the Account Button
+  let accountPath = "/citizen/account";
+  let accountLabel = "My Account";
+  let accountIcon = <FaUserCircle style={{ fontSize: "18px", color: "gray" }} />;
+
+  // Specific check: If on citizen account but installation is different
+  if (location.pathname === "/citizen/account") {
+    const installations = ["industry", "policy-industry", "policy-education", "education"];
+    
+    if (installations.includes(installation)) {
+      accountPath = `/${installation}/account`;
+      accountLabel = `Go to ${installation.replace('-', ' ')} Account`;
+      accountIcon = <FaExchangeAlt style={{ fontSize: "18px" }} />;
+    }
+  }
+
   const toggle = () => {
     if (isOpen) {
       setColor("transparent");
@@ -151,14 +170,6 @@ function Header(props) {
         </NavbarToggler>
         <Collapse isOpen={isOpen} navbar className="justify-content-end">
           <Nav navbar>
-            <NavItem>
-              <Link to="#pablo" className="nav-link btn-magnify">
-                <i className="nc-icon nc-layout-11" />
-                <p>
-                  <span className="d-lg-none d-md-block">Stats</span>
-                </p>
-              </Link>
-            </NavItem>
             <Dropdown
               nav
               isOpen={dropdownOpen}
@@ -176,6 +187,14 @@ function Header(props) {
                 <DropdownItem tag="a">Something else here</DropdownItem>
               </DropdownMenu>
             </Dropdown>
+            <NavItem style={{display:"flex"}}>
+              <Link to={accountPath} className="nav-link" style={{display:"flex", alignItems:"center"}}>
+                {accountIcon}
+                <p>
+                  <span style={{ marginLeft: "7px" }} className="d-lg-none d-md-block">{accountLabel}</span>
+                </p>
+              </Link>
+            </NavItem>
             <NavItem style={{display:"flex"}}>
               <Link onClick={logout} to="#logout" className="nav-link btn-rotate" style={{display:"flex", alignItems:"center"}}>
                 <FiLogOut style={{fontSize:"18px", color:"gray"}} />

@@ -137,13 +137,13 @@ const TargetOccupation = ({skills}) => {
                         <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
                             <CardTitle tag="h5">Target occupation</CardTitle>
                             <FaInfoCircle
-                                id="occupationInfo"
+                                id="targetOccupationInfo"
                                 className="ms-2"
                                 style={{ cursor: 'pointer', marginLeft:'10px' }}
                             />
                             <Tooltip
                                 isOpen={tooltipOpen}
-                                target="occupationInfo"
+                                target="targetOccupationInfo"
                                 toggle={() => setTooltipOpen(!tooltipOpen)}
                             >
                                 This is the role you're aiming for in your career.
