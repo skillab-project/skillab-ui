@@ -218,7 +218,7 @@ const AdminConfiguration = () => {
                                                         onClick={() => handleAuthorize(user.email)}
                                                         style={{ marginRight: "10px" }}
                                                     >
-                                                        <i className="fa fa-check"></i>
+                                                        <i className="fa fa-user-shield"></i>
                                                     </Button>
                                                     <UncontrolledTooltip placement="top" target={`auth-tooltip-${user.id}`}>
                                                         Authorize User
