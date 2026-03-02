@@ -12,7 +12,8 @@ import {
     Form,
     FormGroup,
     Label,
-    UncontrolledTooltip
+    UncontrolledTooltip,
+    Modal, ModalHeader, ModalBody, ModalFooter
 } from "reactstrap";
 import axios from "axios";
 
@@ -25,6 +26,18 @@ const AdminConfiguration = () => {
         password: "",
         installation: "citizen"
     });
+    const [modal, setModal] = useState(false);
+    const [pendingAction, setPendingAction] = useState(null);
+    const [modalText, setModalText] = useState("");
+
+    const toggleModal = () => setModal(!modal);
+
+    const confirmAction = (text, action) => {
+        setModalText(text);
+        setPendingAction(() => action);
+        toggleModal();
+    };
+
 
     const fetchUsers = async () => {
         try {
@@ -77,39 +90,33 @@ const AdminConfiguration = () => {
         }
     };
 
-    const handleAuthorize = async (email) => {
-        try {
-            await axios.put(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/users/authorize?email=" + email,
-                {}, { 
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
-                }
-            });
-            
-            alert("User authorized successfully");
-            fetchUsers();
-        } catch (error) {
-            console.error("Error authorizing user:", error);
-            alert("Failed to authorize user");
-        }
+    const handleAuthorize = async (user) => {
+        confirmAction(
+            `Are you sure you want to give privileged access to user ${user.name}?`,
+            async () => {
+                try {
+                    await axios.put(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/users/authorize?email=" + user.email, {}, {
+                        headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+                    });
+                    alert("User authorized successfully");
+                    fetchUsers();
+                } catch (error) { alert("Failed to authorize user"); }
+            }
+        );
     };
 
-    const handleDelete = async (email) => {
-        if (!window.confirm("Are you sure you want to delete this user?")) return;
-
-        try {
-            await axios.delete(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/users/delete?email=" + email, 
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
-                    }
-                });
-            
-            fetchUsers();
-        } catch (error) {
-            console.error("Error deleting user:", error);
-            alert("Failed to delete user");
-        }
+    const handleDelete = async (user) => {
+        confirmAction(
+            `Are you sure you want to delete user ${user.name}?`,
+            async () => {
+                try {
+                    await axios.delete(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/users/delete?email=" + user.email, {
+                        headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+                    });
+                    fetchUsers();
+                } catch (error) { alert("Failed to delete user"); }
+            }
+        );
     };
 
 
@@ -207,7 +214,7 @@ const AdminConfiguration = () => {
                                         <td>{user.email}</td>
                                         <td>{user.roles}</td>
                                         <td>{user.installation}</td>
-                                        <td className="text-right">
+                                        <td className="text-right" style={{display:"flex"}}>
                                             {user.roles && !user.roles.includes("PRIVILEGED") && (
                                                 <>
                                                     <Button 
@@ -215,8 +222,8 @@ const AdminConfiguration = () => {
                                                         color="success" 
                                                         size="sm"
                                                         id={`auth-tooltip-${user.id}`} 
-                                                        onClick={() => handleAuthorize(user.email)}
-                                                        style={{ marginRight: "10px" }}
+                                                        onClick={() => handleAuthorize(user)}
+                                                        style={{ marginRight: "5px" }}
                                                     >
                                                         <i className="fa fa-user-shield"></i>
                                                     </Button>
@@ -231,7 +238,7 @@ const AdminConfiguration = () => {
                                                 color="danger" 
                                                 size="sm"
                                                 id={`del-tooltip-${user.id}`} 
-                                                onClick={() => handleDelete(user.email)}
+                                                onClick={() => handleDelete(user)}
                                             >
                                                 <i className="fa fa-trash"></i>
                                             </Button>
@@ -250,6 +257,17 @@ const AdminConfiguration = () => {
                     </Table>
                 </div>
             </CardBody>
+
+            <Modal isOpen={modal} toggle={toggleModal}>
+                <ModalHeader toggle={toggleModal}>Confirm Action</ModalHeader>
+                <ModalBody>
+                    {modalText}
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={toggleModal}>Cancel</Button>
+                    <Button color="primary" onClick={() => { pendingAction(); toggleModal(); }}>Confirm</Button>
+                </ModalFooter>
+            </Modal>
         </Card>
     );
 }
