@@ -52,7 +52,9 @@ function MetricsMain({ metrics, onMetricCreated }) {
     setMetricData([]); // Clear previous data immediately for better UX
     try {
         const url = `${REPORT_API_URL}?indicatorName=${encodeURIComponent(metric.name)}`;
-        const response = await axios.get(url);
+        const response = await axios.get(url, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}` }
+        });
         setMetricData(response.data);
     } catch (error) {
         alert(`Failed to fetch data for ${metric.name}`);
@@ -76,7 +78,9 @@ function MetricsMain({ metrics, onMetricCreated }) {
     };
 
     try {
-        await axios.post(REPORT_API_URL, payload);
+        await axios.post(REPORT_API_URL, payload, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}` }
+        });
         alert("New data point added!");
         setNewReportValue('');
         handleSelectMetric(selectedMetric);

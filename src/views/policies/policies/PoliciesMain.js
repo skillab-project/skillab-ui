@@ -122,8 +122,7 @@ function PoliciesMain({ policies, onPolicyCreated }) {
                     kpi_name: kpi.name
                 }, {
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+                        Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`
                     }
                 });
 
@@ -134,7 +133,7 @@ function PoliciesMain({ policies, onPolicyCreated }) {
                     try {
                         const statusResponse = await axios.get(EVAL_API_URL + "/jobs/" + job_id, {
                             headers: {
-                                'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+                                Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`
                             }
                         });
                         const { status, result, error } = statusResponse.data;

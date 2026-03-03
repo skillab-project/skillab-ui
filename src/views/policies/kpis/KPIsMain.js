@@ -30,7 +30,9 @@ function KPIsMain({ kpis }) {
 
     try {
       const url = `${REPORT_API_URL}?kpiName=${encodeURIComponent(kpi.name)}`;
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}` }
+      });
       setKpiData(response.data);
     } catch (error) {
       alert(`Failed to fetch data for ${kpi.name}`);
