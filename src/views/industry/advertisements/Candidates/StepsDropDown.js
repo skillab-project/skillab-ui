@@ -83,7 +83,7 @@ export default function StepsDropDown({
         let alive = true;
         (async () => {
             try {
-                const r = await fetch(url);
+                const r = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 if (!r.ok) return;
                 const data = await r.json(); // [{questionId,totalSkills,ratedSkills,averageScore}]
                 if (!alive) return;

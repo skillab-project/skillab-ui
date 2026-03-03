@@ -48,6 +48,11 @@ function Artifacts() {
         try {
           const response = await fetch(process.env.REACT_APP_API_URL_KU+`/delete_repo/${encodeURIComponent(repoName)}`, {
             method: 'DELETE',
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+            },
           });
     
           if (!response.ok) {
@@ -91,6 +96,11 @@ function Artifacts() {
             organization: formData.organization,
             description: formData.description,
             comments: formData.comments
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+            },
           });
           console.log('Success:', response.data);
         } catch (error) {
@@ -101,7 +111,11 @@ function Artifacts() {
 
     const handleCreate = async () => {
         try {
-            const response = await axios.post(process.env.REACT_APP_API_URL_KU+`/repos`, formData);
+            const response = await axios.post(process.env.REACT_APP_API_URL_KU+`/repos`, formData, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            });
             console.log('Success:', response.data);
         } catch (error) {
           console.error('Error:', error);
@@ -113,7 +127,11 @@ function Artifacts() {
 
     const getRepos = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME)
+            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            })
             .then((res) => {
                 const sortedRepos = res.data.sort(
                     (a, b) => new Date(b.created_at) - new Date(a.created_at)

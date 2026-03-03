@@ -53,7 +53,7 @@ export default function StepsTab({
             ];
             for (const url of endpoints) {
                 try {
-                    const res = await fetch(url, { headers: { Accept: 'application/json' }, signal: ac.signal });
+                    const res = await fetch(url, { headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` }, signal: ac.signal });
                     if (!res.ok) continue;
                     const data = await res.json();
                     const norm = (Array.isArray(data) ? data : [])
@@ -90,7 +90,7 @@ export default function StepsTab({
             ];
             for (const url of endpoints) {
                 try {
-                    const res = await fetch(url, { headers: { Accept: 'application/json' }, signal: ac.signal });
+                    const res = await fetch(url, { headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` }, signal: ac.signal });
                     if (!res.ok) continue;
                     const json = await res.json();
                     setStats(json); setLoading(false);

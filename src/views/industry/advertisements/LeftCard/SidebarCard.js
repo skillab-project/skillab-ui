@@ -100,7 +100,7 @@ const SidebarCard = ({
     /* -------------------- fetch & group -------------------- */
     const loadDepartments = useCallback(async () => {
         try {
-            const jobsRes = await fetch(`${baseUrl}/jobAds`, { cache: "no-store" });
+            const jobsRes = await fetch(`${baseUrl}/jobAds`, { cache: "no-store", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             if (!jobsRes.ok) throw new Error("Failed to fetch job ads");
             const jobs = await jobsRes.json();
 
@@ -108,7 +108,7 @@ const SidebarCard = ({
             let occNameToId = new Map();
 
             try {
-                const depRes = await fetch(`${baseUrl}/api/v1/departments/names`, { cache: "no-store" });
+                const depRes = await fetch(`${baseUrl}/api/v1/departments/names`, { cache: "no-store", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 if (depRes.ok) {
                     const depList = await depRes.json();
                     deptNameToId = new Map(depList.map(d => [norm(d.name), d.id]));
@@ -116,7 +116,7 @@ const SidebarCard = ({
             } catch { /* no-op */ }
 
             try {
-                const occRes = await fetch(`${baseUrl}/api/v1/occupations/names`, { cache: "no-store" });
+                const occRes = await fetch(`${baseUrl}/api/v1/occupations/names`, { cache: "no-store", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 if (occRes.ok) {
                     const occList = await occRes.json();
                     occNameToId = new Map(occList.map(o => [norm(o.name), o.id]));

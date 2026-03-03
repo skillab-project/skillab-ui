@@ -66,7 +66,7 @@ export default function InterviewSteps({
 
         const r = await fetch(`${API_STEP}/interviews/${interviewId}/steps/reorder`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
             body: JSON.stringify({ stepIds: orderedIds }),
         });
         if (!r.ok) {
@@ -79,7 +79,7 @@ export default function InterviewSteps({
     const updateDescription = async (stepId, description) => {
         const r = await fetch(`${API_STEP}/${stepId}/description`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
             body: JSON.stringify({ description: description ?? "" }),
         });
         if (!r.ok) {

@@ -59,7 +59,11 @@ function JobAdvertisements() {
     }, [jobStatus]);
 
     React.useEffect(() => {
-        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/skills`)
+        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/skills`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            })
             .then((res) => {
                 if (!res.ok) throw new Error('Failed to fetch all skills');
                 return res.json();
@@ -80,8 +84,9 @@ function JobAdvertisements() {
             try {
                 const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/details?jobAdId=${selectedJobAdId}`, {
                     cache: 'no-store',
-                    headers: { 'Cache-Control': 'no-cache' },
-                });
+                    headers: { 'Cache-Control': 'no-cache', 
+                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+                    });
                 if (!r.ok) throw new Error();
                 const d = await r.json();
                 setJobStatus(d?.status ?? null);

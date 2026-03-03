@@ -74,7 +74,7 @@ const QUESTION_LIST_ENDPOINTS = (base, jobAdId, stepId) => [
 
 async function tryFetchJson(url) {
     try {
-        const r = await fetch(url, { headers: { Accept: 'application/json' } });
+        const r = await fetch(url, { headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return await r.json();
     } catch {
@@ -133,7 +133,7 @@ export default function QuestionsTab({
         if (!jobAdId || !selectedQuestionId) { setStats(null); return; }
         let ignore = false;
         setStatsLoading(true); setStatsErr('');
-        fetch(`${apiBase}/statistics/jobad/${jobAdId}/question/${selectedQuestionId}`, { headers: { Accept: 'application/json' } })
+        fetch(`${apiBase}/statistics/jobad/${jobAdId}/question/${selectedQuestionId}`, { headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then(async (r) => { if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`)); return r.json(); })
             .then((j) => { if (!ignore) setStats(j); })
             .catch((e) => { if (!ignore) setStatsErr(String(e.message || e)); })

@@ -47,7 +47,11 @@ function KuAtRisk() {
 
     const getKuRisk = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/ku_risk?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME)
+            .get(process.env.REACT_APP_API_URL_KU + "/ku_risk?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            })
             .then((res) => {
                 // Sort based on the numeric value after the "K"
                 const sortedData = res.data.sort((a, b) => {
@@ -63,7 +67,11 @@ function KuAtRisk() {
 
     const getEmployeeRisk = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/employee_risk?organization="+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME)
+            .get(process.env.REACT_APP_API_URL_KU + "/employee_risk?organization="+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            })
             .then((res) => {
                 const sorted = res.data.sort((a, b) => b.absolute_employee_risk - a.absolute_employee_risk);
                 console.log("data sorted:", sorted);

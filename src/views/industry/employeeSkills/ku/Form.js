@@ -78,7 +78,11 @@ const Form =({
         setLoadingHeatmap(true);
         setInitialHeatmapHandler(true);
         try {
-          const response = await axios.get(process.env.REACT_APP_API_URL_KU+`/analyzedb?repo_name=${getRepoNameFromUrl(repoURL)}`);
+          const response = await axios.get(process.env.REACT_APP_API_URL_KU+`/analyzedb?repo_name=${getRepoNameFromUrl(repoURL)}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+            },
+          });
           const analysisResults = response.data || [];
           setLoadingHeatmap(false);
     
@@ -115,6 +119,10 @@ const Form =({
             const response = await axios.post(process.env.REACT_APP_API_URL_KU+"/commits", {
                 repo_url: repoUrl,
                 limit: limit,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
             });
     
             const fileChanges = response.data;
@@ -157,7 +165,11 @@ const Form =({
         setResultsOfAnalysis(true);
     
         const eventSource = new EventSource(
-            process.env.REACT_APP_API_URL_KU+`/analyze?repo_url=${encodeURIComponent(repoUrl)}`
+            process.env.REACT_APP_API_URL_KU+`/analyze?repo_url=${encodeURIComponent(repoUrl)}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            }
         );
     
         eventSource.onmessage = (event) => {

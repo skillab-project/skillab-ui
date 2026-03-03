@@ -310,6 +310,8 @@ export default function AddCandidateModal({
         const r = await fetch(`${API_BASE}/api/v1/candidates/upload-cv`, {
             method: "POST",
             body: fd,
+        },{
+            headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
         });
         if (!r.ok) throw new Error(L.err_cv_upload);
         const data = await r.json();
@@ -339,7 +341,7 @@ export default function AddCandidateModal({
 
             const resp = await fetch(
                 `${API_BASE}/api/v1/candidates?jobAdId=${encodeURIComponent(jobAdId)}`,
-                { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
+                { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` }, body: JSON.stringify(payload) }
             );
             if (!resp.ok) throw new Error(L.err_create);
 

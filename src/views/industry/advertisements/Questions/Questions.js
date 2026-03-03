@@ -45,7 +45,7 @@ export default function Questions({ selectedJobAdId }) {
 
     /* ===== Skills list (για το δεξί panel) ===== */
     React.useEffect(() => {
-        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/skills`)
+        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/skills`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => setAllSkills((data || []).map((s) => s?.title).filter(Boolean)))
             .catch(() => setAllSkills([]));
@@ -58,7 +58,7 @@ export default function Questions({ selectedJobAdId }) {
             setRequiredSkills([]);
             return;
         }
-        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/question/${selectedQuestionId}/details`)
+        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/question/${selectedQuestionId}/details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => {
                 setQuestionDesc(d?.description || '');
@@ -76,7 +76,7 @@ export default function Questions({ selectedJobAdId }) {
             setStatus(null);
             return;
         }
-        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/details?jobAdId=${selectedJobAdId}`)
+        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/details?jobAdId=${selectedJobAdId}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => setStatus(d?.status ?? null))
             .catch(() => setStatus(null));
@@ -88,7 +88,7 @@ export default function Questions({ selectedJobAdId }) {
         try {
             const resp = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/question/${selectedQuestionId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify({
                     description: questionDesc || '',
                     skillNames: requiredSkills || [],
@@ -114,7 +114,7 @@ export default function Questions({ selectedJobAdId }) {
         }
         setDeleting(true);
         try {
-            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/question/${selectedQuestionId}`, { method: 'DELETE' });
+            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/question/${selectedQuestionId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             if (!r.ok) throw new Error('delete-failed');
 
             const deletedId = selectedQuestionId;

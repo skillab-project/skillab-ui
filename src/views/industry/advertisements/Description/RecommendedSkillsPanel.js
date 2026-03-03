@@ -68,7 +68,7 @@ export default function RecommendedSkillsPanel({
             const url = `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${jobAdId}/recommended-skills`;
             await fetch(url, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify({ description, requiredSkills }),
             });
             throw new Error("Not implemented");

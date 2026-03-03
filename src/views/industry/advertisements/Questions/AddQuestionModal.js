@@ -48,7 +48,7 @@ export default function AddQuestionModal({
         try {
             const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/step/${stepId}/questions`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify({ name: name.trim() }),
             });
             if (!r.ok) throw new Error("create-question-failed");

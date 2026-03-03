@@ -116,7 +116,9 @@ export default function CandidatesTab({
         setCandListErr('');
 
         fetch(`${apiBase}/statistics/jobad/${jobAdId}/candidates`, {
-            headers: { Accept: 'application/json' },
+            headers: { Accept: 'application/json',
+                       Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+             },
             signal: ac.signal,
         })
             .then(async (r) => {
@@ -176,7 +178,7 @@ export default function CandidatesTab({
                 missing.map(async (id) => {
                     try {
                         const r = await fetch(`${apiBase}/statistics/candidate/${id}/stats`, {
-                            headers: { Accept: 'application/json' },
+                            headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                         });
                         if (!r.ok) throw new Error('HTTP');
                         const j = await r.json();
@@ -207,7 +209,7 @@ export default function CandidatesTab({
         setCandLoading(true);
         setCandErr('');
         fetch(`${apiBase}/statistics/candidate/${selectedCandId}/stats`, {
-            headers: { Accept: 'application/json' },
+            headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
             signal: ac.signal,
         })
             .then((r) =>

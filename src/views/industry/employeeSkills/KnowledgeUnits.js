@@ -43,7 +43,12 @@ function KnowleageUnits() {
 
     const handleViewOrganizationSkills = async () => {
         try {
-            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/organizationskills/'+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME);
+            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/organizationskills/'+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
@@ -129,7 +134,11 @@ function KnowleageUnits() {
 
     const getRepos = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME)
+            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            })
             .then((res) => {
                 const sortedRepos = res.data.sort(
                     (a, b) => new Date(b.created_at) - new Date(a.created_at)

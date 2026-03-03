@@ -35,7 +35,7 @@ const fetchContinuously = async (url, signal, interval = 5000) => {
       throw new axios.Cancel('Operation canceled by the user.');
     }
     try {
-      const response = await axios.get(url, { signal });
+      const response = await axios.get(url, { signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
       return response.data;
     } catch (error) {
       if (axios.isCancel(error)) {
@@ -104,7 +104,7 @@ const FutureTechnologyTrendsIdentifier = () => {
         const formData = new FormData();
         formData.append('file', selectedFile);
         try {
-            const response = await axios.post(`${API_BASE_URL}/analyze/pdf`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            const response = await axios.post(`${API_BASE_URL}/analyze/pdf`, formData, { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             const { job_id, status } = response.data;
             setJobId(job_id);
             if (status === 'done') {
@@ -124,7 +124,7 @@ const FutureTechnologyTrendsIdentifier = () => {
     const startPolling = (currentJobId) => {
         jobPollingIntervalRef.current = setInterval(async () => {
             try {
-                const res = await axios.get(`${API_BASE_URL}/jobs/${currentJobId}`);
+                const res = await axios.get(`${API_BASE_URL}/jobs/${currentJobId}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const { status, message } = res.data;
                 setJobStatus(status);
                 setJobMessage(message);
@@ -147,7 +147,7 @@ const FutureTechnologyTrendsIdentifier = () => {
 
     const fetchTechnologies = async (currentJobId) => {
         try {
-            const res = await axios.get(`${API_BASE_URL}/results/${currentJobId}/download`);
+            const res = await axios.get(`${API_BASE_URL}/results/${currentJobId}/download`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             setTechnologies(res.data.technologies);
             setLoadingState('done');
             setActiveTab('1');
@@ -163,7 +163,7 @@ const FutureTechnologyTrendsIdentifier = () => {
         setLoadingState('mapping');
         setError(null);
         try {
-            const res = await axios.post(`${API_BASE_URL}/map-to-esco`, { job_id: jobId, ...escoParams });
+            const res = await axios.post(`${API_BASE_URL}/map-to-esco`, { job_id: jobId, ...escoParams }, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             setEscoMapping(res.data);
             setActiveTab('2');
         } catch (err) {
@@ -186,7 +186,7 @@ const FutureTechnologyTrendsIdentifier = () => {
         try {
             const res = await axios.post(`${API_BASE_URL}/policy/recommendations`, {
                 job_id: jobId, ...policyParams
-            }, { signal }); 
+            }, { signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }); 
             
             if (res.data.result_path) {
                 setJobMessage("Recommendation job sent. Polling for results file...");

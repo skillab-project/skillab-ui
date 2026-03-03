@@ -28,7 +28,7 @@ export default function StepsTree({
         }
         (async () => {
             try {
-                const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/interview-details`);
+                const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 if (!r.ok) throw new Error();
                 const data = await r.json();
                 const safe = (data?.steps || [])
@@ -56,7 +56,7 @@ export default function StepsTree({
 
     const loadQuestions = useCallback(async (stepId) => {
         try {
-            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/step/${stepId}/questions`);
+            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/step/${stepId}/questions`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             const list = r.ok ? await r.json() : [];
             setQuestionsByStep(prev => ({ ...prev, [stepId]: list || [] }));
         } catch {
@@ -152,7 +152,7 @@ export default function StepsTree({
                 const ids = (questionsByStep[fromStepId] || []).map(q => q.id);
                 const arr = [...ids]; const [mv] = arr.splice(from, 1); arr.splice(to, 0, mv);
                 await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/step/${fromStepId}/questions/reorder`, {
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                     body: JSON.stringify({ questionIds: arr })
                 });
             } catch { /* noop */ }
@@ -170,7 +170,7 @@ export default function StepsTree({
         if (!canEdit) return;
         try {
             await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/question/${qId}/move`, {
-                method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify({ toStepId, toIndex })
             });
         } catch { /* noop */ }

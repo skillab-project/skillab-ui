@@ -37,7 +37,7 @@ export default function CreateJobAd({ isOpen, toggle, onCreated }) {
         setLoadingDeps(true);
         setError("");
 
-        fetch(`${baseUrl}/api/v1/departments/names`)
+        fetch(`${baseUrl}/api/v1/departments/names`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then(r => r.json())
             .then(data => {
                 const mapped = (Array.isArray(data) ? data : []).map(d => ({
@@ -56,7 +56,7 @@ export default function CreateJobAd({ isOpen, toggle, onCreated }) {
     useEffect(() => {
         if (!isOpen) return;
         setLoadingOccs(true);
-        fetch(`${baseUrl}/api/v1/occupations/names`)
+        fetch(`${baseUrl}/api/v1/occupations/names`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then(r => r.json())
             .then(data => {
                 const mapped = (Array.isArray(data) ? data : [])
@@ -98,13 +98,13 @@ export default function CreateJobAd({ isOpen, toggle, onCreated }) {
             // 1) πιθανό endpoint
             let r = await fetch(`${baseUrl}/api/v1/departments/${deptId}/occupations`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify({ occupationId: occId })
             });
 
             // 2) fallback
             if (!r.ok) {
-                r = await fetch(`${baseUrl}/api/v1/departments/${deptId}/occupations/${occId}`, { method: "POST" });
+                r = await fetch(`${baseUrl}/api/v1/departments/${deptId}/occupations/${occId}`, { method: "POST" }, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             }
 
             if (r.ok) {
@@ -145,7 +145,7 @@ export default function CreateJobAd({ isOpen, toggle, onCreated }) {
 
             const r = await fetch(`${baseUrl}/jobAds/by-names`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify(payload)
             });
 

@@ -66,7 +66,7 @@ export default function DescriptionCard({
         try {
             const r = await fetch(detailsUrl, {
                 cache: "no-store",
-                headers: { "Cache-Control": "no-cache" },
+                headers: { "Cache-Control": "no-cache", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
             });
             if (!r.ok) throw new Error();
             const d = await r.json();
@@ -78,7 +78,7 @@ export default function DescriptionCard({
                 try {
                     const res = await fetch(url, {
                         cache: "no-store",
-                        headers: { "Cache-Control": "no-cache" },
+                        headers: { "Cache-Control": "no-cache", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                     });
                     if (!res.ok) continue;
                     const arr = await res.json();
@@ -113,7 +113,7 @@ export default function DescriptionCard({
         try {
             const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/details`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify({ description, skills: requiredSkills }),
             });
             if (!r.ok) throw new Error();
@@ -137,6 +137,7 @@ export default function DescriptionCard({
             await handleUpdate();
             const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/publish`, {
                 method: "POST",
+                headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
             });
             if (!r.ok) throw new Error();
 
@@ -167,6 +168,7 @@ export default function DescriptionCard({
         try {
             const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}`, {
                 method: "DELETE",
+                headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
             });
             if (!r.ok) throw new Error();
             setDescription("");

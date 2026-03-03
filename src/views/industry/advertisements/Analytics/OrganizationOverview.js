@@ -110,7 +110,7 @@ export default function OrganizationOverview({ orgId = 3 }) {
     useEffect(() => {
         let ignore = false;
         setLoading(true); setErr('');
-        fetch(`${base}/statistics/organization/${orgId}`, { headers: { Accept: 'application/json' } })
+        fetch(`${base}/statistics/organization/${orgId}`, { headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then(async (r) => { if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`)); return r.json(); })
             .then((j) => { if (!ignore) setStats(j); })
             .catch((e) => { if (!ignore) setErr(String(e.message || e)); })

@@ -114,7 +114,7 @@ export default function Candidates({ jobAdId }) {
         (async () => {
             try {
                 const url = `${API_BASE}/api/v1/candidates/jobad/${jobAdId}`;
-                const res = await fetch(url, { signal: ac.signal });
+                const res = await fetch(url, { signal: ac.signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
                 const mapped = (Array.isArray(data) ? data : []).map((c) => ({
@@ -152,7 +152,7 @@ export default function Candidates({ jobAdId }) {
 
                 const detailsRes = await fetch(
                     `${API_BASE}/jobAds/${jobAdId}/interview-details`,
-                    { signal: ac.signal }
+                    { signal: ac.signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
                 );
                 if (!detailsRes.ok) throw new Error("Failed to fetch interview-details");
                 const d = await detailsRes.json();
@@ -173,7 +173,7 @@ export default function Candidates({ jobAdId }) {
                     try {
                         const qsRes = await fetch(
                             `${API_BASE}/api/v1/step/${st.id}/questions`,
-                            { signal: ac.signal }
+                            { signal: ac.signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
                         );
                         const qs = qsRes.ok ? await qsRes.json() : [];
                         const mappedQs = (Array.isArray(qs) ? qs : []).map((q) => ({
@@ -224,7 +224,7 @@ export default function Candidates({ jobAdId }) {
         (async () => {
             try {
                 const url = `${API_BASE}/api/v1/assessment/interviews/${interviewId}/candidates/${selectedCandidate.id}/steps`;
-                const r = await fetch(url, { signal: ac.signal });
+                const r = await fetch(url, { signal: ac.signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const data = r.ok ? await r.json() : [];
 
                 const byId = new Map(
@@ -266,7 +266,7 @@ export default function Candidates({ jobAdId }) {
                 return;
             }
             try {
-                const r = await fetch(`${API_BASE}/api/v1/question/${q.id}/details`);
+                const r = await fetch(`${API_BASE}/api/v1/question/${q.id}/details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 if (!r.ok) throw new Error();
                 const d = await r.json();
                 const skills = (Array.isArray(d?.skills) ? d.skills : [])
@@ -303,7 +303,8 @@ export default function Candidates({ jobAdId }) {
             if (!selectedCandidate?.id || !questionId) return;
             try {
                 const r = await fetch(
-                    `${API_BASE}/api/v1/skill-scores/candidate/${selectedCandidate.id}/question/${questionId}`
+                    `${API_BASE}/api/v1/skill-scores/candidate/${selectedCandidate.id}/question/${questionId}`,
+                    { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
                 );
                 const arr = r.ok ? await r.json() : [];
                 const scores = arr.map((x) => Number(x?.score)).filter((v) => Number.isFinite(v));
@@ -345,7 +346,8 @@ export default function Candidates({ jobAdId }) {
 
                 if (interviewId) {
                     const r2 = await fetch(
-                        `${API_BASE}/api/v1/assessment/interviews/${interviewId}/candidates/${selectedCandidate.id}/steps`
+                        `${API_BASE}/api/v1/assessment/interviews/${interviewId}/candidates/${selectedCandidate.id}/steps`,
+                        { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
                     );
                     if (r2.ok) {
                         const data = await r2.json();
@@ -386,7 +388,8 @@ export default function Candidates({ jobAdId }) {
 
             const resp = await fetch(
                 `${API_BASE}/api/v1/candidates/${selectedCandidate.id}/status`,
-                { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: backendStatus }) }
+                { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
+                body: JSON.stringify({ status: backendStatus }) }
             );
             if (!resp.ok) {
                 const txt = await resp.text().catch(() => "");
@@ -439,7 +442,7 @@ export default function Candidates({ jobAdId }) {
         }
         (async () => {
             try {
-                const r = await fetch(`${API_BASE}/api/v1/candidates/${selectedCandidate.id}`);
+                const r = await fetch(`${API_BASE}/api/v1/candidates/${selectedCandidate.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const d = r.ok ? await r.json() : null;
                 setCandComment(d?.comments ?? "");
             } catch {
@@ -453,7 +456,8 @@ export default function Candidates({ jobAdId }) {
         try {
             const resp = await fetch(
                 `${API_BASE}/api/v1/candidates/${selectedCandidate.id}/comments`,
-                { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ comments: candComment }) }
+                { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
+                 body: JSON.stringify({ comments: candComment }) }
             );
             if (!resp.ok) {
                 const txt = await resp.text().catch(() => "");

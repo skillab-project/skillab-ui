@@ -108,7 +108,7 @@ export default function SkillsTab({
         let ignore = false;
         setSkillsLoading(true);
         setSkillsErr('');
-        fetchJsonSafe(`${apiBase}/statistics/question/${questionId}/skills`)
+        fetchJsonSafe(`${apiBase}/statistics/question/${questionId}/skills`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((j) => {
                 if (ignore) return;
                 if (!j) {
@@ -145,7 +145,7 @@ export default function SkillsTab({
             ? `${apiBase}/statistics/jobad/${jobAdId}/question/${questionId}/skill/${effectiveSkillId}`
             : `${apiBase}/statistics/skill/${effectiveSkillId}`;
 
-        fetch(url, { headers: { Accept: 'application/json' } })
+        fetch(url, { headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then(async (r) => {
                 if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`));
                 return r.json();

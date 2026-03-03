@@ -108,7 +108,7 @@ export default function StepSkills({ step, mode = "edit", onAfterSave }) {
         setLoading(true);
         try {
             const url = `${API_BASE}/api/v1/skill-scores/candidate/${candidateId}/question/${questionId}`;
-            const r = await fetch(url);
+            const r = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             const data = r.ok ? await r.json() : [];
 
             const byId = new Map(
@@ -222,7 +222,7 @@ export default function StepSkills({ step, mode = "edit", onAfterSave }) {
 
                 const resp = await fetch(`${API_BASE}/api/v1/skill-scores`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                     body: JSON.stringify(body),
                 });
 

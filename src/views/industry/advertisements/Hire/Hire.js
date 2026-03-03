@@ -48,7 +48,7 @@ export default function Hire({ jobAdId }) {
         if (!jobAdId) return;
         (async () => {
             try {
-                const r = await fetch(`${API_BASE}/api/v1/candidates/jobad/${jobAdId}/final-scores`);
+                const r = await fetch(`${API_BASE}/api/v1/candidates/jobad/${jobAdId}/final-scores`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const data = r.ok ? await r.json() : [];
                 const mapped = (Array.isArray(data) ? data : [])
                     .filter((d) => ["approved", "accepted", "hired"].includes(String(d.status || "").toLowerCase()))
@@ -71,7 +71,7 @@ export default function Hire({ jobAdId }) {
         if (!jobAdId) return;
         (async () => {
             try {
-                const det = await fetch(`${API_BASE}/jobAds/${jobAdId}/interview-details`);
+                const det = await fetch(`${API_BASE}/jobAds/${jobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const d = det.ok ? await det.json() : null;
                 const iid = d?.id ?? d?.interviewId ?? null;
                 setInterviewId(iid);
@@ -87,7 +87,7 @@ export default function Hire({ jobAdId }) {
                 const withQs = [];
                 for (const st of baseSteps) {
                     try {
-                        const r = await fetch(`${API_BASE}/api/v1/step/${st.id}/questions`);
+                        const r = await fetch(`${API_BASE}/api/v1/step/${st.id}/questions`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                         const list = r.ok ? await r.json() : [];
                         withQs.push({
                             ...st,
@@ -116,7 +116,7 @@ export default function Hire({ jobAdId }) {
         }
         (async () => {
             try {
-                const r = await fetch(`${API_BASE}/api/v1/candidates/${selectedCandidate.id}`);
+                const r = await fetch(`${API_BASE}/api/v1/candidates/${selectedCandidate.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const d = r.ok ? await r.json() : null;
                 setCandComment(d?.comments ?? "");
             } catch {
@@ -134,7 +134,7 @@ export default function Hire({ jobAdId }) {
                 return;
             }
             try {
-                const r = await fetch(`${API_BASE}/api/v1/question/${q.id}/details`);
+                const r = await fetch(`${API_BASE}/api/v1/question/${q.id}/details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const d = r.ok ? await r.json() : null;
                 const skills = (Array.isArray(d?.skills) ? d.skills : [])
                     .map((s) => ({ id: s?.id, name: s?.title || s?.name }))
@@ -170,7 +170,7 @@ export default function Hire({ jobAdId }) {
         if (!selectedCandidate) return;
         setConfirmLoading(true);
         try {
-            const r = await fetch(`${API_BASE}/api/v1/candidates/${selectedCandidate.id}/hire`, { method: "POST" });
+            const r = await fetch(`${API_BASE}/api/v1/candidates/${selectedCandidate.id}/hire`, { method: "POST" }, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             if (!r.ok) {
                 const msg =
                     r.status === 400
@@ -250,7 +250,7 @@ export default function Hire({ jobAdId }) {
                                                 return;
                                             }
                                             try {
-                                                const r = await fetch(`${API_BASE}/api/v1/candidates/${cand.id}`);
+                                                const r = await fetch(`${API_BASE}/api/v1/candidates/${cand.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                                                 const d = r.ok ? await r.json() : null;
 
                                                 // === ΜΟΝΕΣ ουσιαστικές αλλαγές: κρατάμε cvPath + cvName (originalName ή basename) ===

@@ -20,7 +20,8 @@ import axios from 'axios';
 import "../../../assets/css/loader.css";
 import { FaFilter } from "react-icons/fa";
 import JobAdsFilter from "../JobAdsFilter";
-import HCV from "../../hcv/HCV"
+import HCV from "../../hcv/HCV";
+import Turf from "../../turf/Turf";
 import DescriptiveExploratoryJobs from "../../descriptiveExploratory/DescriptiveExploratoryJobs";
 import CoOccurrence from "../../coOccurrence/CoOccurrence";
 
@@ -102,7 +103,7 @@ const DemandAnalytics = () => {
                             })}
                             onClick={() => { toggle('3'); }}
                         >
-                            Biodiversity
+                            Turf
                         </NavLink>
                     </NavItem>
                     <NavItem style={{cursor:"pointer"}}>
@@ -113,7 +114,7 @@ const DemandAnalytics = () => {
                             })}
                             onClick={() => { toggle('4'); }}
                         >
-                            Archetypal
+                            Biodiversity
                         </NavLink>
                     </NavItem>
                     <NavItem style={{cursor:"pointer"}}>
@@ -123,6 +124,17 @@ const DemandAnalytics = () => {
                                     currentActiveTab === '5'
                             })}
                             onClick={() => { toggle('5'); }}
+                        >
+                            Archetypal
+                        </NavLink>
+                    </NavItem>
+                    <NavItem style={{cursor:"pointer"}}>
+                        <NavLink
+                            className={classnames({
+                                active:
+                                    currentActiveTab === '6'
+                            })}
+                            onClick={() => { toggle('6'); }}
                         >
                             Co-occurrence
                         </NavLink>
@@ -179,13 +191,22 @@ const DemandAnalytics = () => {
                         }
                     </TabPane>
                     
+                    {/**
+                     * Tab: Turf
+                     */}
+                    <TabPane tabId="3">
+                        {currentActiveTab == 3 &&
+                            <Turf datasource="jobs"/>
+                        }
+                    </TabPane>
+                    
         
                     {/**
                      * Tab: Biodiversity
                      */}
-                    <TabPane tabId="3">
-                        {currentActiveTab == 3 &&
-                            <>3</>
+                    <TabPane tabId="4">
+                        {currentActiveTab == 4 &&
+                            <>4</>
                         }
                     </TabPane>
                     
@@ -193,9 +214,9 @@ const DemandAnalytics = () => {
                     {/**
                      * Tab: Archetypal
                      */}
-                    <TabPane tabId="4">
-                        {currentActiveTab == 4 &&
-                            <>4</>
+                    <TabPane tabId="5">
+                        {currentActiveTab == 5 &&
+                            <>5</>
                         }
                     </TabPane>
 
@@ -203,8 +224,8 @@ const DemandAnalytics = () => {
                     {/**
                      * Tab: Archetypal
                      */}
-                    <TabPane tabId="5">
-                        {currentActiveTab == 5 &&
+                    <TabPane tabId="6">
+                        {currentActiveTab == 6 &&
                             <CoOccurrence parentDatasource="jobs"/>
                         }
                     </TabPane>

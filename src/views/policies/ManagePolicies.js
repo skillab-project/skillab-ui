@@ -35,7 +35,7 @@ function ManagePolicies() {
 
     const fetchPolicies = useCallback(async () => {
         try {
-            const response = await axios.get(`${POLICY_API_URL}/all`);
+            const response = await axios.get(`${POLICY_API_URL}/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}` } });
             setPolicies(response.data);
         } catch (err) {
             setError("Failed to fetch policies.");
@@ -45,7 +45,7 @@ function ManagePolicies() {
 
     const fetchKpis = useCallback(async () => {
         try {
-            const response = await axios.get(`${KPI_API_URL}/all`);
+            const response = await axios.get(`${KPI_API_URL}/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}` } });
             setKpis(response.data);
         } catch (err) {
             setError("Failed to fetch KPIs.");
@@ -55,7 +55,7 @@ function ManagePolicies() {
 
     const fetchMetrics = useCallback(async () => {
         try {
-            const response = await axios.get(`${METRIC_API_URL}/all`);
+            const response = await axios.get(`${METRIC_API_URL}/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}` } });
             setMetrics(response.data);
         } catch (err) {
             setError("Failed to fetch metrics.");
@@ -76,7 +76,11 @@ function ManagePolicies() {
 
     const handleAddPolicy = async (newPolicy) => {
         try {
-            await axios.post(POLICY_API_URL, newPolicy);
+            await axios.post(POLICY_API_URL, newPolicy, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}`
+                }}
+            );
             await fetchPolicies();
             alert('Policy created successfully!');
         } catch (error) {
@@ -87,7 +91,9 @@ function ManagePolicies() {
     
     const handleAddMetric = async (newMetric) => {
         try {
-            await axios.post(METRIC_API_URL, newMetric);
+            await axios.post(METRIC_API_URL, newMetric, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}` }
+            });
             await fetchMetrics();
             alert(`Metric "${newMetric.name}" created successfully!`);
         } catch (error) {
@@ -100,14 +106,22 @@ function ManagePolicies() {
         try {
             const { name, equation, policyName, targetValue, targetTime } = kpiData;
             const createPayload = { name, equation, policyName };
-            await axios.post(KPI_API_URL, createPayload);
+            await axios.post(KPI_API_URL, createPayload, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+                }
+            });
 
             if (targetValue || targetTime) {
                 const params = new URLSearchParams();
                 params.append('name', name);
                 if (targetValue) params.append('targetValue', targetValue);
                 if (targetTime) params.append('targetTime', targetTime);
-                await axios.put(`${KPI_API_URL}?${params.toString()}`);
+                await axios.put(`${KPI_API_URL}?${params.toString()}`, null, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+                    }
+                });
             }
 
             await fetchKpis();

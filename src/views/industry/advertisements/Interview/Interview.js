@@ -110,7 +110,7 @@ export default function Interview({ selectedJobAdId }) {
         setSelectedStepIndex(0);
         setStatus(null);
 
-        fetch(`${API}/jobAds/${selectedJobAdId}/interview-details`)
+        fetch(`${API}/jobAds/${selectedJobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => {
                 setInterviewId(d?.id ?? null);
@@ -118,7 +118,7 @@ export default function Interview({ selectedJobAdId }) {
             })
             .catch(() => setError("Failed to load interview details."));
 
-        fetch(`${API}/jobAds/details?jobAdId=${selectedJobAdId}`)
+        fetch(`${API}/jobAds/details?jobAdId=${selectedJobAdId}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => setStatus(d?.status ?? null))
             .catch(() => setStatus(null));
@@ -126,7 +126,7 @@ export default function Interview({ selectedJobAdId }) {
 
     const fetchStepSkills = useCallback((stepId) => {
         if (stepId == null) { setStepSkills([]); return; }
-        fetch(`${API}/api/v1/step/${stepId}/skills`)
+        fetch(`${API}/api/v1/step/${stepId}/skills`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => {
                 const names = (data || []).map((x) => x.skillName).filter(Boolean);
@@ -138,7 +138,7 @@ export default function Interview({ selectedJobAdId }) {
     const reloadSteps = useCallback(async () => {
         if (!interviewId) return;
         try {
-            const r = await fetch(`${API}/api/v1/step/interviews/${interviewId}/steps`);
+            const r = await fetch(`${API}/api/v1/step/interviews/${interviewId}/steps`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             if (!r.ok) throw new Error();
             const data = await r.json();
             const safe = (data || []).map((s) => ({
@@ -193,7 +193,7 @@ export default function Interview({ selectedJobAdId }) {
             try {
                 const r = await fetch(`${API}/interviews/${interviewId}/description`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                     body: JSON.stringify({ description }),
                 });
                 if (r.ok) ok = true;
@@ -201,7 +201,7 @@ export default function Interview({ selectedJobAdId }) {
             if (!ok) {
                 const r2 = await fetch(`${API}/interviews/${interviewId}`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                     body: JSON.stringify({ description }),
                 });
                 if (!r2.ok) throw new Error();
@@ -233,7 +233,7 @@ export default function Interview({ selectedJobAdId }) {
         else setStepSkills([]);
 
         try {
-            const res = await fetch(`${API}/api/v1/step/${stepId}`, { method: "DELETE" });
+            const res = await fetch(`${API}/api/v1/step/${stepId}`, { method: "DELETE" }, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             if (!res.ok) throw new Error();
             setConfirmOpen(false);
             toast("Step deleted", "success");

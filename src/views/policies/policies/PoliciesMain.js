@@ -120,6 +120,11 @@ function PoliciesMain({ policies, onPolicyCreated }) {
                 const initResponse = await axios.post(EVAL_API_URL + "/jobs/policy", {
                     policy_name: selectedPolicy.name,
                     kpi_name: kpi.name
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+                    }
                 });
 
                 const { job_id } = initResponse.data;
@@ -127,7 +132,11 @@ function PoliciesMain({ policies, onPolicyCreated }) {
 
                 const checkStatus = async () => {
                     try {
-                        const statusResponse = await axios.get(EVAL_API_URL + "/jobs/" + job_id);
+                        const statusResponse = await axios.get(EVAL_API_URL + "/jobs/" + job_id, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
+                            }
+                        });
                         const { status, result, error } = statusResponse.data;
 
                         if (status === 'running') {
