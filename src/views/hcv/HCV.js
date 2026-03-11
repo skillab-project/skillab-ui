@@ -24,152 +24,86 @@ function HCV({datasource}) {
     const [search, setSearch] = useState(false);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isTakingLong, setIsTakingLong] = useState(false);
+    const [infoMessage, setInfoMessage] = useState("");
     
+    // Ref to store the timeout ID so we can clear it
+    const timerRef = useRef(null);
 
     const handleApplyOccupationSelection = (selectedOccupation, selectedItem) => {
         console.log('Occupation received:', selectedOccupation);
         console.log('Skill category:', selectedItem);
-        var occupation = selectedOccupation.id;
-        var pillar = selectedItem;
+        const occupation = selectedOccupation?.id || "";
+        const pillar = selectedItem;
+        
+        //Reset states for a new search
         setSearch(true);
         setLoading(true);
+        setData([]);
+        setInfoMessage("");
+        setIsTakingLong(false);
 
-        if(datasource=="jobs"){
-            axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/jobs?pillar=" + pillar +
-                                "&occupation_ids=" + occupation + "&source=OJA")
-                .then(async (res) => {
-                    setLoading(false);
-                    // Grouping data by level
-                    const groupedData = res.data.reduce((acc, item) => {
-                        // Check if the level already exists in the accumulator
-                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
-                
-                        const simplifiedItem = {
-                            skill: item.skill,
-                            level: item.level,
-                            normalized_priority: item["normalized priority"],
-                            rank: item.rank,
-                        };
-                
-                        if (levelIndex !== -1) {
-                            acc[levelIndex].push(simplifiedItem);
-                        } else {
-                            acc.push([simplifiedItem]);
-                        }
-                
-                        return acc;
-                    }, []);
-                    console.log("Grouped Data:", groupedData);
-                    
-                    setData(groupedData);
-                })
-                .catch((err) => {
-                console.error("Error fetching data:", err);
-                });
+        // Start a 30-second timer
+        if (timerRef.current)
+            clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+            setIsTakingLong(true);
+        }, 30000);
+
+         // Determine URL based on datasource
+        let url = "";
+        const baseUrl = process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting";
+        
+        if (datasource === "jobs") {
+            url = `${baseUrl}/jobs?pillar=${pillar}&occupation_ids=${occupation}&source=OJA`;
+        } else if (datasource === "EU profiles") {
+            url = `${baseUrl}/profiles?pillar=${pillar}&occupation_ids=${occupation}`;
+        } else if (datasource === "Short Courses") {
+            url = `${baseUrl}/courses?pillar=${pillar}&occupation_ids=${occupation}`;
+        } else if (datasource === "EU Policies") {
+            url = `${baseUrl}/policies?pillar=${pillar}`;
         }
-        else if(datasource=="EU profiles"){
-            axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/profiles?pillar=" + pillar +
-                                "&occupation_ids=" + occupation)
-                .then(async (res) => {
-                    setLoading(false);
-                    // Grouping data by level
-                    const groupedData = res.data.reduce((acc, item) => {
-                        // Check if the level already exists in the accumulator
-                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
-                
-                        const simplifiedItem = {
-                            skill: item.skill,
-                            level: item.level,
-                            normalized_priority: item["normalized priority"],
-                            rank: item.rank,
-                        };
-                
-                        if (levelIndex !== -1) {
-                            acc[levelIndex].push(simplifiedItem);
-                        } else {
-                            acc.push([simplifiedItem]);
-                        }
-                
-                        return acc;
-                    }, []);
-                    console.log("Grouped Data:", groupedData);
-                    
-                    setData(groupedData);
-                })
-                .catch((err) => {
-                console.error("Error fetching data:", err);
-                });
-        }
-        else if(datasource=="Short Courses"){
-            axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/courses?pillar=" + pillar +
-                                "&occupation_ids=" + occupation)
-                .then(async (res) => {
-                    setLoading(false);
-                    // Grouping data by level
-                    const groupedData = res.data.reduce((acc, item) => {
-                        // Check if the level already exists in the accumulator
-                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
-                
-                        const simplifiedItem = {
-                            skill: item.skill,
-                            level: item.level,
-                            normalized_priority: item["normalized priority"],
-                            rank: item.rank,
-                        };
-                
-                        if (levelIndex !== -1) {
-                            acc[levelIndex].push(simplifiedItem);
-                        } else {
-                            acc.push([simplifiedItem]);
-                        }
-                
-                        return acc;
-                    }, []);
-                    console.log("Grouped Data:", groupedData);
-                    
-                    setData(groupedData);
-                })
-                .catch((err) => {
-                console.error("Error fetching data:", err);
-                });
-        }
-        else if(datasource=="EU Policies"){
-            axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/policies?pillar=" + pillar)
-                .then(async (res) => {
-                    setLoading(false);
-                    // Grouping data by level
-                    const groupedData = res.data.reduce((acc, item) => {
-                        // Check if the level already exists in the accumulator
-                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
-                
-                        const simplifiedItem = {
-                            skill: item.skill,
-                            level: item.level,
-                            normalized_priority: item["normalized priority"],
-                            rank: item.rank,
-                        };
-                
-                        if (levelIndex !== -1) {
-                            acc[levelIndex].push(simplifiedItem);
-                        } else {
-                            acc.push([simplifiedItem]);
-                        }
-                
-                        return acc;
-                    }, []);
-                    console.log("Grouped Data:", groupedData);
-                    
-                    setData(groupedData);
-                })
-                .catch((err) => {
-                console.error("Error fetching data:", err);
-                });
-        }
-    }
+
+        // Execute Request
+        axios.get(url)
+        .then((res) => {
+            if (timerRef.current)
+                clearTimeout(timerRef.current);
+            setLoading(false);
+
+            // Check for "in_progress" status
+            if (res.data && res.data.status === "in_progress") {
+                setInfoMessage(res.data.message);
+                return;
+            }
+
+            // Process Data (Grouping Logic)
+            const groupedData = res.data.reduce((acc, item) => {
+                const levelIndex = acc.findIndex((group) => group[0].level === item.level);
+                const simplifiedItem = {
+                    skill: item.skill,
+                    level: item.level,
+                    normalized_priority: item["normalized priority"],
+                    rank: item.rank,
+                };
+
+                if (levelIndex !== -1) {
+                    acc[levelIndex].push(simplifiedItem);
+                } else {
+                    acc.push([simplifiedItem]);
+                }
+                return acc;
+            }, []);
+
+            setData(groupedData);
+        })
+        .catch((err) => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            setLoading(false);
+            setInfoMessage("An error occurred while fetching data.");
+            console.error("Error fetching data:", err);
+        });
+    };
     
     return (
         <Row>
@@ -181,9 +115,21 @@ function HCV({datasource}) {
                     </CardHeader>
                     <CardBody>
                         {loading ? (
-                            <div className="lds-dual-ring"></div>
+                            <div style={{ textAlign: "center", padding: "20px" }}>
+                                <div className="lds-dual-ring"></div>
+                                {/* 30 Second Message */}
+                                {isTakingLong && (
+                                <p style={{ marginTop: "10px", color: "#666", fontWeight: "bold" }}>
+                                    The analysis might take some time...
+                                </p>
+                                )}
+                            </div>
                         ) : !search ? (
                             <></>
+                        ) : infoMessage ? (
+                            <div style={{ textAlign: "center", padding: "20px" }}>
+                                <h6 className="text-info">{infoMessage}</h6>
+                            </div>
                         ) : data.length > 0 ? (
                             data.map((group, index) => <GroupLevel key={index} data={group} />)
                         ) : (
