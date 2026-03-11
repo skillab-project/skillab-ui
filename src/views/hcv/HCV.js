@@ -37,7 +37,7 @@ function HCV({datasource}) {
         if(datasource=="jobs"){
             axios
                 .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/jobs?pillar=" + pillar +
-                                "&occupation=" + occupation + "&source=OJA")
+                                "&occupation_ids=" + occupation + "&source=OJA")
                 .then(async (res) => {
                     setLoading(false);
                     // Grouping data by level
@@ -71,7 +71,7 @@ function HCV({datasource}) {
         else if(datasource=="EU profiles"){
             axios
                 .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/profiles?pillar=" + pillar +
-                                "&occupation=" + occupation)
+                                "&occupation_ids=" + occupation)
                 .then(async (res) => {
                     setLoading(false);
                     // Grouping data by level
@@ -105,7 +105,7 @@ function HCV({datasource}) {
         else if(datasource=="Short Courses"){
             axios
                 .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting/courses?pillar=" + pillar +
-                                "&occupation=" + occupation)
+                                "&occupation_ids=" + occupation)
                 .then(async (res) => {
                     setLoading(false);
                     // Grouping data by level
