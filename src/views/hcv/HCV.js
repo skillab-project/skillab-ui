@@ -92,9 +92,15 @@ function HCV({datasource}) {
             setData(groupedData);
         })
         .catch((err) => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-            setLoading(false);
-            setInfoMessage("An error occurred while fetching data.");
+            if (err.response && err.response.status === 504) {
+                setInfoMessage("The analysis is still running in the background. Because this is a large dataset, it may take a few minutes. Please try clicking 'Apply' again shortly to view the results.");
+            } 
+            else if (err.code === 'ECONNABORTED') {
+                setInfoMessage("The connection timed out, but the analysis is likely still processing on the server. Please wait a moment and try again.");
+            }
+            else {
+                setInfoMessage("An error occurred while fetching data. Please check your connection and try again.");
+            }
             console.error("Error fetching data:", err);
         });
     };
