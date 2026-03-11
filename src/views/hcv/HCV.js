@@ -1,18 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardHeader,
   CardBody,
-  CardFooter,
   CardTitle,
   Row,
   Col,
   Button,
-  Nav,
-  NavItem,
-  NavLink,
-  TabContent,
-  TabPane
 } from "reactstrap";
 import axios from 'axios';
 import GroupLevel from "./GroupLevel";
