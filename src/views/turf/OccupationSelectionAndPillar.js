@@ -1,63 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, CardBody, Button, Dropdown, DropdownMenu, DropdownToggle, DropdownItem } from 'reactstrap';
+import { Row, Col, Card, CardBody, Button, Dropdown, DropdownMenu, DropdownToggle, DropdownItem, FormGroup, Label, Input } from 'reactstrap';
 import axios from 'axios';
 
-const OccupationSelectionAndPillar = ({onApplySelection, datasource}) => {
+const OccupationSelectionAndPillar = ({ onApplySelection, datasource }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [allOccupations, setAllOccupations] = useState([]); // Holds the full list fetched from the API
-    const [filteredOccupations, setFilteredOccupations] = useState([]); // Filtered Occupations for the dropdown
+    const [allOccupations, setAllOccupations] = useState([]);
+    const [filteredOccupations, setFilteredOccupations] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedOccupations, setSelectedOccupations] = useState([]); 
+    const [selectedOccupations, setSelectedOccupations] = useState([]);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState('Select Pillar');
+    const [selectedItem, setSelectedItem] = useState('skills');
+
+    const [combinations, setCombinations] = useState(2);
+    const [keywords, setKeywords] = useState("");
 
     const toggle = () => setDropdownOpen((prevState) => !prevState);
 
-    const handleSelect = (item) => {
-        setSelectedItem(item);
-    };
+    const handleSelect = (item) => setSelectedItem(item);
 
-    // Fetch Occupations when the user types 3 or more characters
+    // Fetch Occupations Logic
     useEffect(() => {
         const fetchOccupations = async () => {
             if (searchTerm.length === 3) {
                 setIsLoading(true);
                 const accumulatedOccupations = [];
                 let currentPage = 1;
-                let hasMorePages = true;
-    
                 try {
-                    while (hasMorePages) {
+                    while (true) {
                         const response = await axios.post(
-                            process.env.REACT_APP_API_URL_TRACKER+'/api/occupations',
-                            new URLSearchParams({
-                                'keywords': searchTerm,
-                                'max_level': '3'
-                            }),
+                            process.env.REACT_APP_API_URL_TRACKER + '/api/occupations',
+                            new URLSearchParams({ 'keywords': searchTerm, 'max_level': '3' }),
                             {
-                                params: {
-                                    'page': currentPage.toString(),
-                                },
+                                params: { 'page': currentPage.toString() },
                                 headers: {
                                     'accept': 'application/json',
                                     'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
                                 },
                             }
                         );
-
-                        if(response.data.items.length==0){
-                            break;
-                        }
-    
-                        const occupations = response.data.items.map((occupation) => ({
-                            label: occupation.label,
-                            id: occupation.id,
-                        }));
+                        if (response.data.items.length === 0) break;
+                        const occupations = response.data.items.map((occ) => ({ label: occ.label, id: occ.id }));
                         accumulatedOccupations.push(...occupations);
                         currentPage += 1;
+                        if (currentPage > 2) break; // Limit recursion for performance
                     }
-    
-                    // Update the state with all occupations
                     setAllOccupations(accumulatedOccupations);
                 } catch (error) {
                     console.error('Error fetching occupations:', error);
@@ -66,184 +52,126 @@ const OccupationSelectionAndPillar = ({onApplySelection, datasource}) => {
                 }
             }
         };
-    
         fetchOccupations();
     }, [searchTerm]);
 
-    // Filter the list of occupations based on the current input
-    // ?just includes or we should have all?
     useEffect(() => {
         if (searchTerm.length >= 3 && allOccupations.length > 0) {
-            setFilteredOccupations(
-                allOccupations.filter((occupation) =>
-                    occupation.label.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-            );
+            setFilteredOccupations(allOccupations.filter((occ) => occ.label.toLowerCase().includes(searchTerm.toLowerCase())));
         } else {
             setFilteredOccupations([]);
         }
     }, [searchTerm, allOccupations]);
 
-    // Add a occupation to the selected list
-    const handleSelectOccupation = (selectedOccupation) => {
-        if (!selectedOccupations.find((occupation) => occupation.label === selectedOccupation.label)) {
-            setSelectedOccupations([...selectedOccupations, selectedOccupation]);
-        }
-        setSearchTerm(''); // Reset the input
-        setFilteredOccupations([]); // Clear suggestions
+    const handleSelectOccupation = (occ) => {
+        setSelectedOccupations([occ]); // Only one needed for Turf
+        setSearchTerm('');
+        setFilteredOccupations([]);
     };
 
-    // Remove a occupation from the selected list
-    const handleRemoveOccupation = (label) => {
-        setSelectedOccupations(selectedOccupations.filter((occupation) => occupation.label !== label));
-    };
+    const handleRemoveOccupation = () => setSelectedOccupations([]);
 
-    // Handle Apply Filter Button
     const handleApplyFilter = () => {
-        if(selectedItem!="Select Pillar" && selectedOccupations.length==0 && datasource=="EU Policies"){
-            if (onApplySelection) {
-                onApplySelection("", selectedItem);
-            }
+        if(selectedOccupations.length != 0 && datasource === "jobs" && onApplySelection) {
+            onApplySelection({ selectedItem, selectedOccupations, combinations, keywords });
         }
-        if(selectedItem!="Select Pillar" && selectedOccupations.length!=0){
-            if (onApplySelection) {
-                onApplySelection(selectedOccupations[0], selectedItem);
-            }
+        if(datasource !== "jobs" && onApplySelection) {
+            onApplySelection({ selectedItem, combinations, keywords });
         }
     };
 
     return (
-        <Card>
+        <Card className="border shadow-none">
             <CardBody>
-                <div>
-                    {
-                        datasource!=="EU Policies" && 
-                        <>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: '8px',
-                                    marginBottom: '8px',
-                                    justifyContent: 'center'
-                                }}
-                            >
+                <Row style={{justifyContent:"center"}}>
+                    {/* OCCUPATION SEARCH - Visible ONLY for Jobs */}
+                    {datasource === "jobs" && (
+                        <Col md="12" className="mb-3">
+                            <Label>Search Occupation</Label>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px', justifyContent:"center" }}>
                                 {selectedOccupations.map((occupation) => (
-                                    <div
-                                        key={occupation.id}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            background: '#e0e0e0',
-                                            borderRadius: '16px',
-                                            padding: '4px 8px',
-                                        }}
-                                    >
+                                    <div key={occupation.id} style={{ display: 'flex', alignItems: 'center', background: '#e0e0e0', borderRadius: '16px', padding: '4px 12px' }}>
                                         <span style={{ marginRight: '8px' }}>{occupation.label}</span>
-                                        <button
-                                            onClick={() => handleRemoveOccupation(occupation.label)}
-                                            style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                cursor: 'pointer',
-                                                fontSize: '16px',
-                                                lineHeight: '1',
-                                            }}
-                                        >
-                                            &times;
-                                        </button>
+                                        <button onClick={handleRemoveOccupation} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>&times;</button>
                                     </div>
                                 ))}
                             </div>
-                            {selectedOccupations.length==0 && (<input
-                                id="occupation-input"
-                                type="text"
-                                placeholder="Type an occupation..."
-                                autoComplete="off"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ccc',
-                                    marginTop: '8px',
-                                    fontSize: '14px',
-                                }}
-                            />)}
-                            {isLoading && (
-                                <div style={{ marginTop: '8px', fontStyle: 'italic' }}>
-                                    Loading...
-                                </div>
+                            {selectedOccupations.length === 0 && (
+                                <input
+                                    type="text"
+                                    placeholder="Type 3 characters to search..."
+                                    className="form-control"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
                             )}
+                            {isLoading && <div className="small text-muted mt-1">Loading occupations...</div>}
                             {filteredOccupations.length > 0 && (
-                                <ul
-                                    style={{
-                                        listStyleType: 'none',
-                                        padding: 0,
-                                        margin: 0,
-                                        border: '1px solid #ddd',
-                                        borderRadius: '4px',
-                                        position: 'absolute',
-                                        background: '#fff',
-                                        width: '95%',
-                                        maxHeight: '200px',
-                                        overflowY: 'auto',
-                                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                                        zIndex: 1000,
-                                    }}
-                                >
-                                    {filteredOccupations.map((occupation) => (
-                                        <li
-                                            key={occupation.id}
-                                            onClick={() => handleSelectOccupation(occupation)}
-                                            style={{
-                                                padding: '10px',
-                                                cursor: 'pointer',
-                                                borderBottom: '1px solid #f0f0f0',
-                                                background: '#fff',
-                                            }}
-                                            onMouseEnter={(e) =>
-                                                (e.currentTarget.style.background = '#f5f5f5')
-                                            }
-                                            onMouseLeave={(e) =>
-                                                (e.currentTarget.style.background = '#fff')
-                                            }
-                                        >
-                                            {occupation.label}
+                                <ul style={{ listStyleType: 'none', padding: 0, margin: 0, border: '1px solid #ddd', borderRadius: '4px', position: 'absolute', background: '#fff', width: '90%', maxHeight: '200px', overflowY: 'auto', zIndex: 1000, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                                    {filteredOccupations.map((occ) => (
+                                        <li key={occ.id} onClick={() => handleSelectOccupation(occ)} style={{ padding: '10px', cursor: 'pointer', borderBottom: '1px solid #f0f0f0' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'} onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}>
+                                            {occ.label}
                                         </li>
                                     ))}
                                 </ul>
                             )}
-                        </>
-                    }
-                    <div style={{margin: "auto", marginTop: "15px"}}>
-                        Select Pillar: 
-                        <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-                            <DropdownToggle caret>
-                                {selectedItem}
-                            </DropdownToggle>
-                            <DropdownMenu right>
-                                <DropdownItem onClick={() => handleSelect('skills')}>Skills</DropdownItem>
-                                <DropdownItem onClick={() => handleSelect('knowledge')}>Knowledge</DropdownItem>
-                                <DropdownItem onClick={() => handleSelect('languages')}>Languages</DropdownItem>
-                                <DropdownItem onClick={() => handleSelect('traversal')}>Transversal</DropdownItem>
-                            </DropdownMenu>
-                        </Dropdown>
-                    </div>
-                    <Button
-                        className="btn-round"
-                        color="info"
-                        onClick={handleApplyFilter}
-                        style={{
-                            margin: "auto",
-                            marginTop: '15px',
-                            display: "block"
-                        }}
-                    >
-                        Apply
-                    </Button>
-                </div>
+                        </Col>
+                    )}
+
+                    {/* KEYWORDS - Visible for Policies, Profiles, Courses */}
+                    {datasource !== "jobs" && (
+                        <Col md="6">
+                            <FormGroup>
+                                <Label>Keywords (comma separated)</Label>
+                                <Input 
+                                    type="text" 
+                                    placeholder="e.g. cloud, management, security" 
+                                    value={keywords} 
+                                    onChange={(e) => setKeywords(e.target.value)} 
+                                />
+                            </FormGroup>
+                        </Col>
+                    )}
+
+                    {/* COMBINATIONS - Always Visible */}
+                    <Col md="3">
+                        <FormGroup>
+                            <Label>Combinations (2-10)</Label>
+                            <Input type="select" value={combinations} onChange={(e) => setCombinations(e.target.value)}>
+                                {[...Array(9)].map((_, i) => (
+                                    <option key={i + 2} value={i + 2}>{i + 2}</option>
+                                ))}
+                            </Input>
+                        </FormGroup>
+                    </Col>
+
+                    {/* PILLAR - Always Visible */}
+                    <Col md="3">
+                        <FormGroup>
+                            <Label>Select Pillar</Label>
+                            <Dropdown isOpen={dropdownOpen} toggle={toggle} className="w-100">
+                                <DropdownToggle caret className="w-100 text-capitalize">
+                                    {selectedItem}
+                                </DropdownToggle>
+                                <DropdownMenu right className="w-100">
+                                    <DropdownItem onClick={() => handleSelect('skills')}>Skills</DropdownItem>
+                                    <DropdownItem onClick={() => handleSelect('knowledge')}>Knowledge</DropdownItem>
+                                    <DropdownItem onClick={() => handleSelect('languages')}>Languages</DropdownItem>
+                                    <DropdownItem onClick={() => handleSelect('traversal')}>Transversal</DropdownItem>
+                                </DropdownMenu>
+                            </Dropdown>
+                        </FormGroup>
+                    </Col>
+                </Row>
+
+                <Button
+                    className="btn-round"
+                    color="info"
+                    onClick={handleApplyFilter}
+                    style={{ margin: "15px auto 0", display: "block" }}
+                >
+                    Apply Analysis
+                </Button>
             </CardBody>
         </Card>
     );

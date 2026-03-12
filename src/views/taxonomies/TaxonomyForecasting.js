@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardHeader,
@@ -11,43 +11,13 @@ import {
   Label,
   Input,
   Button,
-  Spinner,
-  Alert,
   Table,
   ListGroup,
   ListGroupItem
 } from "reactstrap";
-
-const fetchForecastingData = async (sourceType, params) => {
-    const endpoints = {
-        policies: "/api/forecasting/law_predict",
-        profiles: "/api/forecasting/profiles",
-        jobs: "/api/forecasting/jobsd-forecast",
-        courses: "/api/forecasting/courses",
-    };
-    const endpoint = endpoints[sourceType];
-    if (!endpoint) {
-        throw new Error("Invalid source type selected.");
-    }
-
-    const queryParams = new URLSearchParams();
-    for (const key in params) {
-        if (key === 'source' && params[key] === 'All') {
-            continue;
-        }
-        if (params[key] !== null && params[key] !== '') {
-            queryParams.append(key, params[key]);
-        }
-    }
-    const url = `${process.env.REACT_APP_API_URL_ESCOPLUS_SKILLS_EXTENDER}${endpoint}?${queryParams.toString()}`;
-
-    const response = await fetch(url);
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "An error occurred while fetching data.");
-    }
-    return response.json();
-};
+import axios from 'axios';
+import OccupationSelection from "./OccupationSelection";
+import "../../assets/css/loader.css";
 
 const sourceOptions = {
     courses: ["All", "Udacity", "europass", "coursera"],
@@ -65,49 +35,130 @@ const TaxonomyForecasting = () => {
     const [sourceType, setSourceType] = useState("courses");
     const [params, setParams] = useState({
         keywords: "data",
+        occupation_ids: "",
+        selectedOccupation: null,
         source: "All",
         similarity_threshold: 0.7,
         top_k: 30,
         method: 'adamic_adar',
         min_upload_date: "",
         max_upload_date: "",
-        max_pages: 10,
     });
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [isTakingLong, setIsTakingLong] = useState(false);
+    const [infoMessage, setInfoMessage] = useState("");
     const [results, setResults] = useState(null);
+    const [searchStarted, setSearchStarted] = useState(false);
+
+    const timerRef = useRef(null);
+
+    // Cleanup timer
+    useEffect(() => {
+        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    }, []);
 
     const handleParamChange = (e) => {
         const { name, value } = e.target;
         setParams(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleOccupationChange = (occ) => {
+        setParams(prev => ({
+            ...prev,
+            selectedOccupation: occ,
+            occupation_ids: occ ? occ.id : ""
+        }));
     };
     
     const handleSourceTypeChange = (e) => {
         const newSourceType = e.target.value;
         setSourceType(newSourceType);
         setResults(null); 
+        setSearchStarted(false);
+        setInfoMessage("");
 
         const newOptions = sourceOptions[newSourceType] || [];
         setParams(prev => ({
             ...prev,
-            source: newOptions[0] || ""
+            source: newOptions[0] || "",
+            keywords: newSourceType === 'jobs' ? "" : prev.keywords,
+            occupation_ids: newSourceType === 'jobs' ? prev.occupation_ids : "",
+            selectedOccupation: newSourceType === 'jobs' ? prev.selectedOccupation : null
         }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
-        setResults(null);
-        try {
-            const data = await fetchForecastingData(sourceType, params);
-            setResults(data);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
+    const handleSubmit = (e) => {
+        if (e) e.preventDefault();
+        
+        // Validation
+        if (sourceType === 'jobs' && !params.occupation_ids) {
+            setInfoMessage("Please select an occupation.");
+            return;
         }
+        if (sourceType !== 'jobs' && !params.keywords.trim()) {
+            setInfoMessage("Keywords are required.");
+            return;
+        }
+
+        setLoading(true);
+        setSearchStarted(true);
+        setResults(null);
+        setInfoMessage("");
+        setIsTakingLong(false);
+
+        // Start 30-second timer
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+            setIsTakingLong(true);
+        }, 30000);
+
+        // Construct URL
+        const endpoints = {
+            policies: "/api/forecasting/law_predict",
+            profiles: "/api/forecasting/profiles",
+            jobs: "/api/forecasting/jobsd-forecast",
+            courses: "/api/forecasting/courses",
+        };
+
+        const queryParams = new URLSearchParams();
+        for (const key in params) {
+            if (key === 'selectedOccupation') continue;
+            if (key === 'source' && params[key] === 'All') continue;
+            if (sourceType === 'jobs' && key === 'keywords') continue;
+            if (sourceType !== 'jobs' && key === 'occupation_ids') continue;
+
+            if (params[key] !== null && params[key] !== '') {
+                queryParams.append(key, params[key]);
+            }
+        }
+        
+        const url = `${process.env.REACT_APP_API_URL_ESCOPLUS_SKILLS_EXTENDER}${endpoints[sourceType]}?${queryParams.toString()}`;
+
+        axios.get(url)
+            .then((res) => {
+                if (timerRef.current) clearTimeout(timerRef.current);
+                setLoading(false);
+
+                // Check for "processing" status
+                if (res.data && res.data.status === "processing") {
+                    setInfoMessage(`${res.data.message} Estimated completion: ${res.data.estimated_completion}`);
+                    return;
+                }
+
+                setResults(res.data);
+            })
+            .catch((err) => {
+                if (timerRef.current) clearTimeout(timerRef.current);
+                setLoading(false);
+
+                if (err.response && err.response.status === 504) {
+                    setInfoMessage("The forecasting is still running in the background. Please try clicking 'Forecast' again in a few moments.");
+                } else {
+                    setInfoMessage(err.response?.data?.detail || "An error occurred during forecasting.");
+                }
+                console.error("Forecasting error:", err);
+            });
     };
 
     return (
@@ -117,9 +168,7 @@ const TaxonomyForecasting = () => {
                     <Card>
                         <CardHeader>
                             <CardTitle tag="h5">Taxonomy Forecasting via Link Prediction</CardTitle>
-                            <p className="card-category">
-                                Select a data source to predict future skill relationships.
-                            </p>
+                            <p className="card-category">Select a data source to predict future skill relationships.</p>
                         </CardHeader>
                         <CardBody>
                             <Form onSubmit={handleSubmit}>
@@ -127,7 +176,7 @@ const TaxonomyForecasting = () => {
                                     <Col md="3">
                                         <FormGroup>
                                             <Label for="sourceType">Data Source</Label>
-                                            <Input type="select" name="sourceType" id="sourceType" value={sourceType} onChange={handleSourceTypeChange}>
+                                            <Input type="select" name="sourceType" value={sourceType} onChange={handleSourceTypeChange} disabled={loading}>
                                                 <option value="courses">Courses</option>
                                                 <option value="jobs">Jobs</option>
                                                 <option value="profiles">Profiles</option>
@@ -137,8 +186,21 @@ const TaxonomyForecasting = () => {
                                     </Col>
                                     <Col md="9">
                                         <FormGroup>
-                                            <Label for="keywords">Keywords (comma-separated)</Label>
-                                            <Input type="text" name="keywords" id="keywords" value={params.keywords} onChange={handleParamChange} required />
+                                            {sourceType === 'jobs' ? (
+                                                <>
+                                                    <Label>Occupation (required)</Label>
+                                                    <OccupationSelection 
+                                                        selectedValue={params.selectedOccupation}
+                                                        onChange={handleOccupationChange}
+                                                        disabled={loading}
+                                                    />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Label for="keywords">Keywords (comma-separated)</Label>
+                                                    <Input type="text" name="keywords" value={params.keywords} onChange={handleParamChange} disabled={loading} />
+                                                </>
+                                            )}
                                         </FormGroup>
                                     </Col>
                                 </Row>
@@ -147,7 +209,7 @@ const TaxonomyForecasting = () => {
                                     <Col md="3">
                                         <FormGroup>
                                             <Label for="source">Filter by Source</Label>
-                                            <Input type="select" name="source" id="source" value={params.source} onChange={handleParamChange}>
+                                            <Input type="select" name="source" value={params.source} onChange={handleParamChange} disabled={loading}>
                                                 {(sourceOptions[sourceType] || []).map(option => (
                                                     <option key={option} value={option}>{option}</option>
                                                 ))}
@@ -157,19 +219,19 @@ const TaxonomyForecasting = () => {
                                     <Col md="3">
                                         <FormGroup>
                                             <Label for="similarity_threshold">Similarity Threshold</Label>
-                                            <Input type="number" step="0.05" name="similarity_threshold" id="similarity_threshold" value={params.similarity_threshold} onChange={handleParamChange} />
+                                            <Input type="number" step="0.05" name="similarity_threshold" value={params.similarity_threshold} onChange={handleParamChange} disabled={loading} />
                                         </FormGroup>
                                     </Col>
                                     <Col md="3">
                                         <FormGroup>
                                             <Label for="top_k">Top K Predictions</Label>
-                                            <Input type="number" name="top_k" id="top_k" value={params.top_k} onChange={handleParamChange} />
+                                            <Input type="number" name="top_k" value={params.top_k} onChange={handleParamChange} disabled={loading} />
                                         </FormGroup>
                                     </Col>
                                      <Col md="3">
                                         <FormGroup>
                                             <Label for="method">Prediction Method</Label>
-                                            <Input type="select" name="method" id="method" value={params.method} onChange={handleParamChange}>
+                                            <Input type="select" name="method" value={params.method} onChange={handleParamChange} disabled={loading}>
                                                 <option value="adamic_adar">Adamic-Adar</option>
                                                 <option value="resource_allocation">Resource Allocation</option>
                                                 <option value="jaccard">Jaccard</option>
@@ -177,31 +239,8 @@ const TaxonomyForecasting = () => {
                                         </FormGroup>
                                     </Col>
                                 </Row>
-
-                                {sourceType === 'jobs' && (
-                                     <Row>
-                                        <Col md="3">
-                                            <FormGroup>
-                                                <Label for="min_upload_date">Min Upload Date</Label>
-                                                <Input type="date" name="min_upload_date" id="min_upload_date" value={params.min_upload_date} onChange={handleParamChange} />
-                                            </FormGroup>
-                                        </Col>
-                                        <Col md="3">
-                                            <FormGroup>
-                                                <Label for="max_upload_date">Max Upload Date</Label>
-                                                <Input type="date" name="max_upload_date" id="max_upload_date" value={params.max_upload_date} onChange={handleParamChange} />
-                                            </FormGroup>
-                                        </Col>
-                                        <Col md="3">
-                                            <FormGroup>
-                                                <Label for="max_pages">Max Pages</Label>
-                                                <Input type="number" name="max_pages" id="max_pages" value={params.max_pages} onChange={handleParamChange} />
-                                            </FormGroup>
-                                        </Col>
-                                     </Row>
-                                )}
                                 <Button color="primary" type="submit" disabled={loading}>
-                                    {loading ? <><Spinner size="sm" /> Forecasting...</> : "Forecast"}
+                                    Forecast
                                 </Button>
                             </Form>
                         </CardBody>
@@ -209,78 +248,90 @@ const TaxonomyForecasting = () => {
                 </Col>
             </Row>
 
-            {loading && <div className="text-center p-4"><Spinner style={{ width: '3rem', height: '3rem' }} /></div>}
-            {error && <Alert color="danger">{error}</Alert>}
-            
-            {results && (
-                <Row>
-                    <Col md="4">
-                         <Card>
-                            <CardHeader>
-                                <CardTitle tag="h5">Forecast Summary</CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                <ListGroup flush>
-                                    {Object.entries(results.summary).map(([key, value]) => {
-                                        if (key === 'Confidence distribution') {
-                                            return null;
-                                        }
-                                        return (
-                                            <ListGroupItem key={key} className="d-flex justify-content-between align-items-center">
-                                                <span>{key}</span>
-                                                <span className="font-weight-bold">{value}</span>
-                                            </ListGroupItem>
-                                        );
-                                    })}
-                                </ListGroup>
-                                {results.summary['Confidence distribution'] && (
-                                    <>
-                                        <hr/>
-                                        <h6>Confidence Distribution</h6>
-                                        <ListGroup flush>
-                                             {Object.entries(results.summary['Confidence distribution']).map(([level, count]) => (
-                                                <ListGroupItem key={level} className="d-flex justify-content-between align-items-center">
-                                                    <span>{level}</span>
-                                                    <span className="font-weight-bold">{count}</span>
-                                                </ListGroupItem>
-                                             ))}
-                                        </ListGroup>
-                                    </>
-                                )}
-                            </CardBody>
-                        </Card>
-                    </Col>
-                    <Col md="8">
+            <Row>
+                <Col md="12">
+                    {loading ? (
+                        <div style={{ textAlign: "center", padding: "40px" }}>
+                            <div className="lds-dual-ring"></div>
+                            {isTakingLong && (
+                                <p style={{ marginTop: "20px", color: "#666", fontWeight: "bold" }}>
+                                    Predicting links may take some time depending on the graph size...
+                                </p>
+                            )}
+                        </div>
+                    ) : infoMessage ? (
                         <Card>
-                             <CardHeader>
-                                <CardTitle tag="h5">Predicted Skill Links</CardTitle>
-                            </CardHeader>
-                            <CardBody>
-                                <Table responsive hover>
-                                    <thead className="text-primary">
-                                        <tr>
-                                            <th>Source Skill</th>
-                                            <th>Target Skill</th>
-                                            <th>Prediction Score</th>
-                                            <th>Confidence</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {results.predicted_links.map((item, index) => (
-                                            <tr key={index}>
-                                                <td>{item.source}</td>
-                                                <td>{item.target}</td>
-                                                <td>{item.predicted_score.toFixed(3)}</td>
-                                                <td>{item.emoji} {item.confidence_level}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
+                            <CardBody style={{ textAlign: "center", padding: "40px" }}>
+                                <h6 className="text-info">{infoMessage}</h6>
                             </CardBody>
                         </Card>
-                    </Col>
-                </Row>
-            )}
+                    ) : results ? (
+                        <Row>
+                            <Col md="4">
+                                <Card>
+                                    <CardHeader><CardTitle tag="h5">Forecast Summary</CardTitle></CardHeader>
+                                    <CardBody>
+                                        <ListGroup flush>
+                                            {Object.entries(results.summary).map(([key, value]) => {
+                                                if (key === 'Confidence distribution') return null;
+                                                return (
+                                                    <ListGroupItem key={key} className="d-flex justify-content-between align-items-center">
+                                                        <span>{key}</span>
+                                                        <span className="font-weight-bold">{value}</span>
+                                                    </ListGroupItem>
+                                                );
+                                            })}
+                                        </ListGroup>
+                                        {results.summary['Confidence distribution'] && (
+                                            <>
+                                                <hr/>
+                                                <h6>Confidence Distribution</h6>
+                                                <ListGroup flush>
+                                                    {Object.entries(results.summary['Confidence distribution']).map(([level, count]) => (
+                                                        <ListGroupItem key={level} className="d-flex justify-content-between align-items-center">
+                                                            <span>{level}</span>
+                                                            <span className="font-weight-bold">{count}</span>
+                                                        </ListGroupItem>
+                                                    ))}
+                                                </ListGroup>
+                                            </>
+                                        )}
+                                    </CardBody>
+                                </Card>
+                            </Col>
+                            <Col md="8">
+                                <Card>
+                                    <CardHeader><CardTitle tag="h5">Predicted Skill Links</CardTitle></CardHeader>
+                                    <CardBody>
+                                        <Table responsive hover>
+                                            <thead className="text-primary">
+                                                <tr>
+                                                    <th>Source Skill</th>
+                                                    <th>Target Skill</th>
+                                                    <th>Score</th>
+                                                    <th>Confidence</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {results.predicted_links.map((item, index) => (
+                                                    <tr key={index}>
+                                                        <td>{item.source}</td>
+                                                        <td>{item.target}</td>
+                                                        <td>{item.predicted_score?.toFixed(3)}</td>
+                                                        <td>{item.emoji} {item.confidence_level}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    </CardBody>
+                                </Card>
+                            </Col>
+                        </Row>
+                    ) : searchStarted ? (
+                        <div style={{ textAlign: "center", padding: "20px" }}><h6>No predictions available for these parameters.</h6></div>
+                    ) : null}
+                </Col>
+            </Row>
         </>
     );
 };

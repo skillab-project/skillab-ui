@@ -1,193 +1,74 @@
-import React, { useState, useEffect } from "react";
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  CardTitle,
-  Row,
-  Col,
-  Button,
-  Nav,
-  NavItem,
-  NavLink,
-  TabContent,
-  TabPane
-} from "reactstrap";
+import React, { useState } from "react";
+import { Card, CardHeader, CardBody, CardTitle, Row, Col } from "reactstrap";
 import axios from 'axios';
-import GroupLevel from "./GroupLevel";
 import OccupationSelectionAndPillar from './OccupationSelectionAndPillar';
+import TurfResults from './TurfResults';
 import "../../assets/css/loader.css";
 
-
-function Turf({datasource}) {
+function Turf({ datasource }) {
     const [search, setSearch] = useState(false);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
-    
 
-    const handleApplyOccupationSelection = (selectedOccupation, selectedItem) => {
-        console.log('Occupation received:', selectedOccupation);
-        console.log('Skill category:', selectedItem);
-        var occupation = selectedOccupation.id;
-        var pillar = selectedItem;
+    const handleApplySelection = (params) => {
+        const { selectedItem, selectedOccupations, combinations, keywords } = params;
+        const pillar = selectedItem;
+        
         setSearch(true);
         setLoading(true);
 
-        if(datasource=="jobs"){
-            axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/TurfAnalysis/jobs?pillar=" + pillar +
-                                "&occupation=" + occupation + "&source=OJA")
-                .then(async (res) => {
-                    setLoading(false);
-                    // Grouping data by level
-                    const groupedData = res.data.reduce((acc, item) => {
-                        // Check if the level already exists in the accumulator
-                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
-                
-                        const simplifiedItem = {
-                            skill: item.skill,
-                            level: item.level,
-                            normalized_priority: item["normalized priority"],
-                            rank: item.rank,
-                        };
-                
-                        if (levelIndex !== -1) {
-                            acc[levelIndex].push(simplifiedItem);
-                        } else {
-                            acc.push([simplifiedItem]);
-                        }
-                
-                        return acc;
-                    }, []);
-                    console.log("Grouped Data:", groupedData);
-                    
-                    setData(groupedData);
-                })
-                .catch((err) => {
-                console.error("Error fetching data:", err);
-                });
+        let endpoint = "";
+        let queryParams = `pillar=${pillar}&combinations=${combinations}`;
+
+        if (datasource === "jobs") {
+            endpoint = "/TurfAnalysis/jobs";
+            // Extract the ID from the first selected occupation
+            const occId = selectedOccupations.length > 0 ? selectedOccupations[0].id : "";
+            queryParams += `&occupation_ids=${occId}&sources=OJA`;
+        } else {
+            // Policies, Profiles, and Courses use 'occupation' as a required string
+            const dummyOccupation = "General"; 
+            if (datasource === "EU profiles") endpoint = "/TurfAnalysis/profiles";
+            else if (datasource === "Short Courses") endpoint = "/TurfAnalysis/courses";
+            else if (datasource === "EU Policies") endpoint = "/TurfAnalysis/policies";
+
+            queryParams += `&occupation=${dummyOccupation}`;
+            if (keywords) queryParams += `&keywords=${encodeURIComponent(keywords)}`;
         }
-        else if(datasource=="EU profiles"){
-            axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/TurfAnalysis/profiles?pillar=" + pillar +
-                                "&occupation=" + occupation)
-                .then(async (res) => {
-                    setLoading(false);
-                    // Grouping data by level
-                    const groupedData = res.data.reduce((acc, item) => {
-                        // Check if the level already exists in the accumulator
-                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
-                
-                        const simplifiedItem = {
-                            skill: item.skill,
-                            level: item.level,
-                            normalized_priority: item["normalized priority"],
-                            rank: item.rank,
-                        };
-                
-                        if (levelIndex !== -1) {
-                            acc[levelIndex].push(simplifiedItem);
-                        } else {
-                            acc.push([simplifiedItem]);
-                        }
-                
-                        return acc;
-                    }, []);
-                    console.log("Grouped Data:", groupedData);
-                    
-                    setData(groupedData);
-                })
-                .catch((err) => {
+
+        axios
+            .get(`${process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX}${endpoint}?${queryParams}`)
+            .then((res) => {
+                setLoading(false);
+                setData(res.data); 
+            })
+            .catch((err) => {
+                setLoading(false);
                 console.error("Error fetching data:", err);
-                });
-        }
-        else if(datasource=="Short Courses"){
-            axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/TurfAnalysis/courses?pillar=" + pillar +
-                                "&occupation=" + occupation)
-                .then(async (res) => {
-                    setLoading(false);
-                    // Grouping data by level
-                    const groupedData = res.data.reduce((acc, item) => {
-                        // Check if the level already exists in the accumulator
-                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
-                
-                        const simplifiedItem = {
-                            skill: item.skill,
-                            level: item.level,
-                            normalized_priority: item["normalized priority"],
-                            rank: item.rank,
-                        };
-                
-                        if (levelIndex !== -1) {
-                            acc[levelIndex].push(simplifiedItem);
-                        } else {
-                            acc.push([simplifiedItem]);
-                        }
-                
-                        return acc;
-                    }, []);
-                    console.log("Grouped Data:", groupedData);
-                    
-                    setData(groupedData);
-                })
-                .catch((err) => {
-                console.error("Error fetching data:", err);
-                });
-        }
-        else if(datasource=="EU Policies"){
-            axios
-                .get(process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/TurfAnalysis/policies?pillar=" + pillar)
-                .then(async (res) => {
-                    setLoading(false);
-                    // Grouping data by level
-                    const groupedData = res.data.reduce((acc, item) => {
-                        // Check if the level already exists in the accumulator
-                        const levelIndex = acc.findIndex((group) => group[0].level === item.level);
-                
-                        const simplifiedItem = {
-                            skill: item.skill,
-                            level: item.level,
-                            normalized_priority: item["normalized priority"],
-                            rank: item.rank,
-                        };
-                
-                        if (levelIndex !== -1) {
-                            acc[levelIndex].push(simplifiedItem);
-                        } else {
-                            acc.push([simplifiedItem]);
-                        }
-                
-                        return acc;
-                    }, []);
-                    console.log("Grouped Data:", groupedData);
-                    
-                    setData(groupedData);
-                })
-                .catch((err) => {
-                console.error("Error fetching data:", err);
-                });
-        }
+                setData([]);
+            });
     }
-    
+
     return (
         <Row>
             <Col md="12">
                 <Card>
                     <CardHeader>
-                        <CardTitle tag="h5">Select occupation</CardTitle>
-                        <OccupationSelectionAndPillar onApplySelection={handleApplyOccupationSelection} datasource={datasource}/>
+                        <CardTitle tag="h5">Turf Analysis</CardTitle>
+                        <OccupationSelectionAndPillar 
+                            onApplySelection={handleApplySelection} 
+                            datasource={datasource} 
+                        />
                     </CardHeader>
                     <CardBody>
                         {loading ? (
-                            <div className="lds-dual-ring"></div>
+                            <div className="text-center"><div className="lds-dual-ring"></div></div>
                         ) : !search ? (
-                            <></>
+                            <div className="text-center text-muted">Please configure parameters and click Apply.</div>
                         ) : data.length > 0 ? (
-                            data.map((group, index) => <GroupLevel key={index} data={group} />)
+                            <TurfResults data={data} />
                         ) : (
-                            <h6>No data</h6>
+                            <h6 className="text-center">No data found for this selection.</h6>
                         )}
                     </CardBody>
                 </Card>

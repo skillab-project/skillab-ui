@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -16,14 +16,14 @@ import {
   Input,
   Label,
   FormGroup,
-  Button
+  Button,
+  Alert
 } from "reactstrap";
 import axios from 'axios';
 import classnames from 'classnames';
-import OccupationSelection from './OccupationSelection';
+import OccupationSelection from '../coOccurrence/OccupationSelection';
 import "../../assets/css/loader.css";
 
-// Helper function to format skill names that are URIs
 const formatSkillName = (skill) => {
   if (typeof skill === 'string' && skill.startsWith('http')) {
     return skill.split('/').pop();
@@ -31,7 +31,6 @@ const formatSkillName = (skill) => {
   return skill;
 };
 
-// Helper component for displaying summary cards
 const SummaryCard = ({ title, value }) => (
   <Col lg="3" md="6" sm="6">
     <Card className="card-stats">
@@ -49,18 +48,22 @@ const SummaryCard = ({ title, value }) => (
   </Col>
 );
 
-
 function ForecastingAgeing({parentDatasource}) {
     const [search, setSearch] = useState(false);
     const [analysisData, setAnalysisData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('1');
+    const [error, setError] = useState(null);
+    
+    const [isTakingLong, setIsTakingLong] = useState(false);
+    const [infoMessage, setInfoMessage] = useState("");
+    const timerRef = useRef(null);
+
     const [orgName, setOrgName] = useState('');
     const [courseKeyword, setCourseKeyword] = useState('');
     const [keyword, setKeywords] = useState('');
-    const [maxPages, setMaxPages] = useState(10);
+    const [selectedOccupation, setSelectedOccupation] = useState(null);
 
-    // To hold sorting configurations for each table
     const [sortConfigs, setSortConfigs] = useState({
         skillBiology: { key: 'Total Jobs', direction: 'descending' },
         epidemiology: { key: 'Total Jobs', direction: 'descending' },
@@ -68,11 +71,79 @@ function ForecastingAgeing({parentDatasource}) {
         rapidObsolescence: { key: 'Drop %', direction: 'descending' }
     });
 
-    const toggleTab = tab => {
-        if (activeTab !== tab) setActiveTab(tab);
+    const toggleTab = tab => { if (activeTab !== tab) setActiveTab(tab); }
+
+    // Helper to reset states before a request (HCV Style)
+    const prepareRequest = () => {
+        setSearch(true);
+        setLoading(true);
+        setAnalysisData(null);
+        setError(null);
+        setInfoMessage("");
+        setIsTakingLong(false);
+
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+            setIsTakingLong(true);
+        }, 30000);
+    };
+
+    // Standardized Response Handler
+    const handleResponse = (res) => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        setLoading(false);
+
+        if (res.data && res.data.status === "processing") {
+            setInfoMessage(res.data.message);
+            return;
+        }
+
+        setAnalysisData(res.data);
+        setActiveTab('1');
+    };
+
+    const handleError = (err) => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        setLoading(false);
+        if (err.response && err.response.status === 504) {
+            setInfoMessage("The analysis is still running in the background. Please try clicking 'Apply' again shortly.");
+        } else {
+            setError("An error occurred while fetching data.");
+        }
+        console.error(err);
+    };
+
+    const handleApplyOccupationSelection = () => {
+        if (!selectedOccupation) { setError("Please select an occupation first."); return; }
+        prepareRequest();
+        axios.get(`${process.env.REACT_APP_API_URL_SKILL_AGEING}/skill-ageing-jobs`, { 
+            params: { occupation_ids: selectedOccupation.id } 
+        }).then(handleResponse).catch(handleError);
     }
 
-    // Generic sorting function for any data array
+    const handleApplyKU = () => {
+        prepareRequest();
+        const q = orgName ? `?organization=${encodeURIComponent(orgName)}` : '';
+        axios.get(`${process.env.REACT_APP_API_URL_SKILL_AGEING}/ku-skill-ageing${q}`)
+            .then(handleResponse).catch(handleError);
+    };
+
+    const handleApplyCourses = () => {
+        prepareRequest();
+        const q = courseKeyword ? `?keyword=${encodeURIComponent(courseKeyword)}` : '';
+        axios.get(`${process.env.REACT_APP_API_URL_SKILL_AGEING}/skill-ageing-courses${q}`)
+            .then(handleResponse).catch(handleError);
+    };
+
+    const handleApplyPolicy = () => {
+        if (!keyword.trim()) { setError("Keywords are required"); return; }
+        prepareRequest();
+        const q = `?keywords=${encodeURIComponent(keyword)}`;
+        axios.get(`${process.env.REACT_APP_API_URL_SKILL_AGEING}/skill-ageing-law-policy${q}`)
+            .then(handleResponse).catch(handleError);
+    }
+
+    // Sorting logic (remains the same)
     const sortData = (data, config) => {
         if (!data) return [];
         const sortableItems = [...data];
@@ -80,120 +151,29 @@ function ForecastingAgeing({parentDatasource}) {
             sortableItems.sort((a, b) => {
                 const valA = a[config.key];
                 const valB = b[config.key];
-
-                if (valA === null || valA < valB) {
-                    return config.direction === 'ascending' ? -1 : 1;
-                }
-                if (valB === null || valA > valB) {
-                    return config.direction === 'ascending' ? 1 : -1;
-                }
+                if (valA === null || valA < valB) return config.direction === 'ascending' ? -1 : 1;
+                if (valB === null || valA > valB) return config.direction === 'ascending' ? 1 : -1;
                 return 0;
             });
         }
         return sortableItems;
     };
 
-    // Sorted data for each table
-    const sortedSkillBiology = useMemo(() => 
-        sortData(analysisData?.data?.skill_biology_summary, sortConfigs.skillBiology), 
-        [analysisData, sortConfigs.skillBiology]
-    );
+    const sortedSkillBiology = useMemo(() => sortData(analysisData?.data?.skill_biology_summary, sortConfigs.skillBiology), [analysisData, sortConfigs.skillBiology]);
+    const sortedEpidemiology = useMemo(() => sortData(analysisData?.data?.epidemiological_metrics, sortConfigs.epidemiology), [analysisData, sortConfigs.epidemiology]);
+    const sortedCompetingSkills = useMemo(() => sortData(analysisData?.data?.competing_skills, sortConfigs.competing), [analysisData, sortConfigs.competing]);
+    const sortedRapidObsolescence = useMemo(() => sortData(analysisData?.data?.rapid_obsolescence, sortConfigs.rapidObsolescence), [analysisData, sortConfigs.rapidObsolescence]);
 
-    const sortedEpidemiology = useMemo(() => 
-        sortData(analysisData?.data?.epidemiological_metrics, sortConfigs.epidemiology), 
-        [analysisData, sortConfigs.epidemiology]
-    );
-
-    const sortedCompetingSkills = useMemo(() =>
-        sortData(analysisData?.data?.competing_skills, sortConfigs.competing),
-        [analysisData, sortConfigs.competing]
-    );
-    
-    const sortedRapidObsolescence = useMemo(() =>
-        sortData(analysisData?.data?.rapid_obsolescence, sortConfigs.rapidObsolescence),
-        [analysisData, sortConfigs.rapidObsolescence]
-    );
-
-    // Update the sort configuration for a specific table
     const requestSort = (tableId, key) => {
         const currentConfig = sortConfigs[tableId];
-        let direction = 'ascending';
-        if (currentConfig.key === key && currentConfig.direction === 'ascending') {
-            direction = 'descending';
-        }
-        setSortConfigs(prevConfigs => ({
-            ...prevConfigs,
-            [tableId]: { key, direction }
-        }));
+        let direction = currentConfig.key === key && currentConfig.direction === 'ascending' ? 'descending' : 'ascending';
+        setSortConfigs(prev => ({ ...prev, [tableId]: { key, direction } }));
     };
     
-    // Get the sort indicator for a specific table's column
     const getSortDirection = (tableId, name) => {
         const config = sortConfigs[tableId];
-        if (config.key === name) {
-            return config.direction === 'ascending' ? ' 🔼' : ' 🔽';
-        }
-        return null;
+        return config.key === name ? (config.direction === 'ascending' ? ' 🔼' : ' 🔽') : null;
     };
-
-    
-    const handleApplyOccupationSelection = () => {
-        setSearch(true);
-        setLoading(true);
-        setAnalysisData(null);
-        axios
-            .get(process.env.REACT_APP_API_URL_SKILL_AGEING + "/jobs-with-keywords?keywords="+
-                                keyword + "&max_pages="+ maxPages)
-            .then(async (res) => {
-                setAnalysisData(res.data);
-                setLoading(false);
-                setActiveTab('1');
-            })
-            .catch((err) => {
-                console.error("Error fetching data:", err);
-                setLoading(false);
-                setAnalysisData(null);
-            });
-    }
-
-    const handleApplyKU = () => {
-        setSearch(true); setLoading(true); setAnalysisData(null);
-        const q = orgName ? `?organization=${encodeURIComponent(orgName)}` : '';
-        axios.get(process.env.REACT_APP_API_URL_SKILL_AGEING + `/ku${q}`)
-            .then(res => {
-                setAnalysisData(res.data); setLoading(false); setActiveTab('1');
-            })
-            .catch(err => {
-                console.error("Error fetching KU data:", err); setLoading(false);
-                setAnalysisData(null);
-            });
-    };
-
-    const handleApplyCourses = () => {
-        setSearch(true); setLoading(true); setAnalysisData(null);
-        const q = courseKeyword ? `?keyword=${encodeURIComponent(courseKeyword)}` : '';
-        axios.get(process.env.REACT_APP_API_URL_SKILL_AGEING + `/courses${q}`)
-            .then(res => {
-                setAnalysisData(res.data); setLoading(false); setActiveTab('1');
-            })
-            .catch(err => {
-                console.error("Error fetching courses data:", err); setLoading(false);
-                setAnalysisData(null);
-            });
-    };
-
-    const handleApplyPolicy = () => {
-        setSearch(true); setLoading(true); setAnalysisData(null);
-        const q = keyword ? `?keywords=${encodeURIComponent(keyword)}` : '';
-        axios.get(process.env.REACT_APP_API_URL_SKILL_AGEING + `/law-policy${q}`)
-            .then(res => {
-                setAnalysisData(res.data); setLoading(false); setActiveTab('1');
-            })
-            .catch(err => {
-                console.error("Error fetching courses data:", err); setLoading(false);
-                setAnalysisData(null);
-            });
-    }
 
     return (
         <Row>
@@ -204,63 +184,61 @@ function ForecastingAgeing({parentDatasource}) {
                             {parentDatasource === 'ku' ? 'Select organization (optional)' :
                             parentDatasource === 'courses' ? 'Enter keyword (optional)' :
                             parentDatasource === 'policies' ? 'Enter keywords (required)' :
-                            'Select occupation'}
+                            'Select occupation (required)'}
                         </CardTitle>
 
-                        {parentDatasource === 'ku' ? (
-                            <CardTitle>
-                                <Input
-                                    type="text"
-                                    placeholder="Organization name (optional)"
-                                    value={orgName}
-                                    onChange={e => setOrgName(e.target.value)}
-                                    style={{justifySelf:"center", maxWidth: 320}}
-                                />
-                                <Button color="info" onClick={handleApplyKU}>Apply</Button>
-                            </CardTitle>
-                        ) : parentDatasource === 'courses' ? (
-                            <CardTitle>
-                                <Input
-                                    type="text"
-                                    placeholder="Keyword (optional)"
-                                    value={courseKeyword}
-                                    onChange={e => setCourseKeyword(e.target.value)}
-                                    style={{justifySelf:"center", maxWidth: 320}}
-                                />
-                                <Button color="info" onClick={handleApplyCourses}>Apply</Button>
-                            </CardTitle>
-                        ) : parentDatasource === 'policies' ? (
-                             <CardTitle>
-                                <Col md="6" style={{justifySelf:"center"}}>
-                                    <FormGroup>
-                                        <Label for="keywordInput">Keywords (required)</Label>
-                                        <Input id="keywordInput" type="text" placeholder="e.g., python, software developer" value={keyword} onChange={e => setKeywords(e.target.value)} />
-                                    </FormGroup>
-                                </Col>
-                                <Button color="info" onClick={handleApplyPolicy}>Apply</Button>
-                            </CardTitle>
-                        )
-                        : (
-                            <CardTitle>
-                                <Col md="6" style={{justifySelf:"center"}}>
-                                    <FormGroup>
-                                        <Label for="keywordInput">Keywords (required)</Label>
-                                        <Input id="keywordInput" type="text" placeholder="e.g., python, software developer" value={keyword} onChange={e => setKeywords(e.target.value)} />
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <Label for="maxPagesInput">Max Pages</Label>
-                                        <Input id="maxPagesInput" type="number" value={maxPages} onChange={e => setMaxPages(parseInt(e.target.value, 10))} />
-                                    </FormGroup>
-                                </Col>
-                                <Button color="info" onClick={handleApplyOccupationSelection}>Apply</Button>
-                            </CardTitle>
-                        )}
+                        <div className="filter-inputs mt-3">
+                            {parentDatasource === 'ku' ? (
+                                <Row style={{justifyContent: "center"}}>
+                                    <Col md="4"><Input type="text" placeholder="Organization name..." value={orgName} onChange={e => setOrgName(e.target.value)} /></Col>
+                                    <Button color="info" onClick={handleApplyKU}>Apply</Button>
+                                </Row>
+                            ) : parentDatasource === 'courses' ? (
+                                <Row style={{justifyContent: "center"}}>
+                                    <Col md="4"><Input type="text" placeholder="Keyword..." value={courseKeyword} onChange={e => setCourseKeyword(e.target.value)} /></Col>
+                                    <Button color="info" onClick={handleApplyCourses}>Apply</Button>
+                                </Row>
+                            ) : parentDatasource === 'policies' ? (
+                                <Row style={{justifyContent: "center", alignItems: "flex-end"}}>
+                                    <Col md="4">
+                                        <FormGroup className="mb-0">
+                                            <Label>Keywords</Label>
+                                            <Input type="text" value={keyword} onChange={e => setKeywords(e.target.value)} />
+                                        </FormGroup>
+                                    </Col>
+                                    <Button color="info" onClick={handleApplyPolicy}>Apply</Button>
+                                </Row>
+                            ) : (
+                                <Row style={{justifyContent: "center", alignItems: "flex-end"}}>
+                                    <Col md="5">
+                                        <FormGroup className="mb-0">
+                                            <Label>Occupation</Label>
+                                            <OccupationSelection selectedValue={selectedOccupation} onChange={(occ) => setSelectedOccupation(occ)} />
+                                        </FormGroup>
+                                    </Col>
+                                    <Button color="info" onClick={handleApplyOccupationSelection}>Apply</Button>
+                                </Row>
+                            )}
+                        </div>
+                        {error && <Alert color="danger" className="mt-3">{error}</Alert>}
                     </CardHeader>
+                    
                     <CardBody>
                         {loading ? (
-                            <div className="lds-dual-ring"></div>
+                            <div style={{ textAlign: "center", padding: "20px" }}>
+                                <div className="lds-dual-ring"></div>
+                                {isTakingLong && (
+                                    <p style={{ marginTop: "10px", color: "#666", fontWeight: "bold" }}>
+                                        The analysis might take some time...
+                                    </p>
+                                )}
+                            </div>
                         ) : !search ? (
                             <h6>Select an option above to see the analysis.</h6>
+                        ) : infoMessage ? (
+                            <div style={{ textAlign: "center", padding: "20px" }}>
+                                <h6 className="text-info">{infoMessage}</h6>
+                            </div>
                         ) : analysisData && analysisData.data ? (
                             <>
                                 <Nav tabs>
@@ -272,7 +250,7 @@ function ForecastingAgeing({parentDatasource}) {
                                 <TabContent activeTab={activeTab}>
                                     <TabPane tabId="1">
                                         <Row className="mt-3">
-                                            {Object.entries(analysisData.summary).map(([key, value]) => (
+                                            {Object.entries(analysisData.summary || {}).map(([key, value]) => (
                                                 <SummaryCard key={key} title={key} value={value} />
                                             ))}
                                         </Row>
@@ -285,7 +263,6 @@ function ForecastingAgeing({parentDatasource}) {
                                                     <th onClick={() => requestSort('skillBiology', 'Skill')} style={{cursor: 'pointer'}}>Skill{getSortDirection('skillBiology', 'Skill')}</th>
                                                     <th onClick={() => requestSort('skillBiology', 'Date of Birth')} style={{cursor: 'pointer'}}>Date of Birth{getSortDirection('skillBiology', 'Date of Birth')}</th>
                                                     <th onClick={() => requestSort('skillBiology', 'Peak Activity Date')} style={{cursor: 'pointer'}}>Peak Activity Date{getSortDirection('skillBiology', 'Peak Activity Date')}</th>
-                                                    {/* UPDATED HEADER LABEL BELOW */}
                                                     <th onClick={() => requestSort('skillBiology', 'Total Jobs')} style={{cursor: 'pointer'}}>Total Instances{getSortDirection('skillBiology', 'Total Jobs')}</th>
                                                     <th onClick={() => requestSort('skillBiology', 'Immunity Score')} style={{cursor: 'pointer'}}>Immunity Score{getSortDirection('skillBiology', 'Immunity Score')}</th>
                                                 </tr>
@@ -314,7 +291,6 @@ function ForecastingAgeing({parentDatasource}) {
                                                 <thead className="text-primary">
                                                     <tr>
                                                         <th onClick={() => requestSort('epidemiology', 'Skill')} style={{ cursor: 'pointer' }}>Skill{getSortDirection('epidemiology', 'Skill')}</th>
-                                                        {/* UPDATED HEADER LABEL BELOW */}
                                                         <th onClick={() => requestSort('epidemiology', 'Total Jobs')} style={{ cursor: 'pointer' }}>Total Instances{getSortDirection('epidemiology', 'Total Jobs')}</th>
                                                         <th onClick={() => requestSort('epidemiology', 'Incidence (2023)')} style={{ cursor: 'pointer' }}>Incidence (2023){getSortDirection('epidemiology', 'Incidence (2023)')}</th>
                                                         <th onClick={() => requestSort('epidemiology', 'Mortality Risk')} style={{ cursor: 'pointer' }}>Mortality Risk{getSortDirection('epidemiology', 'Mortality Risk')}</th>
@@ -350,9 +326,7 @@ function ForecastingAgeing({parentDatasource}) {
                                                 </tbody>
                                             </Table>
                                         ) : <h6>No competing skills found.</h6>}
-
                                         <hr />
-
                                         <h5 className="mt-3">Rapid Obsolescence Skills</h5>
                                         {analysisData.data.rapid_obsolescence?.length > 0 ? (
                                             <Table responsive hover>
@@ -378,11 +352,11 @@ function ForecastingAgeing({parentDatasource}) {
                                                 </tbody>
                                             </Table>
                                         ) : <h6>No skills with rapid obsolescence found.</h6>}
-                                    </TabPane> 
+                                    </TabPane>
                                 </TabContent>
                             </>
                         ) : (
-                            <h6>No data found for the selected criteria.</h6>
+                            <h6 className="text-center">No data found for the selected criteria.</h6>
                         )}
                     </CardBody>
                 </Card>

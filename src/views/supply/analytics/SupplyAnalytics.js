@@ -28,23 +28,25 @@ import DescriptiveExploratoryProfiles from "views/descriptiveExploratory/Descrip
 import CoOccurrence from "../../coOccurrence/CoOccurrence";
 import DescriptiveExploratoryPolicies from "views/descriptiveExploratory/DescriptiveExploratoryPolicies";
 import HCV from "../../hcv/HCV"
+import Turf from "../../turf/Turf";
 
 // A list of all possible tabs to make rendering dynamic
 const allTabs = [
     { id: '1', name: 'Descriptive/Exploratory' },
     { id: '2', name: 'HCV' },
-    { id: '3', name: 'Biodiversity' },
-    { id: '4', name: 'Archetypal' },
-    { id: '5', name: 'Co-occurrence' },
+    { id: '3', name: 'Turf' },
+    { id: '4', name: 'Biodiversity' },
+    { id: '5', name: 'Archetypal' },
+    { id: '6', name: 'Co-occurrence' },
 ];
 
 // Map data sources to the tabs they support
 const tabVisibilityConfig = {
-    'EU profiles': ['1', '2', '3', '4', '5'], // All tabs are visible
-    'Short Courses': ['1', '2', '3', '4', '5'], // All tabs are visible
-    'EU KUs': ['1', '3', '4', '5'],           // HCV is hidden
-    'EU Syllabus': ['1', '3', '4'],       // HCV is hidden
-    'EU Policies': ['1', '2', '3', '4', '5'],       // All tabs are visible
+    'EU profiles': ['1', '2', '3', '4', '5', '6'], // All tabs are visible
+    'Short Courses': ['1', '2', '3', '4', '5', '6'], // All tabs are visible
+    'EU KUs': ['1', '4', '5', '6'],           // HCV, Turf is hidden
+    'EU Syllabus': ['1', '4', '5'],       // HCV, Turf, co-occurrence is hidden
+    'EU Policies': ['1', '2', '3', '4', '5', '6'],       // All tabs are visible
 };
 
 const dataSources = ['EU profiles', 'Short Courses', 'EU KUs', 'EU Syllabus', 'EU Policies'];
@@ -217,30 +219,34 @@ const SupplyAnalytics = () => {
                     </TabPane>
                     
                     <TabPane tabId="3">
-                        {currentActiveTab === '3' && <>3, {selectedDataSource}</>}
+                        {currentActiveTab === '3' && <Turf datasource={selectedDataSource}/>}
                     </TabPane>
-                    
+
                     <TabPane tabId="4">
                         {currentActiveTab === '4' && <>4, {selectedDataSource}</>}
                     </TabPane>
-
+                    
                     <TabPane tabId="5">
-                        {currentActiveTab === '5' && selectedDataSource === 'EU KUs' &&
+                        {currentActiveTab === '5' && <>5, {selectedDataSource}</>}
+                    </TabPane>
+
+                    <TabPane tabId="6">
+                        {currentActiveTab === '6' && selectedDataSource === 'EU KUs' &&
                             <>
                                 <CoOccurrence parentDatasource="ku"/>
                             </>
                         }
-                        {currentActiveTab === '5' && selectedDataSource === 'Short Courses' &&
+                        {currentActiveTab === '6' && selectedDataSource === 'Short Courses' &&
                             <>
                                 <CoOccurrence parentDatasource="courses"/>
                             </>
                         }
-                        {currentActiveTab === '5' && selectedDataSource === 'EU profiles' &&
+                        {currentActiveTab === '6' && selectedDataSource === 'EU profiles' &&
                             <>
                                 <CoOccurrence parentDatasource="profiles"/>
                             </>
                         }
-                        {currentActiveTab === '5' && selectedDataSource === 'EU Policies' &&
+                        {currentActiveTab === '6' && selectedDataSource === 'EU Policies' &&
                             <>
                                 <CoOccurrence parentDatasource="policies"/>
                             </>
