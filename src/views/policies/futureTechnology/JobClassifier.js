@@ -49,7 +49,8 @@ const JobClassifier = () => {
             {
                 params: {
                     occupation_ids: selectedOccupation.id,
-                    model_type: 'xgboost'
+                    model_type: 'xgboost',
+                    max_jobs: 60000
                 }
             });
 
