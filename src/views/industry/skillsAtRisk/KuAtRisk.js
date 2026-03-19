@@ -22,6 +22,7 @@ import {
   Legend,
 } from "recharts";
 import axios from 'axios';
+import { getOrganization } from "../../../utils/Tokens";
 
 
 function KuAtRisk() {
@@ -33,6 +34,7 @@ function KuAtRisk() {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 27;
+    const [organization, setOrganization] = useState('');
 
 
     const formatPercent = (value) => {
@@ -47,7 +49,7 @@ function KuAtRisk() {
 
     const getKuRisk = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/ku_risk?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+            .get(process.env.REACT_APP_API_URL_KU + "/ku_risk?organization=" + organization, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
                 },
@@ -67,7 +69,7 @@ function KuAtRisk() {
 
     const getEmployeeRisk = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/employee_risk?organization="+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+            .get(process.env.REACT_APP_API_URL_KU + "/employee_risk?organization="+ organization, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
                 },
@@ -80,8 +82,18 @@ function KuAtRisk() {
     };
 
     useEffect(() => {
+        if (!organization) return;
         getKuRisk();
         getEmployeeRisk();
+    }, [organization]);
+
+    useEffect(() => {
+        const fetchOrganization = async () => {
+            const org = await getOrganization();
+            setOrganization(org);
+        };
+
+        fetchOrganization();
     }, []);
     
     // Sort handler for Employee Risk table

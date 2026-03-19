@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { GitCommitVertical, BarChartHorizontal } from 'lucide-react';
 import Heatmap from './Heatmap';
@@ -31,6 +31,8 @@ const Form =({
     const [maxDate, setMaxDate] = useState(null);
     const [totalMonths, setTotalMonths] = useState(0);
     const [selectedMonths, setSelectedMonths] = useState(1);
+
+    const pollingIntervalRef = useRef(null);
 
     const handleSliderChange = (value) => {
         setSelectedMonths(value);
@@ -70,9 +72,85 @@ const Form =({
 
     useEffect(() => {
         if (repoUrl) {
-          fetchHeatmapData(repoUrl);
+            fetchHeatmapData(repoUrl);
+            resumePollingIfNeeded(repoUrl);
         }
     }, [repoUrl]);
+
+    useEffect(() => {
+        return () => {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+            }
+        };
+    }, []);
+
+
+    // Resume polling on page refresh if analysis was in progress
+    const resumePollingIfNeeded = async (url) => {
+        const repoName = getRepoNameFromUrl(url);
+        try {
+            const statusRes = await axios.get(
+                `${process.env.REACT_APP_API_URL_KU}/analysis_status?repo_name=${repoName}`,
+                { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
+            );
+
+            const { status, progress } = statusRes.data;
+
+            if (status === "in_progress" || (progress > 0 && progress < 100)) {
+                setAnalysisStarted(true);
+                setInitialHeatmapHandler(true);
+                setResultsOfAnalysis(true);
+                setAnalysisProgress(progress);
+                startPolling(repoName);
+            }
+        } catch (error) {
+            console.log("No ongoing analysis found for this repo.");
+        }
+    };
+
+    const startPolling = (repoName) => {
+        // Clear any existing interval first
+        if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+        }
+
+        pollingIntervalRef.current = setInterval(async () => {
+            try {
+                // Poll status
+                const statusRes = await axios.get(
+                    `${process.env.REACT_APP_API_URL_KU}/analysis_status?repo_name=${repoName}`,
+                    { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
+                );
+                setAnalysisProgress(statusRes.data.progress);
+
+                // Also fetch latest results from db to show incremental updates
+                const resultsRes = await axios.get(
+                    `${process.env.REACT_APP_API_URL_KU}/analyzedb?repo_name=${repoName}`,
+                    { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
+                );
+                const latestResults = resultsRes.data || [];
+                setAnalysisResults(latestResults);
+                setHeatmapData(latestResults);
+                setFilteredHeatmapData(latestResults);
+
+                // Done
+                if (statusRes.data.progress === 100) {
+                    clearInterval(pollingIntervalRef.current);
+                    pollingIntervalRef.current = null;
+                    setAnalysisStarted(false);
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error("Error polling analysis status:", error);
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+                setAnalysisStarted(false);
+                setLoading(false);
+            }
+        }, 6000);
+    };
+
     
     const fetchHeatmapData = async (repoURL) => {
         setLoadingHeatmap(true);
@@ -157,52 +235,24 @@ const Form =({
     };
     
     
-    const handleExtractSkills = () => {
+    const handleExtractSkills = async () => {
         setInitialHeatmapHandler(true);
         setAnalysisStarted(true);
-        setProgress(0);
+        setAnalysisProgress(0);
         setAnalysisResults(heatmapData);
         setResultsOfAnalysis(true);
-    
-        const eventSource = new EventSource(
-            process.env.REACT_APP_API_URL_KU+`/analyze?repo_url=${encodeURIComponent(repoUrl)}`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
-                },
-            }
+
+        const repoName = getRepoNameFromUrl(repoUrl);
+
+        // Start background analysis
+        await axios.get(
+            `${process.env.REACT_APP_API_URL_KU}/analyze?repo_url=${encodeURIComponent(repoUrl)}`,
+            { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
         );
-    
-        eventSource.onmessage = (event) => {
-            const streamData = JSON.parse(event.data);
-            if(repoUrl == streamData.repoUrl) {
-                console.log(streamData);
-                setAnalysisProgress(streamData.progress);
 
-                if(streamData.file_data != undefined){
-                    setAnalysisResults((prevResults) => [...prevResults, streamData.file_data]);
-                    setHeatmapData((prevResults) => [...prevResults, streamData.file_data]);
-                    setFilteredHeatmapData((prevResults) => [...prevResults, streamData.file_data]);
-                }
-
-                if (streamData.progress == 100) {
-                    eventSource.close();
-                    setLoading(false);
-                    setAnalysisStarted(false);
-                }
-            }
-        };
-    
-        eventSource.onerror = (error) => {
-            console.error("Error streaming data:", error);
-            eventSource.close();
-            setLoading(false);
-            setAnalysisStarted(false);
-        };
-    
-        eventSource.onopen = () => {
-            setProgress(0);
-        };
+        startPolling(repoName);
     };
+
     
     const handleAnalysis = async () => {
         await handleFetchCommits();
@@ -232,7 +282,7 @@ const Form =({
                         Loading
                     </Button>
                     ) : (
-                    <div className="flex space-x-4"> {/* Προσθέτω αυτή την γραμμή */}
+                    <div className="flex space-x-4">
                         <Button
                             color='info'
                             onClick={handleAnalysis}

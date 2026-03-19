@@ -10,6 +10,7 @@ import { Bar } from 'react-chartjs-2';
 import Heatmap from "./ku/Heatmap";
 import Commits from "./ku/Commits";
 import Form from "./ku/Form";
+import { getOrganization } from "../../../utils/Tokens";
 
 
 function KnowleageUnits() {
@@ -28,6 +29,7 @@ function KnowleageUnits() {
     const [commitLimit, setCommitLimit] = useState(100);
     const [chartData, setChartData] = useState(null);
     const [showChart, setShowChart] = useState(false); 
+    const [organization, setOrganization] = useState('');
 
     const handleSelectRepo = (repoName, repoUrl) => {
         setSelectedRepo(repoName);
@@ -43,7 +45,7 @@ function KnowleageUnits() {
 
     const handleViewOrganizationSkills = async () => {
         try {
-            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/organizationskills/'+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/organizationskills', {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
@@ -134,7 +136,7 @@ function KnowleageUnits() {
 
     const getRepos = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + organization, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
                 },
@@ -149,8 +151,18 @@ function KnowleageUnits() {
     };
 
     useEffect(() => {
-        getRepos();
+        const fetchOrganization = async () => {
+            const org = await getOrganization();
+            setOrganization(org);
+        };
+
+        fetchOrganization();
     }, []);
+
+    useEffect(() => {
+        if (!organization) return;
+        getRepos();
+    }, [organization]);
 
     return (
         <>

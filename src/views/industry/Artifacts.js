@@ -8,16 +8,18 @@ import {
   Col } from "reactstrap";
 import axios from 'axios';
 import '../../assets/css/industry.css';
+import { getOrganization } from "../../utils/Tokens";
 
 
 function Artifacts() {
     const [repos, setRepos] = useState([]);
     const [repoCreation, setRepoCreation] = useState(false);
     const [selectedRepoForEdit, setSelectedRepoForEdit] = useState(null);
+    const [organization, setOrganization] = useState('');
     const [formData, setFormData] = useState({
         repo_name: '',
         url: '',
-        organization: ''+process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME,
+        organization: '',
         description: '',
         comments: '',
       });
@@ -27,7 +29,7 @@ function Artifacts() {
         setSelectedRepoForEdit(null);
         setFormData({repo_name: '',
             url: '',
-            organization: ''+process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME,
+            organization: organization,
             description: '',
             comments: ''});
     };
@@ -48,8 +50,6 @@ function Artifacts() {
         try {
           const response = await fetch(process.env.REACT_APP_API_URL_KU+`/delete_repo/${encodeURIComponent(repoName)}`, {
             method: 'DELETE',
-          },
-          {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
             },
@@ -64,7 +64,7 @@ function Artifacts() {
         }
         setFormData({repo_name: '',
             url: '',
-            organization: ''+process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME,
+            organization: organization,
             description: '',
             comments: ''});
     };
@@ -83,7 +83,7 @@ function Artifacts() {
         }
         setFormData({repo_name: '',
             url: '',
-            organization: ''+ process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME,
+            organization: organization,
             description: '',
             comments: ''});
         getRepos();
@@ -127,7 +127,7 @@ function Artifacts() {
 
     const getRepos = async () => {
         axios
-            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + process.env.REACT_APP_INSTALLATION_ORGANIZATION_NAME, {
+            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + organization, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
                 },
@@ -142,8 +142,22 @@ function Artifacts() {
     };
 
     useEffect(() => {
-        getRepos();
+        const fetchOrganization = async () => {
+            const org = await getOrganization();
+            setOrganization(org);
+            setFormData((prevData) => ({
+                ...prevData,
+                organization: org || prevData.organization,
+            }));
+        };
+
+        fetchOrganization();
     }, []);
+
+    useEffect(() => {
+        if (!organization) return;
+        getRepos();
+    }, [organization]);
     
 
     return (
