@@ -11,6 +11,37 @@ import "../../assets/css/loader.css";
 
 const BASE_URL = process.env.REACT_APP_API_URL_GIANT_COMPONENT_NETWORKS;
 const ALL_KUS = "K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21,K22,K23,K24,K25,K26,K27";
+// Mapping from KU ID to display name
+export const KU_NAMES = {
+    "K1":  "Data Types",
+    "K2":  "Operators and Decisions",
+    "K3":  "Arrays",
+    "K4":  "Loops",
+    "K5":  "Methods and Encapsulation",
+    "K6":  "Inheritance",
+    "K7":  "Advanced Class Design",
+    "K8":  "Generics and Collections",
+    "K9":  "Functional Interfaces",
+    "K10": "Stream API",
+    "K11": "Exceptions",
+    "K12": "Date Time API",
+    "K13": "IO",
+    "K14": "NIO",
+    "K15": "String Processing",
+    "K16": "Concurrency",
+    "K17": "Databases",
+    "K18": "Localization",
+    "K19": "Java Persistence API",
+    "K20": "Enterprise Java Beans",
+    "K21": "Java Message Service API",
+    "K22": "SOAP Web Services",
+    "K23": "Servlets",
+    "K24": "Java REST API",
+    "K25": "Websockets",
+    "K26": "Java Server Faces",
+    "K27": "Contexts and Dependency Injection",
+    "K28": "Batch Processing",
+};
 
 function CoOccurrence({ parentDatasource }) {
     const [search, setSearch] = useState(false);
@@ -116,13 +147,33 @@ function CoOccurrence({ parentDatasource }) {
 
     const graphData = useMemo(() => {
         if (!apiData || !apiData.giant_component?.nodes?.length) return { nodes: [], links: [] };
-        return {
-            nodes: typeof apiData.giant_component.nodes[0] === 'string' 
-                ? apiData.giant_component.nodes.map(id => ({ id })) 
-                : apiData.giant_component.nodes,
-            links: apiData.giant_component.edges
-        };
-    }, [apiData]);
+
+        const rawNodes = typeof apiData.giant_component.nodes[0] === 'string'
+            ? apiData.giant_component.nodes.map(id => ({ id }))
+            : apiData.giant_component.nodes;
+
+        // Build a lookup from original id -> display id
+        const idMap = {};
+        rawNodes.forEach(node => {
+            idMap[node.id] = parentDatasource === 'ku' && KU_NAMES[node.id]
+                ? `${node.id} – ${KU_NAMES[node.id]}`
+                : node.id;
+        });
+
+        const nodes = rawNodes.map(node => ({
+            ...node,
+            id: idMap[node.id]
+        }));
+
+        // Remap edges to use the new display ids
+        const links = apiData.giant_component.edges.map(edge => ({
+            ...edge,
+            source: idMap[edge.source] ?? edge.source,
+            target: idMap[edge.target] ?? edge.target,
+        }));
+
+        return { nodes, links };
+    }, [apiData, parentDatasource]);
 
     return (
         <Row>

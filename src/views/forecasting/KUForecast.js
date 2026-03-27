@@ -10,6 +10,44 @@ import {
 
 const API_BASE_URL = process.env.REACT_APP_API_URL_SKILL_AGEING;
 
+export const KU_NAMES = {
+    "K1":  "Data Types",
+    "K2":  "Operators and Decisions",
+    "K3":  "Arrays",
+    "K4":  "Loops",
+    "K5":  "Methods and Encapsulation",
+    "K6":  "Inheritance",
+    "K7":  "Advanced Class Design",
+    "K8":  "Generics and Collections",
+    "K9":  "Functional Interfaces",
+    "K10": "Stream API",
+    "K11": "Exceptions",
+    "K12": "Date Time API",
+    "K13": "IO",
+    "K14": "NIO",
+    "K15": "String Processing",
+    "K16": "Concurrency",
+    "K17": "Databases",
+    "K18": "Localization",
+    "K19": "Java Persistence API",
+    "K20": "Enterprise Java Beans",
+    "K21": "Java Message Service API",
+    "K22": "SOAP Web Services",
+    "K23": "Servlets",
+    "K24": "Java REST API",
+    "K25": "Websockets",
+    "K26": "Java Server Faces",
+    "K27": "Contexts and Dependency Injection",
+    "K28": "Batch Processing",
+};
+// Helper: given a raw KU id like "ku_1" or "K1", return the canonical key "K1"
+export const normalizeKuId = (rawId) => {
+    // Handle formats: "ku_1", "KU_1", "K1", "k1", "1"
+    const match = String(rawId).match(/(\d+)$/);
+    if (match) return `K${match[1]}`;
+    return rawId;
+};
+
 const KUForecast = () => {
     const [loading, setLoading] = useState(false);
     const [organization, setOrganization] = useState('eclipse');
@@ -127,7 +165,11 @@ const KUForecast = () => {
                     <CardBody>
                         <Row >
                             <Col md="6">
-                                <h4 style={{margin:"auto"}}>Visualizing: <strong>{selectedKU}</strong></h4>
+                                <h4 style={{margin:"auto"}}>
+                                    Visualizing: <strong>
+                                        {selectedKU}{KU_NAMES[normalizeKuId(selectedKU)] ? ` – ${KU_NAMES[normalizeKuId(selectedKU)]}` : ''}
+                                    </strong>
+                                </h4>
                             </Col>
                             <Col md="6">
                                 <div style={{alignSelf:"center"}} className="d-flex align-items-center justify-content-end">
@@ -139,9 +181,13 @@ const KUForecast = () => {
                                         value={selectedKU} 
                                         onChange={e => setSelectedKU(e.target.value)}
                                     >
-                                        {sortedKUKeys.map(ku => (
-                                            <option key={ku} value={ku}>{ku}</option>
-                                        ))}
+                                        {sortedKUKeys.map(ku => {
+                                            const key = normalizeKuId(ku);
+                                            const label = KU_NAMES[key] ? `${ku} – ${KU_NAMES[key]}` : ku;
+                                            return (
+                                                <option key={ku} value={ku}>{label}</option>
+                                            );
+                                        })}
                                     </Input>
                                 </div>
                             </Col>

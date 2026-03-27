@@ -20,6 +20,48 @@ import ForceGraph2D from 'react-force-graph-2d';
 import "../../assets/css/loader.css";
 
 const ALL_KUS_EXAMPLE = "K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21,K22,K23,K24,K25,K26,K27";
+export const KU_NAMES = {
+    "K1":  "Data Types",
+    "K2":  "Operators and Decisions",
+    "K3":  "Arrays",
+    "K4":  "Loops",
+    "K5":  "Methods and Encapsulation",
+    "K6":  "Inheritance",
+    "K7":  "Advanced Class Design",
+    "K8":  "Generics and Collections",
+    "K9":  "Functional Interfaces",
+    "K10": "Stream API",
+    "K11": "Exceptions",
+    "K12": "Date Time API",
+    "K13": "IO",
+    "K14": "NIO",
+    "K15": "String Processing",
+    "K16": "Concurrency",
+    "K17": "Databases",
+    "K18": "Localization",
+    "K19": "Java Persistence API",
+    "K20": "Enterprise Java Beans",
+    "K21": "Java Message Service API",
+    "K22": "SOAP Web Services",
+    "K23": "Servlets",
+    "K24": "Java REST API",
+    "K25": "Websockets",
+    "K26": "Java Server Faces",
+    "K27": "Contexts and Dependency Injection",
+    "K28": "Batch Processing",
+};
+// Helper: given a raw KU id like "ku_1" or "K1", return the canonical key "K1"
+export const normalizeKuId = (rawId) => {
+    // Handle formats: "ku_1", "KU_1", "K1", "k1", "1"
+    const match = String(rawId).match(/(\d+)$/);
+    if (match) return `K${match[1]}`;
+    return rawId;
+};
+const getKuLabel = (rawId) => {
+    const key = normalizeKuId(rawId);
+    return KU_NAMES[key] ? `${key} – ${KU_NAMES[key]}` : rawId;
+};
+
 
 function ForecastingCoOccurence() {
     const [loading, setLoading] = useState(false);
@@ -85,8 +127,16 @@ function ForecastingCoOccurence() {
             nodeSet.add(link.target);
         });
 
-        const nodes = Array.from(nodeSet).map(id => ({ id }));
-        const links = results.predicted_links.map(l => ({ ...l }));
+        // Build id -> displayLabel map
+        const idMap = {};
+        nodeSet.forEach(id => { idMap[id] = getKuLabel(id); });
+
+        const nodes = Array.from(nodeSet).map(id => ({ id: idMap[id] }));
+        const links = results.predicted_links.map(l => ({
+            ...l,
+            source: idMap[l.source] ?? l.source,
+            target: idMap[l.target] ?? l.target,
+        }));
 
         return { nodes, links };
     }, [results]);
@@ -189,8 +239,8 @@ function ForecastingCoOccurence() {
                                     <tbody>
                                         {results.predicted_links.map((item, index) => (
                                             <tr key={`${item.source}-${item.target}-${index}`}>
-                                                <td>{item.source}</td>
-                                                <td>{item.target}</td>
+                                                <td>{getKuLabel(item.source)}</td>
+                                                <td>{getKuLabel(item.target)}</td>
                                                 <td>{item.predicted_score.toFixed(4)}</td>
                                                 <td>{item.emoji} {item.confidence_level}</td>
                                             </tr>
@@ -218,14 +268,14 @@ function ForecastingCoOccurence() {
                                         const fontSize = 12 / globalScale;
                                         ctx.font = `${fontSize}px Sans-Serif`;
                                         const textWidth = ctx.measureText(label).width;
-                                        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.4); 
+                                        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.4);
                                         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
                                         ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
                                         ctx.textAlign = 'center';
                                         ctx.textBaseline = 'middle';
                                         ctx.fillStyle = node.color;
                                         ctx.fillText(label, node.x, node.y);
-                                        node.__bckgDimensions = bckgDimensions; 
+                                        node.__bckgDimensions = bckgDimensions;
                                     }}
                                     nodePointerAreaPaint={(node, color, ctx) => {
                                         ctx.fillStyle = color;

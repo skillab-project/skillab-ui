@@ -24,6 +24,65 @@ import classnames from 'classnames';
 import OccupationSelection from '../coOccurrence/OccupationSelection';
 import "../../assets/css/loader.css";
 
+export const KU_NAMES = {
+    "K1":  "Data Types",
+    "K2":  "Operators and Decisions",
+    "K3":  "Arrays",
+    "K4":  "Loops",
+    "K5":  "Methods and Encapsulation",
+    "K6":  "Inheritance",
+    "K7":  "Advanced Class Design",
+    "K8":  "Generics and Collections",
+    "K9":  "Functional Interfaces",
+    "K10": "Stream API",
+    "K11": "Exceptions",
+    "K12": "Date Time API",
+    "K13": "IO",
+    "K14": "NIO",
+    "K15": "String Processing",
+    "K16": "Concurrency",
+    "K17": "Databases",
+    "K18": "Localization",
+    "K19": "Java Persistence API",
+    "K20": "Enterprise Java Beans",
+    "K21": "Java Message Service API",
+    "K22": "SOAP Web Services",
+    "K23": "Servlets",
+    "K24": "Java REST API",
+    "K25": "Websockets",
+    "K26": "Java Server Faces",
+    "K27": "Contexts and Dependency Injection",
+    "K28": "Batch Processing",
+};
+// Helper: given a raw KU id like "ku_1" or "K1", return the canonical key "K1"
+export const normalizeKuId = (rawId) => {
+    // Handle formats: "ku_1", "KU_1", "K1", "k1", "1"
+    const match = String(rawId).match(/(\d+)$/);
+    if (match) return `K${match[1]}`;
+    return rawId;
+};
+
+const FormatKuSkill = ({ skill, parentDatasource }) => {
+  const raw = formatSkillName(skill);
+
+  if (parentDatasource !== 'ku') return <span>{raw}</span>;
+
+  const key = normalizeKuId(raw);
+  const name = KU_NAMES[key];
+
+  if (!name) return <span>{raw}</span>;
+
+  return (
+    <span
+      title={name}
+      style={{ float: "left" }}
+    >
+      {`${key} – ${name}`}
+    </span>
+  );
+};
+
+
 const formatSkillName = (skill) => {
   if (typeof skill === 'string' && skill.startsWith('http')) {
     return skill.split('/').pop();
@@ -270,7 +329,7 @@ function ForecastingAgeing({parentDatasource}) {
                                             <tbody>
                                                 {sortedSkillBiology.map((skill, index) => (
                                                     <tr key={index}>
-                                                        <td>{formatSkillName(skill.Skill)}</td>
+                                                        <td style={{textAlign:"left"}}><FormatKuSkill skill={skill.Skill} parentDatasource={parentDatasource} /></td>
                                                         <td>{skill['Date of Birth']}</td>
                                                         <td>{skill['Peak Activity Date']}</td>
                                                         <td>{skill['Total Jobs']}</td>
@@ -301,7 +360,12 @@ function ForecastingAgeing({parentDatasource}) {
                                                 <tbody>
                                                     {sortedEpidemiology.map((metric, index) => (
                                                         <tr key={index}>
-                                                            <td>{formatSkillName(metric.Skill)}</td><td>{metric['Total Jobs']}</td><td>{metric['Incidence (2023)']}</td><td>{metric['Mortality Risk']}</td><td>{metric['Attack Rate']?.toFixed(4)}</td><td>{metric['CFR']}</td>
+                                                            <td style={{textAlign:"left"}}><FormatKuSkill skill={metric.Skill} parentDatasource={parentDatasource} /></td>
+                                                            <td>{metric['Total Jobs']}</td>
+                                                            <td>{metric['Incidence (2023)']}</td>
+                                                            <td>{metric['Mortality Risk']}</td>
+                                                            <td>{metric['Attack Rate']?.toFixed(4)}</td>
+                                                            <td>{metric['CFR']}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -321,7 +385,11 @@ function ForecastingAgeing({parentDatasource}) {
                                                 </thead>
                                                 <tbody>
                                                     {sortedCompetingSkills.map((pair, index) => (
-                                                        <tr key={index}><td>{formatSkillName(pair['Skill A'])}</td><td>{formatSkillName(pair['Skill B'])}</td><td>{pair.Correlation.toFixed(3)}</td></tr>
+                                                        <tr key={index}>
+                                                            <td style={{textAlign:"left"}}><FormatKuSkill skill={pair['Skill A']} parentDatasource={parentDatasource} /></td>
+                                                            <td style={{textAlign:"left"}}><FormatKuSkill skill={pair['Skill B']} parentDatasource={parentDatasource} /></td>
+                                                            <td>{pair.Correlation.toFixed(3)}</td>
+                                                        </tr>
                                                     ))}
                                                 </tbody>
                                             </Table>
@@ -342,7 +410,7 @@ function ForecastingAgeing({parentDatasource}) {
                                                 <tbody>
                                                     {sortedRapidObsolescence.map((skill, index) => (
                                                         <tr key={index}>
-                                                            <td>{formatSkillName(skill.Skill)}</td>
+                                                            <td style={{textAlign:"left"}}><FormatKuSkill skill={skill.Skill} parentDatasource={parentDatasource} /></td>
                                                             <td>{skill['Peak Month']}</td>
                                                             <td>{skill['Peak Value']}</td>
                                                             <td>{skill['Min Value After Peak']}</td>

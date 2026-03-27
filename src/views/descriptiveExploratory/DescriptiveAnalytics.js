@@ -55,7 +55,33 @@ function DescriptiveAnalytics(props) {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" />
                         <YAxis dataKey="label" type="category" width={200} />
-                        <Tooltip />
+                        <Tooltip
+                            content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                    const d = payload[0].payload;
+                                    return (
+                                        <div style={{
+                                            background: "#fff",
+                                            border: "1px solid #ccc",
+                                            borderRadius: 6,
+                                            padding: "10px 14px",
+                                            maxWidth: 320,
+                                            fontSize: 13,
+                                            boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+                                        }}>
+                                            <strong>{d.label}</strong>
+                                            <div style={{ marginTop: 6, color: "#555", lineHeight: 1.5 }}>
+                                                {d?.tooltip}
+                                            </div>
+                                            <div style={{ marginTop: 8, color: "#f39423", fontWeight: 600 }}>
+                                                Frequency: {d.Freq}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }}
+                        />
                         <Bar dataKey="Freq" fill="#f39423"/>
                     </BarChart>
                 </ResponsiveContainer>
