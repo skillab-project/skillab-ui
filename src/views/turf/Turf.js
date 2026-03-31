@@ -9,6 +9,7 @@ function Turf({ datasource }) {
     const [search, setSearch] = useState(false);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isTimeout, setIsTimeout] = useState(false);
 
     const handleApplySelection = (params) => {
         const { selectedItem, selectedOccupations, combinations, keywords } = params;
@@ -16,6 +17,7 @@ function Turf({ datasource }) {
         
         setSearch(true);
         setLoading(true);
+        setIsTimeout(false);
 
         let endpoint = "";
         let queryParams = `pillar=${pillar}&combinations=${combinations}`;
@@ -45,7 +47,18 @@ function Turf({ datasource }) {
             .catch((err) => {
                 setLoading(false);
                 console.error("Error fetching data:", err);
-                setData([]);
+
+                const isTimeoutError =
+                    err.code === "ECONNABORTED" ||
+                    err.message?.toLowerCase().includes("timeout") ||
+                    err.response?.status === 408 ||
+                    err.response?.status === 504;
+
+                if (isTimeoutError) {
+                    setIsTimeout(true);
+                } else {
+                    setData([]);
+                }
             });
     }
 
@@ -65,6 +78,11 @@ function Turf({ datasource }) {
                             <div className="text-center"><div className="lds-dual-ring"></div></div>
                         ) : !search ? (
                             <div className="text-center text-muted">Please configure parameters and click Apply.</div>
+                        ) : isTimeout ? (
+                            <div className="text-center text-muted">
+                                <h6>⏳ Analysis is currently running.</h6>
+                                <p>This may take a while. Please come back later and try again.</p>
+                            </div>
                         ) : data.length > 0 ? (
                             <TurfResults data={data} />
                         ) : (
