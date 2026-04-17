@@ -35,8 +35,8 @@ const allTabs = [
     { id: '1', name: 'Descriptive/Exploratory' },
     { id: '2', name: 'HCV' },
     { id: '3', name: 'Turf' },
-    { id: '4', name: 'Biodiversity' },
-    { id: '5', name: 'Archetypal' },
+    // { id: '4', name: 'Biodiversity' },
+    // { id: '5', name: 'Archetypal' },
     { id: '6', name: 'Co-occurrence' },
 ];
 

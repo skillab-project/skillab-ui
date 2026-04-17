@@ -24,7 +24,7 @@ const RecommendOccupation = ({ skills }) => {
         try {
             const strippedSkills = skills.map(skill => skill.skill.label);
             const res = await axios.post(
-                `${process.env.REACT_APP_API_URL_SKILLS_REQUIRED}/required_skill_recommender?matching_number=1`, //toDO: make matching_number dynamic
+                `${process.env.REACT_APP_API_URL_SKILLS_DIVERSITY}/required_skill_recommender?matching_number=1`, //toDO: make matching_number dynamic
                 { skill_list: strippedSkills }
             );
             setData(res.data);

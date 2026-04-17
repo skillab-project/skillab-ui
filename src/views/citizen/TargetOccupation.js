@@ -25,7 +25,7 @@ const TargetOccupation = ({skills}) => {
     const fetchSkillsNeeded = async (occupation) => {
         try {
             const res = await axios.post(
-                `${process.env.REACT_APP_API_URL_SKILLS_REQUIRED}/required_skills_service?occupation_name=${occupation}`
+                `${process.env.REACT_APP_API_URL_SKILLS_DIVERSITY}/required_skills_service?occupation_name=${occupation}`
             );
             setSkillsNeeded(res.data);
         } catch (err) {

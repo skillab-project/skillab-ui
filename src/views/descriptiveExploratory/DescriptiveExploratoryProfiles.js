@@ -42,7 +42,7 @@ const countryLookup = {
     "GREECE": "Greece", "ΕΛΛΆΔΑ": "Greece",
     "ÖSTERREICH": "Austria", "AUSTRIA": "Austria",
     "ESPAÑA": "Spain", "SPAIN": "Spain",
-    "UNITEDKINGDOM": "United Kingdom", "NORTHERN IRELAND": "Ireland",
+    "UNITED KINGDOM": "United Kingdom", "NORTHERN IRELAND": "Ireland",
     "SUOMI/FINLAND": "Finland", "FINLAND": "Finland",
     "MAGYARORSZÁG": "Hungary", "HUNGARY": "Hungary",
     "NEDERLAND": "Netherlands", "THE NETHERLANDS": "Netherlands",
@@ -83,128 +83,149 @@ const DescriptiveExploratoryProfiles = ({filters}) => {
     
     // derive constants from props
     const filterSources = useMemo(() => filters?.dataSource?.[0] || "", [filters]);
-    const filterLimitData = useMemo(() => filters.dataLimit || "", [filters]);
+    const filterLimit = useMemo(() => filters?.dataLimit || "1000", [filters]);
 
-    
-    // Check if there is same analysis or
-    //  start new
-    const checkLoadedDataOfUser = async () => {
-        setDataAreReady(true);
-        fetchDataSkills();
-    }
+    const pollingRef = useRef(null);
 
-    // Get Data for Descriptive component
-    const fetchDataSkills = async () => {
-        try {
-            let url = process.env.REACT_APP_API_URL_TRACKER+"/api/descriptive-analytics/profiles?limit=100";
-            if (filterSources) {
-                url += "&source="+filterSources;
-            }
-            const response = await axios.get(url,
-                {
-                headers:{
-                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
-                }
-            });
-
-            // Check if there is error with loading data
-            if(response.status!=200){
-                setErrorWithAnalysis(true);
-                return;
-            }
-
-            // set data
-            setDataOccupations(response.data);
-
-            // fetch data one by one
-            fetchLocationData();
-        } catch (error) {
-            console.error('Error fetching data:', error);
+    const stopPolling = () => {
+        if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
         }
     };
 
-    // Get Data for Location component
-    const fetchLocationData = async () => {
-        try{
-            let url = process.env.REACT_APP_API_URL_TRACKER+"/api/descriptive-analytics/profiles/locations?limit=500";
-            if (filterSources) {
-                url += "&source="+filterSources;
-            }
-            const response = await axios.get(url,
-                {
-                headers:{
-                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
-                }
+    useEffect(() => {
+        return () => stopPolling();
+    }, []);
+
+    const checkLoadedDataOfUser = async () => {
+        setDataAreReady(true);
+        stopPolling();
+
+        try {
+            const url = `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/analysis/check?sessionId=profiles&filterSource=${filterSources}&limitData=${filterLimit}`;
+            const response = await axios.get(url, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
             });
 
-            // Check if there is error with loading data
-            if(response.status!=200){
-                setErrorWithAnalysis(true);
-                return;
+            if (response.status === 200) {
+                if (response.data.finished) {
+                    setAnalysisIsRunning(false);
+                    loadAllAnalysisData(response.data.id);
+                } else {
+                    setAnalysisIsRunning(true);
+                    startPolling(response.data.id);
+                }
             }
-        
-            // Process the data from the initial response
-            processLocationData(response.data);
-
-            // Fetch exploratory data
-            fetchDataExploratory();
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                handleStartNewAnalysis();
+            } else {
+                console.error('Error checking analysis:', error);
+                setErrorWithAnalysis(true);
+            }
         }
-        catch (error) {
+    };
+
+    const startPolling = (analysisId) => {
+        stopPolling();
+        pollingRef.current = setInterval(async () => {
+            try {
+                const url = `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/analysis/${analysisId}/check`;
+                const response = await axios.get(url, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+                });
+                if (response.data.finished) {
+                    stopPolling();
+                    setAnalysisIsRunning(false);
+                    loadAllAnalysisData(analysisId);
+                }
+            } catch (error) {
+                console.error("Polling error:", error);
+            }
+        }, 60000);
+    };
+
+    const handleStartNewAnalysis = async () => {
+        try {
+            setAnalysisIsRunning(true);
+            const url = `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/analysis/new`;
+            const response = await axios.post(url, null, {
+                params: {
+                    sessionId: "profiles",
+                    filterSource: filterSources,
+                    limitData: filterLimit
+                },
+                headers: { 'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+            });
+            if (response.data?.id) {
+                startPolling(response.data.id);
+            }
+        } catch (err) {
+            console.error("Failed to start new analysis", err);
+            setErrorWithAnalysis(true);
+        }
+    };
+
+    const loadAllAnalysisData = (id) => {
+        fetchDataSkills(id);
+        fetchLocationData(id);
+        fetchDataExploratory(id);
+    };
+
+    const fetchDataSkills = async (analysisId) => {
+        try {
+            const url = `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/analysis/${analysisId}/descriptive`;
+            const response = await axios.get(url, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+            });
+            if (response.status === 200) {
+                setDataOccupations(response.data);
+            }
+        } catch (error) {
+            console.error('Error fetching descriptive data:', error);
+        }
+    };
+
+    const fetchLocationData = async (analysisId) => {
+        try {
+            const url = `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/analysis/${analysisId}/descriptivelocation`;
+            const response = await axios.get(url, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+            });
+            if (response.status === 200) {
+                processLocationData(response.data);
+            }
+        } catch (error) {
             console.error('Error fetching location data:', error);
         }
-    }
+    };
 
     // Helper function to process and transform location data
     const processLocationData = (locationData) => {
-        if (locationData && Array.isArray(locationData)) {
-            const aggregatedData = locationData.reduce((acc, item) => {
-                // Some API versions use 'Var1', others use 'location'
-                const rawValue = item.Var1 || item.location;
-                const countryName = getStandardCountryName(rawValue);
-                
-                // Only add if it's a valid country from our map
-                if (countryName) {
-                    acc[countryName] = (acc[countryName] || 0) + item.Freq;
-                }
-                return acc;
-            }, {});
-
-            // Convert the object { France: 100, Germany: 150 } 
-            // into the array [{ country: "Germany", frequency: 150 }, ...]
-            const transformedData = Object.entries(aggregatedData)
-                .map(([country, frequency]) => ({ country, frequency }))
-                .sort((a, b) => b.frequency - a.frequency);
-
-            console.log("Cleaned Location Data:", transformedData);
-            setCountryFrequencyData(transformedData);
-        }
+        if (!locationData) return;
+        const aggregatedData = locationData.reduce((acc, { Var1, Freq }) => {
+            const countryName = getStandardCountryName(Var1);
+            acc[countryName] = (acc[countryName] || 0) + Freq;
+            return acc;
+        }, {});
+        const transformedData = Object.entries(aggregatedData)
+            .map(([country, frequency]) => ({ country, frequency }))
+            .sort((a, b) => b.frequency - a.frequency);
+        setCountryFrequencyData(transformedData);
     };
 
-    // Get Data for Exploratory component 
-    const fetchDataExploratory = async () => {
-        try{
-            let url = process.env.REACT_APP_API_URL_TRACKER + "/api/exploratory-analytics/profiles/skills-by-location?limit=1000";
-            if (filterSources) {
-                url += "&source="+filterSources;
-            }
-            const response = await axios.get(url,
-                {
-                headers:{
-                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
-                }
+    const fetchDataExploratory = async (analysisId) => {
+        try {
+            const url = `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/analysis/${analysisId}/exploratory`;
+            const response = await axios.get(url, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
             });
-
-            // Check if there is error with loading data
-            if(response.status!=200){
-                setErrorWithAnalysis(true);
-                return;
+            if (response.status === 200) {
+                processAnalyticsData(response.data);
             }
-
-            // Process the data from the response
-            processAnalyticsData(response.data);
-        }
-        catch (error) {
-            console.error('Error fetching location data:', error);
+        } catch (error) {
+            console.error('Error fetching exploratory data:', error);
         }
     };
 
@@ -229,94 +250,72 @@ const DescriptiveExploratoryProfiles = ({filters}) => {
             countryGroups[country][label] = (countryGroups[country][label] || 0) + Freq;
         });
 
-        // 2. Convert Object to Array and Sort
+        // Convert Object to Array and Sort
         const transformedData = Object.values(countryGroups).sort((a, b) => {
-            // Calculate totals for each country to sort by "most popular" overall
-            const totalA = Object.values(a).reduce((sum, val) => 
-                typeof val === 'number' ? sum + val : sum, 0
-            );
-            const totalB = Object.values(b).reduce((sum, val) => 
-                typeof val === 'number' ? sum + val : sum, 0
-            );
+            const totalA = Object.values(a).reduce((sum, val) => typeof val === 'number' ? sum + val : sum, 0);
+            const totalB = Object.values(b).reduce((sum, val) => typeof val === 'number' ? sum + val : sum, 0);
             return totalB - totalA;
         });
 
         setDataExploratory(transformedData);
     };
 
-
     useEffect(() => {
         const load = async () => {
-            // Reset state before fetching new data
+            stopPolling();
             setDataAreReady(false);
             setAnalysisIsRunning(false);
             setErrorWithAnalysis(false);
             setDataOccupations([]);
             setDataExploratory([]);
             setCountryFrequencyData([]);
-            
-            console.log("Filters changed, re-running analysis with:", filters);
             checkLoadedDataOfUser();
         };
-
         load();
+        return () => stopPolling();
     }, [filters]);
 
-
-    
     return (
         <>
             {(errorWithAnalysis || analysisIsRunning) && (
                 <Row>
                     <Col md="12">
-                    <Card>
-                        <CardBody>
-                        {errorWithAnalysis
-                            ? "Error with analysis, try different filters"
-                            : "Come back soon, the analysis might take a while"}
-                        </CardBody>
-                    </Card>
+                        <Card>
+                            <CardBody>
+                                {errorWithAnalysis
+                                    ? "Error with analysis, try different filters"
+                                    : "Come back soon, the analysis might take a while"}
+                            </CardBody>
+                        </Card>
                     </Col>
                 </Row>
             )}
-            
-            {!dataAreReady ? 
-                <div className="lds-dual-ring"></div>
-                :
-                (<>
+
+            {!dataAreReady
+                ? <div className="lds-dual-ring"></div>
+                : (<>
                     <Row>
                         <Col md="12">
-                            {(dataOccupations && dataOccupations.length>0) &&
-                                <DescriptiveAnalytics data={dataOccupations}/>
-                            }
+                            {dataOccupations?.length > 0 && <DescriptiveAnalytics data={dataOccupations} />}
                         </Col>
                     </Row>
-
                     <Row>
                         <Col md="12">
-                            {(countryFrequencyData && countryFrequencyData.length>0) &&
-                                <TopCountries data={countryFrequencyData}/>
-                            }
+                            {countryFrequencyData?.length > 0 && <TopCountries data={countryFrequencyData} />}
                         </Col>
                     </Row>
-                    
                     <Row>
                         <Col md="12">
-                            {dataExploratory && dataExploratory.length>0 &&
-                                <ExploratoryAnalytics data={dataExploratory} />
-                            }
+                            {dataExploratory?.length > 0 && <ExploratoryAnalytics data={dataExploratory} />}
                         </Col>
                     </Row>
-
-
-                    {!errorWithAnalysis &&
-                            (dataOccupations.length==0 || dataExploratory.length==0 ) &&
-                        <div class="lds-dual-ring"></div>
+                    {!errorWithAnalysis && (dataOccupations.length === 0 || dataExploratory.length === 0) &&
+                        <div className="lds-dual-ring"></div>
                     }
                 </>)
             }
         </>
     );
-}
+};
 
 export default DescriptiveExploratoryProfiles;

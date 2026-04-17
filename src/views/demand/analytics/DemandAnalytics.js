@@ -22,6 +22,7 @@ import { FaFilter } from "react-icons/fa";
 import JobAdsFilter from "../JobAdsFilter";
 import HCV from "../../hcv/HCV";
 import Turf from "../../turf/Turf";
+import Biodiversity from "../../diversity/Biodiversity";
 import DescriptiveExploratoryJobs from "../../descriptiveExploratory/DescriptiveExploratoryJobs";
 import CoOccurrence from "../../coOccurrence/CoOccurrence";
 
@@ -117,7 +118,7 @@ const DemandAnalytics = () => {
                             Biodiversity
                         </NavLink>
                     </NavItem>
-                    <NavItem style={{cursor:"pointer"}}>
+                    {/* <NavItem style={{cursor:"pointer"}}>
                         <NavLink
                             className={classnames({
                                 active:
@@ -127,7 +128,7 @@ const DemandAnalytics = () => {
                         >
                             Archetypal
                         </NavLink>
-                    </NavItem>
+                    </NavItem> */}
                     <NavItem style={{cursor:"pointer"}}>
                         <NavLink
                             className={classnames({
@@ -206,7 +207,7 @@ const DemandAnalytics = () => {
                      */}
                     <TabPane tabId="4">
                         {currentActiveTab == 4 &&
-                            <>4</>
+                            <Biodiversity parentDatasource="jobs"/>
                         }
                     </TabPane>
                     

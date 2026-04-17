@@ -24,11 +24,14 @@ const AdminConfiguration = () => {
         name: "",
         email: "",
         password: "",
-        installation: "citizen"
+        installation: "citizen",
+        organization: ""
     });
     const [modal, setModal] = useState(false);
     const [pendingAction, setPendingAction] = useState(null);
     const [modalText, setModalText] = useState("");
+    const [newOrganization, setNewOrganization] = useState("");
+    const [organizations, setOrganizations] = useState([]);
 
     const toggleModal = () => setModal(!modal);
 
@@ -38,6 +41,17 @@ const AdminConfiguration = () => {
         toggleModal();
     };
 
+    const fetchOrganizations = async () => {
+        try {
+            const response = await axios.get(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/organization",
+                { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
+            );
+            setOrganizations(response.data);
+        } catch (error) {
+            console.error("Error fetching organizations:", error);
+            return [];
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -55,6 +69,7 @@ const AdminConfiguration = () => {
 
     useEffect(() => {
         fetchUsers();
+        fetchOrganizations();
     }, []);
 
     const handleInputChange = (e) => {
@@ -63,13 +78,14 @@ const AdminConfiguration = () => {
     };
 
     const handleCreateUser = async () => {
-        if (!newUser.name || !newUser.email || !newUser.password) {
+        if (!newUser.name || !newUser.email || !newUser.password || !newUser.installation || 
+                                        (!newUser.organization) && newUser.organization!="") {
             alert("Please fill in all fields");
             return;
         }
 
         try {
-            await axios.post(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/users/create?installation=" + newUser.installation,
+            await axios.post(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/users/create?installation=" + newUser.installation + "&organization=" + newUser.organization,
                 {
                     name: newUser.name,
                     email: newUser.email,
@@ -119,6 +135,29 @@ const AdminConfiguration = () => {
         );
     };
 
+    const handleCreateOrganization = async () => {
+        if (!newOrganization) {
+            alert("Please enter an organization name");
+            return;
+        }
+        try {
+            await axios.post(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/organization?name=" + newOrganization, {}, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+            });
+            await axios.post(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/employee-management-backend/organizations", 
+                { name: newOrganization, location: "Unknown" }, 
+                { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` }
+            });
+            alert("Organization created successfully");
+            setNewOrganization("");
+            fetchOrganizations(); 
+        }
+        catch (error) {
+            console.error("Error creating organization:", error);
+            alert("Failed to create organization");
+        }
+    };
+
 
     return (
         <Card>
@@ -126,6 +165,28 @@ const AdminConfiguration = () => {
                 <CardTitle tag="h4">Admin Configuration</CardTitle>
             </CardHeader>
             <CardBody>
+                {/* --- Create Organization Section --- */}
+                <div className="mb-5 p-3 border rounded">
+                    <h5 className="mb-3">Create New Organization</h5>
+                    <Form>
+                        <Row>
+                            <Col md="12">
+                                <FormGroup>
+                                    <Label>Organization Name</Label>
+                                    <Input 
+                                        type="text" 
+                                        name="name" 
+                                        value={newOrganization}
+                                        onChange={(e) => setNewOrganization(e.target.value)}
+                                        placeholder="Organization Name"
+                                    />
+                                </FormGroup>
+                                <Button color="primary" onClick={handleCreateOrganization}>Create Organization</Button>
+                            </Col>
+                        </Row>
+                    </Form>
+                </div>
+
                 {/* --- Create User Section --- */}
                 <div className="mb-5 p-3 border rounded">
                     <h5 className="mb-3">Create New User</h5>
@@ -184,6 +245,24 @@ const AdminConfiguration = () => {
                                     </Input>
                                 </FormGroup>
                             </Col>
+                            <Col md="6">
+                                <FormGroup>
+                                    <Label>Organization</Label>
+                                    <Input 
+                                        type="select" 
+                                        name="organization" 
+                                        value={newUser.organization}
+                                        onChange={handleInputChange}
+                                    >
+                                        <option value="">Select Organization</option>
+                                        {organizations.map((org) => (
+                                            <option key={org.name} value={org.name}>
+                                                {org.name}
+                                            </option>
+                                        ))}
+                                    </Input>
+                                </FormGroup>
+                            </Col>
                         </Row>
                         <Row>
                             <Col>
@@ -194,7 +273,7 @@ const AdminConfiguration = () => {
                 </div>
 
                 {/* --- User List Table --- */}
-                <h5 className="mb-3">User Management</h5>
+                <h5 className="mb-3">All Users</h5>
                 <div style={{ overflowX: "auto" }}>
                     <Table responsive striped hover>
                         <thead className="text-primary">
@@ -203,6 +282,7 @@ const AdminConfiguration = () => {
                                 <th>Email</th>
                                 <th>Roles</th>
                                 <th>Installation</th>
+                                <th>Organization</th>
                                 <th className="text-right">Actions</th>
                             </tr>
                         </thead>
@@ -214,6 +294,7 @@ const AdminConfiguration = () => {
                                         <td>{user.email}</td>
                                         <td>{user.roles}</td>
                                         <td>{user.installation}</td>
+                                        <td>{user.organization?.name}</td>
                                         <td className="text-right" style={{display:"flex"}}>
                                             {user.roles && !user.roles.includes("PRIVILEGED") && (
                                                 <>

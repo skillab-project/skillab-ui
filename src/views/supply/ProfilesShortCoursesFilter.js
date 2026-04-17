@@ -9,7 +9,7 @@ const ProfilesShortCoursesFilter = ({supply, onApplyFilters}) => {
 
     // toDo Get dynamicaly?
     const dataSources = supply === "profiles"
-        ? ["linkedin", "stack-stackoverflow", "stack-biology", "stack-chemistry", "stack-earthscience", "stack-electronics",
+        ? ["linkedin", "revelio", "stack-stackoverflow", "stack-biology", "stack-chemistry", "stack-earthscience", "stack-electronics",
             "stack-interpersonal", "stack-law", "stack-linguistics", "stack-literature", "stack-math",
             "stack-philosophy", "stack-physics", "stack-politics", "stack-sports"]
         : supply === "courses"

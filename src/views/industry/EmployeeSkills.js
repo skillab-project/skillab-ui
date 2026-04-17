@@ -15,6 +15,7 @@ import axios from 'axios';
 import classnames from 'classnames';
 import KnowleageUnits from "./employeeSkills/KnowledgeUnits";
 import GeneralSkills from "./employeeSkills/GeneralSkills";
+import PerformanceReviews from "./employeeSkills/PerformanceReviews";
 
 
 function EmployeeSkills() {
@@ -49,6 +50,17 @@ function EmployeeSkills() {
                         Skills
                     </NavLink>
                 </NavItem>
+                <NavItem style={{cursor:"pointer"}}>
+                    <NavLink
+                        className={classnames({
+                            active:
+                                currentActiveTab === '3'
+                        })}
+                        onClick={() => { toggle('3'); }}
+                    >
+                        Performance Reviews
+                    </NavLink>
+                </NavItem>
             </Nav>
 
             <TabContent activeTab={currentActiveTab}>
@@ -67,6 +79,15 @@ function EmployeeSkills() {
                 <TabPane tabId="2">
                     {currentActiveTab == 2 &&
                         <GeneralSkills />
+                    }
+                </TabPane>
+
+                {/**
+                 * Tab: Performance Reviews
+                 */}
+                <TabPane tabId="3">
+                    {currentActiveTab == 3 &&
+                        <PerformanceReviews />
                     }
                 </TabPane>
             </TabContent>

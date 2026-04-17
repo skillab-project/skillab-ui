@@ -10,6 +10,7 @@ import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import GapCompetition from "views/industry/GapCompetition";
 import AtRisk from "views/industry/AtRisk";
 import EmployeeSkills from "views/industry/EmployeeSkills";
+import OrganizationInformation from "views/industry/OrganizationInformation";
 
 var routes = [
   {
@@ -52,6 +53,13 @@ var routes = [
     name: "Employee KU",
     icon: "nc-icon nc-single-02",
     component: <EmployeeSkills />,
+    layout: "/industry",
+  },
+  {
+    path: "/account/organization-info",
+    name: "Organization Information",
+    icon: "nc-icon nc-single-02",
+    component: <OrganizationInformation />,
     layout: "/industry",
   },
   {

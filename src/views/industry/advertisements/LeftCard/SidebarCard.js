@@ -100,7 +100,7 @@ const SidebarCard = ({
     /* -------------------- fetch & group -------------------- */
     const loadDepartments = useCallback(async () => {
         try {
-            const jobsRes = await fetch(`${baseUrl}/jobAds`, { cache: "no-store", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
+            const jobsRes = await fetch(`${baseUrl}/api/v1/jobAds`, { cache: "no-store", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`} });
             if (!jobsRes.ok) throw new Error("Failed to fetch job ads");
             const jobs = await jobsRes.json();
 

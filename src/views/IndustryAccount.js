@@ -23,6 +23,7 @@ import { TfiAnnouncement } from "react-icons/tfi";
 import { FaListUl, FaPeopleRoof } from "react-icons/fa6";
 import { SiJfrogpipelines } from "react-icons/si";
 import { MdModelTraining } from "react-icons/md";
+import { FaBuilding } from "react-icons/fa";
 import { Bar } from 'react-chartjs-2';
 
 
@@ -50,6 +51,9 @@ function IndustryAccount() {
     }
     function handelClickSkillsAtRisk() {
         window.location.href = "/industry/account/at-risk";
+    }
+    function handleClickOrganizationInfo() {
+        window.location.href = "/industry/account/organization-info";
     }
 
     const handleViewOrganizationSkills = async () => {
@@ -147,7 +151,7 @@ function IndustryAccount() {
                                         </CardFooter>
                                     </Card>
                                 </Col>
-                                <Col md="3">
+                                {/* <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
                                             <MdModelTraining size="50"/>
@@ -156,7 +160,7 @@ function IndustryAccount() {
                                             Skill Training Sets
                                         </CardFooter>
                                     </Card>
-                                </Col>
+                                </Col> */}
                                 {/* <Col md="3">
                                     <Card style={{cursor:"pointer"}}>
                                         <CardBody>
@@ -182,6 +186,16 @@ function IndustryAccount() {
                                         </CardBody>
                                         <CardFooter>
                                             Employee Skills
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handleClickOrganizationInfo()} >
+                                        <CardBody>
+                                            <FaBuilding size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Organization Information
                                         </CardFooter>
                                     </Card>
                                 </Col>
