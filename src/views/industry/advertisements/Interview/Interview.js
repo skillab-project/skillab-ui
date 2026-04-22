@@ -110,7 +110,7 @@ export default function Interview({ selectedJobAdId }) {
         setSelectedStepIndex(0);
         setStatus(null);
 
-        fetch(`${API}/jobAds/${selectedJobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
+        fetch(`${API}/api/v1/jobAds/${selectedJobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => {
                 setInterviewId(d?.id ?? null);
@@ -118,7 +118,7 @@ export default function Interview({ selectedJobAdId }) {
             })
             .catch(() => setError("Failed to load interview details."));
 
-        fetch(`${API}/jobAds/details?jobAdId=${selectedJobAdId}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
+        fetch(`${API}/api/v1/jobAds/details?jobAdId=${selectedJobAdId}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => setStatus(d?.status ?? null))
             .catch(() => setStatus(null));

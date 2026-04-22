@@ -28,7 +28,7 @@ export default function StepsTree({
         }
         (async () => {
             try {
-                const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
+                const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/${selectedJobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 if (!r.ok) throw new Error();
                 const data = await r.json();
                 const safe = (data?.steps || [])

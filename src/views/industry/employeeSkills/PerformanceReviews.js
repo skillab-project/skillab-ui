@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Button, Card, CardHeader, CardBody, Table, Row, Col,
   FormGroup, Label, Input, Badge, Spinner, Collapse,
   Modal, ModalHeader, ModalBody, ModalFooter, Form
 } from "reactstrap";
 import axios from "axios";
+import Select from "react-select";
 import { getOrganization } from "../../../utils/Tokens";
 import {
   API_BASE_URL,
@@ -50,6 +51,63 @@ function DeleteConfirmModal({ isOpen, toggle, onConfirm, itemDetails, loading })
                 <Button color="danger" onClick={onConfirm} disabled={loading}>{loading ? <Spinner size="sm" /> : "Confirm Delete"}</Button>
             </ModalFooter>
         </Modal>
+    );
+}
+
+/**
+ * Searchable skill selector — shows org skills by default, hits /skills/search?q=
+ * when the user types something not in the list.
+ */
+function SkillSelect({ value, orgSkills, onSkillChange }) {
+    const [searchedSkills, setSearchedSkills] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const timeoutRef = useRef(null);
+
+    useEffect(() => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+        if (!inputValue.trim()) {
+            setSearchedSkills([]);
+            return;
+        }
+
+        setIsSearching(true);
+        timeoutRef.current = setTimeout(async () => {
+            try {
+                const headers = await getAuthHeaders();
+                const res = await axios.get(
+                    `${API_BASE_URL}/skills/search?q=${encodeURIComponent(inputValue.trim())}`,
+                    { headers }
+                );
+                setSearchedSkills(res.data || []);
+            } catch (err) {
+                console.error('Skill search failed:', err);
+                setSearchedSkills([]);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 300);
+
+        return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+    }, [inputValue]);
+
+    const skillsToShow = inputValue.trim() ? searchedSkills : orgSkills;
+    const options = skillsToShow.map(sk => ({ value: sk.id, label: sk.name }));
+    const selected = options.find(o => o.value?.toString() === value?.toString()) || null;
+
+    return (
+        <Select
+            options={options}
+            value={selected}
+            onChange={(opt) => onSkillChange(opt ? { skillId: opt.value, skillName: opt.label } : { skillId: '', skillName: '' })}
+            onInputChange={(val, meta) => { if (meta.action === 'input-change') setInputValue(val); }}
+            isLoading={isSearching}
+            isClearable
+            placeholder="Search skills..."
+            menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+            styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+        />
     );
 }
 
@@ -296,21 +354,15 @@ function PerformanceReviews() {
                                     {skillEntries.map((s, idx) => (
                                         <tr key={s.tempId || idx}>
                                             <td className="p-1">
-                                                <Input 
-                                                    type="select" 
-                                                    value={s.skillId} 
-                                                    required 
-                                                    onChange={e => {
+                                                <SkillSelect
+                                                    value={s.skillId}
+                                                    orgSkills={orgSkills}
+                                                    onSkillChange={({ skillId, skillName }) => {
                                                         const copy = [...skillEntries];
-                                                        copy[idx].skillId = e.target.value;
+                                                        copy[idx] = { ...copy[idx], skillId, skillName };
                                                         setSkillEntries(copy);
                                                     }}
-                                                >
-                                                    <option value="">Select Skill...</option>
-                                                    {orgSkills.map(sk => (
-                                                        <option key={sk.id} value={sk.id}>{sk.name}</option>
-                                                    ))}
-                                                </Input>
+                                                />
                                             </td>
                                             <td className="p-1">
                                                 <Input 

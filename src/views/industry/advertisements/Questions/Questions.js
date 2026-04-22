@@ -76,7 +76,7 @@ export default function Questions({ selectedJobAdId }) {
             setStatus(null);
             return;
         }
-        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/details?jobAdId=${selectedJobAdId}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
+        fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/details?jobAdId=${selectedJobAdId}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => setStatus(d?.status ?? null))
             .catch(() => setStatus(null));

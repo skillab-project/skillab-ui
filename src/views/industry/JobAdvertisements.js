@@ -82,7 +82,7 @@ function JobAdvertisements() {
         }
         const load = async () => {
             try {
-                const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/details?jobAdId=${selectedJobAdId}`, {
+                const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/details?jobAdId=${selectedJobAdId}`, {
                     cache: 'no-store',
                     headers: { 'Cache-Control': 'no-cache', 
                         'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}` }

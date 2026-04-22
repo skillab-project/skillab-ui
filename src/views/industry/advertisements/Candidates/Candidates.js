@@ -151,7 +151,7 @@ export default function Candidates({ jobAdId }) {
                 setErrSteps(null);
 
                 const detailsRes = await fetch(
-                    `${API_BASE}/jobAds/${jobAdId}/interview-details`,
+                    `${API_BASE}/api/v1/jobAds/${jobAdId}/interview-details`,
                     { signal: ac.signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
                 );
                 if (!detailsRes.ok) throw new Error("Failed to fetch interview-details");

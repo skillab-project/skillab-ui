@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Button,
   Card,
@@ -15,6 +15,7 @@ import {
   Row,
   Col
 } from "reactstrap";
+import Select from 'react-select';
 import axios from 'axios';
 import { getOrganization } from "../../utils/Tokens";
 
@@ -42,6 +43,12 @@ function OrganizationInformation() {
     const [employeeModal, setEmployeeModal] = useState(false);
     const [employeeDeleteModal, setEmployeeDeleteModal] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+
+    // Occupation search state
+    const [searchedOccupations, setSearchedOccupations] = useState([]);
+    const [searchingOccupations, setSearchingOccupations] = useState(false);
+    const [occupationSearchTerm, setOccupationSearchTerm] = useState('');
+    const searchTimeoutRef = useRef(null);
 
     const [empForm, setEmpForm] = useState({
         id: null,
@@ -150,6 +157,8 @@ function OrganizationInformation() {
             setIsEditMode(false);
             setEmpForm({ firstName: "", lastName: "", email: "", hireDate: "", departmentId: "", occupationId: "" });
         }
+        setOccupationSearchTerm('');
+        setSearchedOccupations([]);
         setEmployeeModal(!employeeModal);
     };
 
@@ -215,6 +224,53 @@ function OrganizationInformation() {
     useEffect(() => {
         fetchOrganizationData();
     }, []);
+
+    // Debounced occupation search
+    useEffect(() => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        if (!occupationSearchTerm.trim()) {
+            setSearchedOccupations([]);
+            return;
+        }
+
+        setSearchingOccupations(true);
+        searchTimeoutRef.current = setTimeout(async () => {
+            try {
+                const headers = await getHeaders();
+                const res = await axios.get(
+                    `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/employee-management-backend/occupations/search?q=${encodeURIComponent(occupationSearchTerm.trim())}`,
+                    { headers }
+                );
+                setSearchedOccupations(res.data || []);
+            } catch (error) {
+                console.error('Occupation search failed:', error);
+                setSearchedOccupations([]);
+            } finally {
+                setSearchingOccupations(false);
+            }
+        }, 300);
+
+        return () => {
+            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        };
+    }, [occupationSearchTerm]);
+
+    const occupationsToShow = useMemo(() => {
+        return occupationSearchTerm.trim() ? searchedOccupations : occupations;
+    }, [occupationSearchTerm, searchedOccupations, occupations]);
+
+    const occupationOptions = useMemo(
+        () => occupationsToShow.map((o) => ({ value: o.id, label: o.title })),
+        [occupationsToShow]
+    );
+
+    const selectedOccupationOption = useMemo(
+        () => occupationOptions.find((opt) => opt.value?.toString() === empForm.occupationId?.toString()) || null,
+        [occupationOptions, empForm.occupationId]
+    );
 
     const toggleEdit = async (dept = null) => {
         if (dept) {
@@ -548,10 +604,25 @@ function OrganizationInformation() {
                         <Col md="6">
                             <FormGroup>
                                 <Label>Occupation</Label>
-                                <Input type="select" value={empForm.occupationId} onChange={(e) => setEmpForm({...empForm, occupationId: e.target.value})}>
-                                    <option value="">Select Occupation</option>
-                                    {occupations.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
-                                </Input>
+                                <Select
+                                    options={occupationOptions}
+                                    value={selectedOccupationOption}
+                                    onChange={(selected) =>
+                                        setEmpForm({ ...empForm, occupationId: selected ? selected.value.toString() : '' })
+                                    }
+                                    onInputChange={(value, actionMeta) => {
+                                        if (actionMeta.action === 'input-change') {
+                                            setOccupationSearchTerm(value);
+                                        }
+                                    }}
+                                    isLoading={searchingOccupations}
+                                    isClearable
+                                    placeholder="Type to search occupations..."
+                                    menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                                    styles={{
+                                        menuPortal: (base) => ({ ...base, zIndex: 9999 })
+                                    }}
+                                />
                             </FormGroup>
                         </Col>
                     </Row>

@@ -100,7 +100,8 @@ const OccupationSelectionAndPillar = ({onApplySelection, datasource}) => {
 
     // Handle Apply Filter Button
     const handleApplyFilter = () => {
-        if(selectedItem!="Select Pillar" && selectedOccupations.length==0 && datasource=="EU Policies"){
+        if(selectedItem!="Select Pillar" && selectedOccupations.length==0 && 
+                (datasource=="EU Policies" || datasource=="Short Courses") || datasource=="EU profiles"){
             if (onApplySelection) {
                 onApplySelection("", selectedItem);
             }
@@ -117,7 +118,7 @@ const OccupationSelectionAndPillar = ({onApplySelection, datasource}) => {
             <CardBody>
                 <div>
                     {
-                        datasource!=="EU Policies" && 
+                        datasource=="jobs" && 
                         <>
                             <div
                                 style={{

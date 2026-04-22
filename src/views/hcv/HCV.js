@@ -13,7 +13,11 @@ import GroupLevel from "./GroupLevel";
 import OccupationSelectionAndPillar from './OccupationSelectionAndPillar';
 import "../../assets/css/loader.css";
 
-
+//toDO
+// Change service to not require occupation id for all endpoints (done)
+// Change the UI selection of occupation only for jobs
+// Change to remove occupation where is not needed
+// the rest with keywords
 function HCV({datasource}) {
     const [search, setSearch] = useState(false);
     const [data, setData] = useState([]);
@@ -51,9 +55,9 @@ function HCV({datasource}) {
         if (datasource === "jobs") {
             url = `${baseUrl}/jobs?pillar=${pillar}&occupation_ids=${occupation}&source=OJA`;
         } else if (datasource === "EU profiles") {
-            url = `${baseUrl}/profiles?pillar=${pillar}&occupation_ids=${occupation}`;
+            url = `${baseUrl}/profiles?pillar=${pillar}`;
         } else if (datasource === "Short Courses") {
-            url = `${baseUrl}/courses?pillar=${pillar}&occupation_ids=${occupation}`;
+            url = `${baseUrl}/courses?pillar=${pillar}`;
         } else if (datasource === "EU Policies") {
             url = `${baseUrl}/policies?pillar=${pillar}`;
         }

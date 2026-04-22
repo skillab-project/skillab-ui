@@ -71,7 +71,7 @@ export default function Hire({ jobAdId }) {
         if (!jobAdId) return;
         (async () => {
             try {
-                const det = await fetch(`${API_BASE}/jobAds/${jobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
+                const det = await fetch(`${API_BASE}/api/v1/jobAds/${jobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const d = det.ok ? await det.json() : null;
                 const iid = d?.id ?? d?.interviewId ?? null;
                 setInterviewId(iid);

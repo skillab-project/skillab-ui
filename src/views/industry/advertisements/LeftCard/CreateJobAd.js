@@ -104,7 +104,7 @@ export default function CreateJobAd({ isOpen, toggle, onCreated }) {
 
             // 2) fallback
             if (!r.ok) {
-                r = await fetch(`${baseUrl}/api/v1/departments/${deptId}/occupations/${occId}`, { method: "POST" }, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
+                r = await fetch(`${baseUrl}/api/v1/departments/${deptId}/occupations/${occId}`, { method: "POST" , headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             }
 
             if (r.ok) {
@@ -143,7 +143,7 @@ export default function CreateJobAd({ isOpen, toggle, onCreated }) {
                 occupationTitle: occName
             };
 
-            const r = await fetch(`${baseUrl}/jobAds/by-names`, {
+            const r = await fetch(`${baseUrl}/api/v1/jobAds/by-names`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify(payload)
