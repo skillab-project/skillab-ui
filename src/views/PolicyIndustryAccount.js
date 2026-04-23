@@ -40,6 +40,10 @@ function PolicyIndustryAccount() {
     const handelClickFutureTechnologyTrends =()=> {
         window.location.href = "/policy-industry/account/future-technology-trends";
     }
+    
+    const handelClickProgramAndNeeds =()=> {
+        window.location.href = "/policy-industry/account/program-and-needs";
+    }
 
 
     return (
@@ -91,6 +95,16 @@ function PolicyIndustryAccount() {
                                         </CardBody>
                                         <CardFooter>
                                             Future Technology Trends
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickProgramAndNeeds()}>
+                                        <CardBody>
+                                            <LuTrendingUpDown size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Program and Needs
                                         </CardFooter>
                                     </Card>
                                 </Col>

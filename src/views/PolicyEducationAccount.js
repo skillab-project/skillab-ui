@@ -36,6 +36,14 @@ function PolicyEducationAccount() {
     const handelClickTaxonomy =()=> {
         window.location.href = "/policy-education/account/taxonomy";
     }
+    
+    const handelClickProgramAndNeeds =()=> {
+        window.location.href = "/policy-education/account/program-and-needs";
+    }
+
+    const handelClickFutureTechnologyTrends =()=> {
+        window.location.href = "/policy-education/account/future-technology-trends";
+    }
 
     return (
     <>
@@ -80,12 +88,22 @@ function PolicyEducationAccount() {
                             </Row>
                             <Row>
                                 <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickProgramAndNeeds()}>
                                         <CardBody>
                                             <LuTrendingUpDown size="50"/> 
                                         </CardBody>
                                         <CardFooter>
                                             Program and Needs
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickFutureTechnologyTrends()}>
+                                        <CardBody>
+                                            <LuTrendingUpDown size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Future Technology Trends
                                         </CardFooter>
                                     </Card>
                                 </Col>
