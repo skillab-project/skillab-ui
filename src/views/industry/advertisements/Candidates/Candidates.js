@@ -151,7 +151,7 @@ export default function Candidates({ jobAdId }) {
                 setErrSteps(null);
 
                 const detailsRes = await fetch(
-                    `${API_BASE}/api/v1/jobAds/${jobAdId}/interview-details`,
+                    `${API_BASE}/api/v1/jobAds/${jobAdId}/details`,
                     { signal: ac.signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
                 );
                 if (!detailsRes.ok) throw new Error("Failed to fetch interview-details");
@@ -212,48 +212,6 @@ export default function Candidates({ jobAdId }) {
         );
     }, [selectedCandidate?.id]);
 
-    /* 3) assessments per candidate */
-    useEffect(() => {
-        if (!interviewId || !selectedCandidate?.id) {
-            setSteps((prev) => prev.map((s) => ({ ...s, __metrics: undefined })));
-            return;
-        }
-        const ac = new AbortController();
-        setLoadingAssess(true);
-
-        (async () => {
-            try {
-                const url = `${API_BASE}/api/v1/assessment/interviews/${interviewId}/candidates/${selectedCandidate.id}/steps`;
-                const r = await fetch(url, { signal: ac.signal, headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
-                const data = r.ok ? await r.json() : [];
-
-                const byId = new Map(
-                    (Array.isArray(data) ? data : []).map((a) => [a.stepId, a])
-                );
-                setSteps((prev) =>
-                    prev.map((s) => {
-                        const a = byId.get(s.id);
-                        return a
-                            ? {
-                                ...s,
-                                __metrics: {
-                                    totalQuestions: a.totalQuestions ?? 0,
-                                    ratedQuestions: a.ratedQuestions ?? 0,
-                                    averageScore: a.averageScore ?? null,
-                                },
-                            }
-                            : { ...s, __metrics: undefined };
-                    })
-                );
-            } catch {
-                setSteps((prev) => prev.map((s) => ({ ...s, __metrics: undefined })));
-            } finally {
-                setLoadingAssess(false);
-            }
-        })();
-
-        return () => ac.abort();
-    }, [interviewId, selectedCandidate?.id]);
 
     /* 4) right pane: skills */
     const handleSelectQ = useCallback(
@@ -344,31 +302,6 @@ export default function Candidates({ jobAdId }) {
                     })
                 );
 
-                if (interviewId) {
-                    const r2 = await fetch(
-                        `${API_BASE}/api/v1/assessment/interviews/${interviewId}/candidates/${selectedCandidate.id}/steps`,
-                        { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } }
-                    );
-                    if (r2.ok) {
-                        const data = await r2.json();
-                        const byId = new Map((Array.isArray(data) ? data : []).map((a) => [a.stepId, a]));
-                        setSteps((prev) =>
-                            prev.map((s) => {
-                                const a = byId.get(s.id);
-                                return a
-                                    ? {
-                                        ...s,
-                                        __metrics: {
-                                            totalQuestions: a.totalQuestions ?? 0,
-                                            ratedQuestions: a.ratedQuestions ?? 0,
-                                            averageScore: a.averageScore ?? null,
-                                        },
-                                    }
-                                    : s;
-                            })
-                        );
-                    }
-                }
                 toast("Scores saved", "success");
             } catch {
                 toast("Failed to refresh metrics", "error");
@@ -388,7 +321,7 @@ export default function Candidates({ jobAdId }) {
 
             const resp = await fetch(
                 `${API_BASE}/api/v1/candidates/${selectedCandidate.id}/status`,
-                { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
+                { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                 body: JSON.stringify({ status: backendStatus }) }
             );
             if (!resp.ok) {

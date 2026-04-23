@@ -58,9 +58,7 @@ export default function DescriptionCard({
 
         const detailsUrl = `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/details?jobAdId=${selectedJobAdId}`;
         const skillUrlsInPriority = [
-            `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/${selectedJobAdId}/interview-skills`,
-            `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/${selectedJobAdId}/skills`,
-            `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/${selectedJobAdId}/required-skills`,
+            `${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/${selectedJobAdId}/interview-skills`
         ];
 
         try {
@@ -278,7 +276,7 @@ export default function DescriptionCard({
                         style={{ height: skillsPanelHeight, marginBottom: SKILLS_BOTTOM_GAP }}
                     >
                         <Row className="g-3 dc-skills-row">
-                            <Col md="6">
+                            {/* <Col md="6">
                                 <RecommendedSkillsPanel
                                     label="Recommended skills"
                                     panelHeight={skillsPanelHeight}
@@ -286,8 +284,8 @@ export default function DescriptionCard({
                                     description={description}
                                     requiredSkills={requiredSkills}
                                 />
-                            </Col>
-                            <Col md="6">
+                            </Col> */}
+                            <Col md="12">
                                 <SkillSelectorReadOnly
                                     label="Required skills"
                                     requiredskills={requiredSkills}

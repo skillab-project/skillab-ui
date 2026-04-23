@@ -18,7 +18,7 @@ export default function StepsTab({
     jobAdId,
     onSelectStep,
 }) {
-    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api";
+    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api/v1";
 
     const [steps, setSteps] = useState([]);
     const [stepsLoading, setStepsLoading] = useState(false);
@@ -49,7 +49,6 @@ export default function StepsTab({
         (async () => {
             const endpoints = [
                 `${apiBase}/statistics/jobad/${jobAdId}/steps`,
-                `${apiBase}/jobads/${jobAdId}/steps`,
             ];
             for (const url of endpoints) {
                 try {
@@ -86,7 +85,6 @@ export default function StepsTab({
         (async () => {
             const endpoints = [
                 `${apiBase}/statistics/jobad/${jobAdId}/step/${selectedStepId}`,
-                `${apiBase}/jobads/${jobAdId}/steps/${selectedStepId}/stats`,
             ];
             for (const url of endpoints) {
                 try {

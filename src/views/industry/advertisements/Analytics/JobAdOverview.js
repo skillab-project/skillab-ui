@@ -169,7 +169,7 @@ function Histogram({ buckets }) {
 }
 
 export default function JobAdOverview({ jobAdId }) {
-    const base = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api";
+    const base = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api/v1";
 
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState('');

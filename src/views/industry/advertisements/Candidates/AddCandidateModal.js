@@ -310,7 +310,6 @@ export default function AddCandidateModal({
         const r = await fetch(`${API_BASE}/api/v1/candidates/upload-cv`, {
             method: "POST",
             body: fd,
-        },{
             headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
         });
         if (!r.ok) throw new Error(L.err_cv_upload);

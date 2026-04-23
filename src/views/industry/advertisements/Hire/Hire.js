@@ -71,7 +71,7 @@ export default function Hire({ jobAdId }) {
         if (!jobAdId) return;
         (async () => {
             try {
-                const det = await fetch(`${API_BASE}/api/v1/jobAds/${jobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
+                const det = await fetch(`${API_BASE}/api/v1/jobAds/${jobAdId}/details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
                 const d = det.ok ? await det.json() : null;
                 const iid = d?.id ?? d?.interviewId ?? null;
                 setInterviewId(iid);
@@ -170,8 +170,9 @@ export default function Hire({ jobAdId }) {
         if (!selectedCandidate) return;
         setConfirmLoading(true);
         try {
-            const r = await fetch(`${API_BASE}/api/v1/candidates/${selectedCandidate.id}/hire`, { method: "POST" }, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
+            const r = await fetch(`${API_BASE}/api/v1/candidates/${selectedCandidate.id}/hire`, { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             if (!r.ok) {
+                console.error("Failed to hire candidate", await r.text());
                 const msg =
                     r.status === 400
                         ? "Only Approved candidates can be hired"
@@ -180,6 +181,7 @@ export default function Hire({ jobAdId }) {
                             : "Hire failed";
                 throw new Error(msg);
             }
+            console.log("Candidate hired successfully");
             const data = await r.json();
             setCandidates((prev) =>
                 prev.map((c) => (c.id === data.candidateId ? { ...c, status: data.candidateStatus } : c))

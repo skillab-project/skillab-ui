@@ -132,7 +132,6 @@ export default function CreateJobAd({ isOpen, toggle, onCreated }) {
             const deptName = departments.find(d => String(d.id) === String(deptId))?.name ?? "";
             const occName = occupations.find(o => String(o.id) === String(occId))?.name ?? "";
 
-            await ensureDepartmentHasOccupation(deptId, occId);
 
             const payload = {
                 title: name.trim(),

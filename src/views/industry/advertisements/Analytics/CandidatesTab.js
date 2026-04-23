@@ -61,7 +61,7 @@ export default function CandidatesTab({
     jobAdId: jobAdIdProp,
     candidates: candidatesProp,
 }) {
-    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api";
+    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api/v1";
 
     const jobAdId = useMemo(
         () => jobAdIdProp ?? jobAd?.id ?? jobAd?.jobAdId ?? null,

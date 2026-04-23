@@ -110,7 +110,7 @@ export default function Interview({ selectedJobAdId }) {
         setSelectedStepIndex(0);
         setStatus(null);
 
-        fetch(`${API}/api/v1/jobAds/${selectedJobAdId}/interview-details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
+        fetch(`${API}/api/v1/jobAds/${selectedJobAdId}/details`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => {
                 setInterviewId(d?.id ?? null);
@@ -191,7 +191,7 @@ export default function Interview({ selectedJobAdId }) {
         try {
             let ok = false;
             try {
-                const r = await fetch(`${API}/interviews/${interviewId}/description`, {
+                const r = await fetch(`${API}/api/v1/step/interviews/${interviewId}/description`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                     body: JSON.stringify({ description }),
@@ -199,7 +199,7 @@ export default function Interview({ selectedJobAdId }) {
                 if (r.ok) ok = true;
             } catch { /* ignore */ }
             if (!ok) {
-                const r2 = await fetch(`${API}/interviews/${interviewId}`, {
+                const r2 = await fetch(`${API}/api/v1/step/interviews/${interviewId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
                     body: JSON.stringify({ description }),
@@ -233,7 +233,7 @@ export default function Interview({ selectedJobAdId }) {
         else setStepSkills([]);
 
         try {
-            const res = await fetch(`${API}/api/v1/step/${stepId}`, { method: "DELETE" }, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
+            const res = await fetch(`${API}/api/v1/step/${stepId}`, { method: "DELETE", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
             if (!res.ok) throw new Error();
             setConfirmOpen(false);
             toast("Step deleted", "success");

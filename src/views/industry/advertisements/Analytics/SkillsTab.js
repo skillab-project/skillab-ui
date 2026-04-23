@@ -61,7 +61,7 @@ function Histogram({ buckets }) {
 
 async function fetchJsonSafe(url) {
     try {
-        const r = await fetch(url, { headers: { Accept: 'application/json' } });
+        const r = await fetch(url, { headers: { Accept: 'application/json', Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return await r.json();
     } catch {
@@ -76,7 +76,7 @@ export default function SkillsTab({
     selectedSkillId,
     onSelectSkill,
 }) {
-    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api";
+    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api/v1";
 
     const [skills, setSkills] = useState([]);
     const [skillsLoading, setSkillsLoading] = useState(false);
@@ -108,7 +108,7 @@ export default function SkillsTab({
         let ignore = false;
         setSkillsLoading(true);
         setSkillsErr('');
-        fetchJsonSafe(`${apiBase}/statistics/question/${questionId}/skills`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
+        fetchJsonSafe(`${apiBase}/statistics/question/${questionId}/skills`)
             .then((j) => {
                 if (ignore) return;
                 if (!j) {

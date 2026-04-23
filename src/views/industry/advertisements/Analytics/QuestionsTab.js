@@ -89,7 +89,7 @@ export default function QuestionsTab({
     selectedQuestionId,
     onSelectQuestion,
 }) {
-    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api";
+    const apiBase = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT +"/api/v1";
 
     const [qLoading, setQLoading] = useState(false);
     const [qErr, setQErr] = useState('');
