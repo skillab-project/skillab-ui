@@ -13,7 +13,10 @@ import {
   Label,
   Input,
   Row,
-  Col
+  Col,
+  Badge,
+  InputGroup,
+  InputGroupAddon
 } from "reactstrap";
 import Select from 'react-select';
 import axios from 'axios';
@@ -23,7 +26,17 @@ function OrganizationInformation() {
     const [organizationId, setOrganizationId] = useState(null);
     const [departments, setDepartments] = useState([]);
     const [deptEmployees, setDeptEmployees] = useState([]); // For the dropdown
-    
+
+    // Sectors & Objectives state
+    const [sectors, setSectors] = useState([]);
+    const [objectives, setObjectives] = useState([]);
+    const [newSector, setNewSector] = useState("");
+    const [newObjective, setNewObjective] = useState("");
+    const [addingSector, setAddingSector] = useState(false);
+    const [addingObjective, setAddingObjective] = useState(false);
+    const [deletingSector, setDeletingSector] = useState(null);   // stores sector string being deleted
+    const [deletingObjective, setDeletingObjective] = useState(null);
+
     const [editModal, setEditModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState(false);
     const [selectedDept, setSelectedDept] = useState(null);
@@ -94,6 +107,8 @@ function OrganizationInformation() {
             if (organization) {
                 setOrganizationId(organization.id);
                 // Fetch everything related to this org
+                setSectors(organization.sectors || []);
+                setObjectives(organization.objectives || []);
                 fetchDepartments(organization.id, headers);
                 fetchEmployees(organization.id, headers);
                 fetchOccupations(organization.id, headers);
@@ -113,6 +128,77 @@ function OrganizationInformation() {
         setOccupations(res.data);
     };
 
+    const handleAddSector = async () => {
+        const trimmed = newSector.trim();
+        if (!trimmed) return;
+        setAddingSector(true);
+        try {
+            const headers = await getHeaders();
+            await axios.post(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/employee-management-backend/organizations/sectors`,
+                trimmed,
+                { headers: { ...headers, "Content-Type": "application/json" } }
+            );
+            setNewSector("");
+            await fetchOrganizationData();
+        } catch (error) {
+            console.error("Failed to add sector:", error);
+        } finally {
+            setAddingSector(false);
+        }
+    };
+
+    const handleDeleteSector = async (sector) => {
+        setDeletingSector(sector);
+        try {
+            const headers = await getHeaders();
+            await axios.delete(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/employee-management-backend/organizations/sectors`,
+                { headers, params: { sector } }
+            );
+            await fetchOrganizationData();
+        } catch (error) {
+            console.error("Failed to delete sector:", error);
+        } finally {
+            setDeletingSector(null);
+        }
+    };
+
+    const handleAddObjective = async () => {
+        const trimmed = newObjective.trim();
+        if (!trimmed) return;
+        setAddingObjective(true);
+        try {
+            const headers = await getHeaders();
+            await axios.post(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/employee-management-backend/organizations/objectives`,
+                trimmed,
+                { headers: { ...headers, "Content-Type": "application/json" } }
+            );
+            setNewObjective("");
+            await fetchOrganizationData();
+        } catch (error) {
+            console.error("Failed to add objective:", error);
+        } finally {
+            setAddingObjective(false);
+        }
+    };
+
+    const handleDeleteObjective = async (objective) => {
+        setDeletingObjective(objective);
+        try {
+            const headers = await getHeaders();
+            await axios.delete(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/employee-management-backend/organizations/objectives`,
+                { headers, params: { objective } }
+            );
+            await fetchOrganizationData();
+        } catch (error) {
+            console.error("Failed to delete objective:", error);
+        } finally {
+            setDeletingObjective(null);
+        }
+    };
 
     const handleCreate = async () => {
         try {
@@ -342,14 +428,147 @@ function OrganizationInformation() {
             {/* Overview card */}
             <Card>
                 <CardHeader>
-                <h4 className="card-title">Organization Information</h4>
+                    <h4 className="card-title">Organization Information</h4>
                 </CardHeader>
                 <CardBody>
-                <p>
-                    This section provides an overview of the organization's structure,
-                    departments, and key personnel. It includes details about the
-                    company's mission, vision, and values.
-                </p>
+                    <p>
+                        This section provides an overview of the organization's structure,
+                        departments, and key personnel. It includes details about the
+                        company's mission, vision, and values.
+                    </p>
+                </CardBody>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <h4 className="card-title">Sectors &amp; Objectives</h4>
+                </CardHeader>
+                <CardBody>
+                    <Row>
+                        {/* Sectors column */}
+                        <Col md="6">
+                            <h5 className="mb-3">
+                                <i className="nc-icon nc-bank mr-2" />
+                                Sectors
+                            </h5>
+
+                            <InputGroup className="mb-3">
+                                <Input
+                                    placeholder="New sector name…"
+                                    value={newSector}
+                                    onChange={(e) => setNewSector(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleAddSector()}
+                                />
+                                <InputGroupAddon addonType="append">
+                                    <Button
+                                        color="primary"
+                                        onClick={handleAddSector}
+                                        disabled={!newSector.trim() || addingSector}
+                                    >
+                                        {addingSector ? "Adding…" : "Add"}
+                                    </Button>
+                                </InputGroupAddon>
+                            </InputGroup>
+
+                            {sectors.length === 0 ? (
+                                <p className="text-muted text-center small mt-3">No sectors added yet.</p>
+                            ) : (
+                                <div className="d-flex flex-wrap gap-2">
+                                    {sectors.map((sector, idx) => (
+                                        <Badge
+                                            key={idx}
+                                            color="info"
+                                            pill
+                                            className="d-inline-flex align-items-center px-3 py-2 mr-2 mb-2"
+                                            style={{ fontSize: "0.85rem" }}
+                                        >
+                                            {sector}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteSector(sector)}
+                                                disabled={deletingSector === sector}
+                                                style={{
+                                                    background: "none",
+                                                    border: "none",
+                                                    cursor: "pointer",
+                                                    color: "inherit",
+                                                    marginLeft: "8px",
+                                                    padding: "0",
+                                                    lineHeight: 1,
+                                                    opacity: deletingSector === sector ? 0.5 : 1
+                                                }}
+                                                aria-label={`Remove sector ${sector}`}
+                                            >
+                                                &times;
+                                            </button>
+                                        </Badge>
+                                    ))}
+                                </div>
+                            )}
+                        </Col>
+
+                        {/* Divider */}
+                        <Col md="1" className="d-none d-md-flex justify-content-center">
+                            <div style={{ width: "1px", background: "#e3e3e3", minHeight: "100%" }} />
+                        </Col>
+
+                        {/* Objectives column */}
+                        <Col md="5">
+                            <h5 className="mb-3">
+                                <i className="nc-icon nc-bulb-63 mr-2" />
+                                Objectives
+                            </h5>
+
+                            <InputGroup className="mb-3">
+                                <Input
+                                    placeholder="New objective…"
+                                    value={newObjective}
+                                    onChange={(e) => setNewObjective(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleAddObjective()}
+                                />
+                                <InputGroupAddon addonType="append">
+                                    <Button
+                                        color="primary"
+                                        onClick={handleAddObjective}
+                                        disabled={!newObjective.trim() || addingObjective}
+                                    >
+                                        {addingObjective ? "Adding…" : "Add"}
+                                    </Button>
+                                </InputGroupAddon>
+                            </InputGroup>
+
+                            {objectives.length === 0 ? (
+                                <p className="text-muted text-center small mt-3">No objectives added yet.</p>
+                            ) : (
+                                <ul className="list-unstyled mb-0">
+                                    {objectives.map((obj, idx) => (
+                                        <li
+                                            key={idx}
+                                            className="d-flex align-items-center justify-content-between py-2"
+                                            style={{
+                                                borderBottom: idx < objectives.length - 1 ? "1px solid #f0f0f0" : "none"
+                                            }}
+                                        >
+                                            <span>
+                                                <i className="nc-icon nc-minimal-right mr-2 text-primary" style={{ fontSize: "0.7rem" }} />
+                                                {obj}
+                                            </span>
+                                            <Button
+                                                color="danger"
+                                                size="sm"
+                                                outline
+                                                onClick={() => handleDeleteObjective(obj)}
+                                                disabled={deletingObjective === obj}
+                                                style={{ flexShrink: 0, marginLeft: "8px" }}
+                                            >
+                                                <i className="nc-icon nc-simple-remove" />
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </Col>
+                    </Row>
                 </CardBody>
             </Card>
 
@@ -408,32 +627,18 @@ function OrganizationInformation() {
                         <Col md="4">
                             <FormGroup>
                                 <Label for="filterDept">Filter by Department</Label>
-                                <Input 
-                                    type="select" 
-                                    id="filterDept" 
-                                    value={filterDept} 
-                                    onChange={(e) => setFilterDept(e.target.value)}
-                                >
+                                <Input type="select" id="filterDept" value={filterDept} onChange={(e) => setFilterDept(e.target.value)}>
                                     <option value="All">All Departments</option>
-                                    {departments.map(d => (
-                                        <option key={d.id} value={d.id}>{d.name}</option>
-                                    ))}
+                                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                                 </Input>
                             </FormGroup>
                         </Col>
                         <Col md="4">
                             <FormGroup>
                                 <Label for="filterOcc">Filter by Occupation</Label>
-                                <Input 
-                                    type="select" 
-                                    id="filterOcc" 
-                                    value={filterOcc} 
-                                    onChange={(e) => setFilterOcc(e.target.value)}
-                                >
+                                <Input type="select" id="filterOcc" value={filterOcc} onChange={(e) => setFilterOcc(e.target.value)}>
                                     <option value="All">All Occupations</option>
-                                    {occupations.map(o => (
-                                        <option key={o.id} value={o.id}>{o.title}</option>
-                                    ))}
+                                    {occupations.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
                                 </Input>
                             </FormGroup>
                         </Col>
@@ -461,21 +666,21 @@ function OrganizationInformation() {
                                 <th className="text-right">Actions</th>
                             </tr>
                         </thead>
-                         <tbody>
+                        <tbody>
                             {filteredEmployees.length > 0 ? (
                                 filteredEmployees.map((emp) => (
                                     <tr key={emp.id}>
-                                    <td>{emp.firstName}</td>
-                                    <td>{emp.lastName}</td>
-                                    <td>{emp.email}</td>
-                                    <td>{formatDateArray(emp.hireDate)}</td>
-                                    <td>{emp.departmentName || "N/A"}</td>
-                                    <td>{emp.occupationTitle || "N/A"}</td>
-                                    <td className="text-right">
-                                        <Button color="info" size="sm" className="mr-2" onClick={() => toggleEmployeeModal(emp)}>Edit</Button>
-                                        <Button color="danger" size="sm" onClick={() => { setEmpForm(emp); setEmployeeDeleteModal(true); }}>Delete</Button>
-                                    </td>
-                                </tr>
+                                        <td>{emp.firstName}</td>
+                                        <td>{emp.lastName}</td>
+                                        <td>{emp.email}</td>
+                                        <td>{formatDateArray(emp.hireDate)}</td>
+                                        <td>{emp.departmentName || "N/A"}</td>
+                                        <td>{emp.occupationTitle || "N/A"}</td>
+                                        <td className="text-right">
+                                            <Button color="info" size="sm" className="mr-2" onClick={() => toggleEmployeeModal(emp)}>Edit</Button>
+                                            <Button color="danger" size="sm" onClick={() => { setEmpForm(emp); setEmployeeDeleteModal(true); }}>Delete</Button>
+                                        </td>
+                                    </tr>
                                 ))
                             ) : (
                                 <tr>

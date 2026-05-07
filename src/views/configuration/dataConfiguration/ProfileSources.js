@@ -29,19 +29,24 @@ const ProfileSources = () => {
     const isCitizenPath = location.pathname.startsWith('/citizen');
 
     useEffect(() => {
-        //...
-        axios.get(process.env.REACT_APP_API_URL_TRACKER+"/api/profiles/sources", 
-            {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+        const fetchSources = async () => {
+            try {
+                const response = await axios.get(process.env.REACT_APP_API_URL_TRACKER + "/api/profiles/sources", {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillabTracker")}`
+                    }
+                });
+                if(response.status === 200) {
+                    setSources(response.data);
+                    response.data.forEach((source) => {
+                        fetchProfileCount(source);
+                    });
                 }
+            } catch (error) {
+                console.error(error);
             }
-        ).then((response) => {
-            setSources(response.data);
-            response.data.forEach((source) => {
-                fetchProfileCount(source);
-            });
-        });
+        };
+        fetchSources();
     }, []);
 
     const fetchProfileCount = async (source) => {
@@ -166,7 +171,7 @@ const ProfileSources = () => {
                     ))}
                     </tbody>
                 </Table>
-                <Button color="info" onClick={handleImport} className="mt-4">Import</Button>
+                {/* <Button color="info" onClick={handleImport} className="mt-4">Import</Button> */}
                 
                 <Modal isOpen={isModalOpen} toggle={() => setIsModalOpen(false)}>
                     <div className="modal-header">
