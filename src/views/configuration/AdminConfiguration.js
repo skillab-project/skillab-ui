@@ -13,10 +13,10 @@ import {
     FormGroup,
     Label,
     UncontrolledTooltip,
-    Modal, ModalHeader, ModalBody, ModalFooter
+    Modal, ModalHeader, ModalBody, ModalFooter,
+    FormText
 } from "reactstrap";
 import axios from "axios";
-
 
 const AdminConfiguration = () => {
     const [users, setUsers] = useState([]);
@@ -24,7 +24,7 @@ const AdminConfiguration = () => {
         name: "",
         email: "",
         password: "",
-        installation: "citizen",
+        installation: [],
         organization: ""
     });
     const [modal, setModal] = useState(false);
@@ -49,7 +49,6 @@ const AdminConfiguration = () => {
             setOrganizations(response.data);
         } catch (error) {
             console.error("Error fetching organizations:", error);
-            return [];
         }
     };
 
@@ -72,20 +71,40 @@ const AdminConfiguration = () => {
         fetchOrganizations();
     }, []);
 
+    // Handle input changes for both text and select fields
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewUser(prev => ({ ...prev, [name]: value }));
+        const { name, value, type } = e.target;
+        
+        if (type === 'select-multiple') {
+            const options = e.target.options;
+            const selectedValues = [];
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].selected) {
+                    selectedValues.push(options[i].value);
+                }
+            }
+            setNewUser(prev => ({ ...prev, [name]: selectedValues }));
+        } else {
+            setNewUser(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleCreateUser = async () => {
-        if (!newUser.name || !newUser.email || !newUser.password || !newUser.installation || 
-                                        (!newUser.organization) && newUser.organization!="") {
-            alert("Please fill in all fields");
+        // Validation: Required: name, email, password, installation. Optional: organization
+        if (!newUser.name || !newUser.email || !newUser.password || newUser.installation.length === 0) {
+            alert("Please fill in all required fields (Name, Email, Password, and at least one Installation Type)");
             return;
         }
 
+        // Convert array ["citizen", "industry"] to string "citizen,industry"
+        const installationParam = newUser.installation.join(",");
+        
+        // Ensure organization is passed correctly (it's optional, so send empty string if none selected)
+        const organizationParam = newUser.organization || "";
+
         try {
-            await axios.post(process.env.REACT_APP_API_URL_USER_MANAGEMENT + "/admin/users/create?installation=" + newUser.installation + "&organization=" + newUser.organization,
+            await axios.post(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/admin/users/create?installation=${installationParam}&organization=${organizationParam}`,
                 {
                     name: newUser.name,
                     email: newUser.email,
@@ -98,7 +117,8 @@ const AdminConfiguration = () => {
             });
             
             alert("User created successfully");
-            setNewUser({ name: "", email: "", password: "", installation: "citizen" });
+            // Reset form
+            setNewUser({ name: "", email: "", password: "", installation: [], organization: "" });
             fetchUsers();
         } catch (error) {
             console.error("Error creating user:", error);
@@ -194,60 +214,67 @@ const AdminConfiguration = () => {
                         <Row>
                             <Col md="3">
                                 <FormGroup>
-                                    <Label>Name</Label>
+                                    <Label>Name <span className="text-danger">*</span></Label>
                                     <Input 
                                         type="text" 
                                         name="name" 
                                         value={newUser.name}
                                         onChange={handleInputChange}
                                         placeholder="Full Name"
+                                        required
                                     />
                                 </FormGroup>
                             </Col>
                             <Col md="3">
                                 <FormGroup>
-                                    <Label>Email</Label>
+                                    <Label>Email <span className="text-danger">*</span></Label>
                                     <Input 
                                         type="email" 
                                         name="email" 
                                         value={newUser.email}
                                         onChange={handleInputChange}
                                         placeholder="user@example.com"
+                                        required
                                     />
                                 </FormGroup>
                             </Col>
                             <Col md="3">
                                 <FormGroup>
-                                    <Label>Password</Label>
+                                    <Label>Password <span className="text-danger">*</span></Label>
                                     <Input 
                                         type="password" 
                                         name="password" 
                                         value={newUser.password}
                                         onChange={handleInputChange}
                                         placeholder="Password"
+                                        required
                                     />
                                 </FormGroup>
                             </Col>
                             <Col md="3">
                                 <FormGroup>
-                                    <Label>Installation Type</Label>
+                                    <Label>Installation Type <span className="text-danger">*</span></Label>
                                     <Input 
                                         type="select" 
                                         name="installation" 
+                                        multiple // Enable multiple selection
                                         value={newUser.installation}
                                         onChange={handleInputChange}
+                                        style={{ height: '100px' }} // Give it some height to see options
                                     >
                                         <option value="citizen">Citizen</option>
                                         <option value="industry">Industry</option>
                                         <option value="education">Education</option>
-                                        <option value="policy-education">Policy Education</option>
-                                        <option value="policy-industry">Policy Industry</option>
+                                        <option value="policy">Policy</option>
                                     </Input>
+                                    <FormText color="muted">
+                                        Hold Ctrl for multiple.
+                                    </FormText>
                                 </FormGroup>
                             </Col>
                             <Col md="6">
                                 <FormGroup>
-                                    <Label>Organization</Label>
+                                    <Label>Organization (Optional)</Label>
                                     <Input 
                                         type="select" 
                                         name="organization" 

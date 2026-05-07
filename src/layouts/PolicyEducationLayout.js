@@ -1,13 +1,14 @@
 import React from "react";
 // javascript plugin used to create scrollbars on windows
 import PerfectScrollbar from "perfect-scrollbar";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
 
 import Navbar from "components/Navbars/Navbar";
 import Footer from "components/Footer/Footer.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 
 import routes from "routes/routesPolicyEducation";
+import { getInstallation } from "utils/Tokens";
 
 var ps;
 
@@ -30,27 +31,53 @@ const getRoutes = (routes) => {
 function Dashboard(props) {
   const [backgroundColor, setBackgroundColor] = React.useState("white");
   const [activeColor, setActiveColor] = React.useState("info");
+  const [isAuthorized, setIsAuthorized] = React.useState(null);
   const mainPanel = React.useRef();
   const location = useLocation();
   const allRoutes = getRoutes(routes);
 
   React.useEffect(() => {
-    if (navigator.platform.indexOf("Win") > -1) {
+    async function checkAuth() {
+      const installationString = await getInstallation();
+      if (installationString && installationString.split(",").includes("policy")) {
+        setIsAuthorized(true);
+      } else {
+        setIsAuthorized(false);
+      }
+    }
+    checkAuth();
+  }, []);
+    
+  React.useEffect(() => {
+    if (isAuthorized && navigator.platform.indexOf("Win") > -1) {
       ps = new PerfectScrollbar(mainPanel.current);
       document.body.classList.toggle("perfect-scrollbar-on");
     }
     return function cleanup() {
-      if (navigator.platform.indexOf("Win") > -1) {
+      if (ps) {
         ps.destroy();
         document.body.classList.toggle("perfect-scrollbar-on");
       }
     };
-  });
+  }, [isAuthorized]);
 
   React.useEffect(() => {
-    mainPanel.current.scrollTop = 0;
-    document.scrollingElement.scrollTop = 0;
+    if (mainPanel.current) {
+      mainPanel.current.scrollTop = 0;
+      document.scrollingElement.scrollTop = 0;
+    }
   }, [location]);
+
+
+  // 1. While checking, show nothing or a spinner
+  if (isAuthorized === null) {
+    return <div>Loading...</div>; 
+  }
+
+  // 2. If not authorized, redirect to Citizen layout
+  if (isAuthorized === false) {
+    return <Navigate to="/citizen/account" replace />;
+  }
 
   return (
     <div className="wrapper">
