@@ -25,6 +25,7 @@ import routesIndustry from "routes/routesIndustry";
 import routesEducation from "routes/routesEducation";
 import routesPolicyIndustry from "routes/routesPolicyIndustry";
 import routesPolicyEducation from "routes/routesPolicyEducation";
+import { el } from "date-fns/locale";
 
 function Header(props) {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -48,6 +49,11 @@ function Header(props) {
       accountLabel = `Go to ${installation.replace('-', ' ')} Account`;
       accountIcon = <FaExchangeAlt style={{ fontSize: "18px" }} />;
     }
+  }
+  else {
+    accountPath = "/citizen/account";
+    accountLabel = "Go to Citizen Account";
+    accountIcon = <FaExchangeAlt style={{ fontSize: "18px" }} />;
   }
 
   const toggle = () => {

@@ -79,9 +79,10 @@ const InitPage = () => {
             const authStatus = await isAuthenticated();
             if (authStatus) {
                 await isAuthenticatedTracker();
-                if(process.env.REACT_APP_INSTALLATION === "citizen") {
-                    window.location.href = '/citizen/account';
-                    return; // Keep loading true
+                const installations = ["industry", "policy-industry", "policy-education", "education"];
+                if(installations.includes(process.env.REACT_APP_INSTALLATION)) {
+                    window.location.href = `/${process.env.REACT_APP_INSTALLATION}/account`;
+                    return;
                 }
             }
             setLoadingAuth(false); // Only stop loading if NOT authenticated
