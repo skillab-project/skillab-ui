@@ -265,7 +265,8 @@ const AdminConfiguration = () => {
                                         <option value="citizen">Citizen</option>
                                         <option value="industry">Industry</option>
                                         <option value="education">Education</option>
-                                        <option value="policy">Policy</option>
+                                        <option value="policy-industry">Policy - Industry</option>
+                                        <option value="policy-education">Policy - Education</option>
                                     </Input>
                                     <FormText color="muted">
                                         Hold Ctrl for multiple.
