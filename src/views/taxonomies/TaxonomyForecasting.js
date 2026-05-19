@@ -140,6 +140,13 @@ const TaxonomyForecasting = () => {
                 if (timerRef.current) clearTimeout(timerRef.current);
                 setLoading(false);
 
+                // Check for backend error messages sent with 200 OK
+                if (res.data && res.data.error) {
+                    setInfoMessage(res.data.error);
+                    setResults(null); // Ensure results is null so the UI doesn't try to render it
+                    return;
+                }
+
                 // Check for "processing" status
                 if (res.data && res.data.status === "processing") {
                     setInfoMessage(`${res.data.message} Estimated completion: ${res.data.estimated_completion}`);
@@ -272,7 +279,7 @@ const TaxonomyForecasting = () => {
                                     <CardHeader><CardTitle tag="h5">Forecast Summary</CardTitle></CardHeader>
                                     <CardBody>
                                         <ListGroup flush>
-                                            {Object.entries(results.summary).map(([key, value]) => {
+                                            {results.summary && Object.entries(results.summary).map(([key, value]) => {
                                                 if (key === 'Confidence distribution') return null;
                                                 return (
                                                     <ListGroupItem key={key} className="d-flex justify-content-between align-items-center">
@@ -313,7 +320,7 @@ const TaxonomyForecasting = () => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {results.predicted_links.map((item, index) => (
+                                                {results.predicted_links?.map((item, index) => (
                                                     <tr key={index}>
                                                         <td>{item.source}</td>
                                                         <td>{item.target}</td>
