@@ -29,6 +29,14 @@ const Register = () => {
         notificationAlert.current.notificationAlert(options);
     }
 
+    const validateEmail = (email) => {
+        return String(email)
+            .toLowerCase()
+            .match(
+                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            );
+    };
+
     const handleRegister = async () => {
         if (!name || !email || !password || !confirmPassword) {
             notify("Please fill in all required fields.");
@@ -36,6 +44,10 @@ const Register = () => {
         }
         if (password !== confirmPassword) {
             notify("Passwords do not match.");
+            return;
+        }
+        if (!validateEmail(email)) {
+            notify("Please enter a valid email address (e.g. name@domain.com)");
             return;
         }
         console.log("Registering with", { name, email, password, confirmPassword, address, portfolio });

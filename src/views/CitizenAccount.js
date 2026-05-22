@@ -11,16 +11,15 @@ import {
   Input,
   Row,
   Col,
-  Dropdown,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter
 } from "reactstrap";
 import RecommendOccupation from "./citizen/RecommendOccupation";
 import TargetOccupation from "./citizen/TargetOccupation";
 import CitizenSkills from "./citizen/CitizenSkills";
-import {getId} from "../utils/Tokens";
+import { getId } from "../utils/Tokens";
 import axios from "axios";
 
 
@@ -29,14 +28,13 @@ function CitizenAccount() {
   const [initialUserInfo, setInitialUserInfo] = useState({});
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const [modalOpen, setModalOpen] = useState(false);
+  const toggleModal = () => setModalOpen(!modalOpen);
 
   const handleApplyUserUpdate = async () => {
     const userId = await getId();
     if (userId !== "") {
       let url = `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/user/${userId}`;
-
-      // If there are parameters update them
       const params = [];
       if (userInfo.country !== initialUserInfo.country) {
         params.push(`country=${encodeURIComponent(userInfo.country || "")}`);
@@ -48,10 +46,8 @@ function CitizenAccount() {
         params.push(`portfolio=${encodeURIComponent(userInfo.portfolio || "")}`);
       }
   
-      // Change API and call
       if (params.length > 0) {
         setLoading(true);
-
         url += `?${params.join("&")}`;
         try {
           const response = await axios.put(url, {}, {
@@ -59,26 +55,43 @@ function CitizenAccount() {
               Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
             },
           });
-          console.log("Profile updated successfully:", response.data);
           setInitialUserInfo(response.data);
         } catch (error) {
           console.error("Error updating profile:", error);
         } finally {
           setLoading(false);
         }
-      } else {
-        console.log("No changes to update.");
       }
     }
   }
-  
 
+  // Delete Account Function
+  const handleDeleteAccount = async () => {
+    try {
+      setLoading(true);
+      await axios.delete(`${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/user`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+        },
+      });
+      
+      // Clear local storage and redirect to login
+      localStorage.removeItem("accessTokenSkillab");
+      localStorage.removeItem("refreshTokenSkillab");
+      localStorage.removeItem("accessTokenSkillabTracker");
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      alert("There was an error deleting your account. Please try again.");
+    } finally {
+      setLoading(false);
+      toggleModal();
+    }
+  };
 
   const fetchProfileData = async () => {
     const userId = await getId();
-    console.log("userId: "+userId);
-    if(userId!=""){
-      //get users general info
+    if(userId !== ""){
       axios.get(process.env.REACT_APP_API_URL_USER_MANAGEMENT+"/user/"+userId, {
         headers: {
             'Authorization': `Bearer ${localStorage.getItem("accessTokenSkillab")}`
@@ -114,7 +127,7 @@ function CitizenAccount() {
       <div className="content">
         <Row>
           <Col md="6">
-          <Card className="card-user">
+            <Card className="card-user">
               <CardHeader>
                 <CardTitle tag="h5">Profile</CardTitle>
               </CardHeader>
@@ -199,25 +212,36 @@ function CitizenAccount() {
                       </FormGroup>
                     </Col>
                   </Row>
-                  <Row>
-                    <div className="update ml-auto mr-auto">
-                      <Button
-                        onClick={handleApplyUserUpdate}
-                        className="btn-round"
-                        color="info"
-                      >
-                        Update Profile
-                      </Button>
-                      {loading &&
-                        <div class="lds-dual-ring"></div>
-                      }
-                    </div>
-                  </Row>
+                  
+                  {/* Action Buttons Row */}
+                  <div className="d-flex justify-content-end align-items-center">
+                    {loading && <div className="lds-dual-ring mr-3"></div>}
+                    
+                    <Button
+                      onClick={handleApplyUserUpdate}
+                      className="btn-round btn-hover-effect mr-2"
+                      color="info"
+                      disabled={loading}
+                    >
+                      <i className="nc-icon nc-check-2 mr-1" /> 
+                      Update Profile
+                    </Button>
+
+                    <Button
+                      onClick={toggleModal}
+                      className="btn-round btn-hover-effect delete-btn-hover"
+                      color="danger"
+                      outline
+                      disabled={loading}
+                    >
+                      <i className="nc-icon nc-simple-remove mr-1" /> 
+                      Delete Account
+                    </Button>
+                  </div>
                 </Form>
               </CardBody>
             </Card>
           </Col>
-
 
           <Col md="6">
             <CitizenSkills skills={skills} setSkills={setSkills}/>
@@ -225,9 +249,26 @@ function CitizenAccount() {
         </Row>
         
         <TargetOccupation skills={skills}/>
-
         <RecommendOccupation skills={skills}/>
       </div>
+
+      {/* Confirmation Modal */}
+      <Modal isOpen={modalOpen} toggle={toggleModal}>
+        <ModalHeader toggle={toggleModal}>Confirm Account Deletion</ModalHeader>
+        <ModalBody>
+          Are you sure you want to delete your account? 
+          <br /><br />
+          <strong>Warning:</strong> This action is permanent. All your data, profile information, and skills will be deleted forever.
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={toggleModal} disabled={loading}>
+            Cancel
+          </Button>
+          <Button color="danger" onClick={handleDeleteAccount} disabled={loading}>
+            {loading ? "Deleting..." : "Yes, Delete Everything"}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </>
   );
 }

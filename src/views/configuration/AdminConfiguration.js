@@ -89,10 +89,25 @@ const AdminConfiguration = () => {
         }
     };
 
+    const validateEmail = (email) => {
+        return String(email)
+            .toLowerCase()
+            .match(
+                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            );
+    };
+
+
     const handleCreateUser = async () => {
         // Validation: Required: name, email, password, installation. Optional: organization
         if (!newUser.name || !newUser.email || !newUser.password || newUser.installation.length === 0) {
             alert("Please fill in all required fields (Name, Email, Password, and at least one Installation Type)");
+            return;
+        }
+
+        // Email Format Check
+        if (!validateEmail(newUser.email)) {
+            alert("Please enter a valid email address (e.g., name@domain.com)");
             return;
         }
 
