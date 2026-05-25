@@ -17,6 +17,7 @@ import {
   ModalFooter
 } from "reactstrap";
 import RecommendOccupation from "./citizen/RecommendOccupation";
+import CVUploadModal from "./citizen/CVUploadModal";
 import TargetOccupation from "./citizen/TargetOccupation";
 import CitizenSkills from "./citizen/CitizenSkills";
 import { getId } from "../utils/Tokens";
@@ -30,6 +31,8 @@ function CitizenAccount() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const toggleModal = () => setModalOpen(!modalOpen);
+  const [cvModalOpen, setCvModalOpen] = useState(false);
+  const toggleCvModal = () => setCvModalOpen(!cvModalOpen);
 
   const handleApplyUserUpdate = async () => {
     const userId = await getId();
@@ -202,13 +205,18 @@ function CitizenAccount() {
                     <Col md="12">
                       <FormGroup>
                         <label>CV</label>
-                        <Input
-                          disabled
-                          defaultValue="cv.pdf"
-                          placeholder="cv.pdf"
-                          type="text"
-                        />
-                        <input type="file" id="myfile" name="myfile"/>
+                        <div>
+                          <Button
+                            onClick={toggleCvModal}
+                            className="btn-round"
+                            color="info"
+                            outline
+                            style={{ width: "100%" }}
+                          >
+                            <i className="fa fa-upload" style={{ marginRight: "8px" }} />
+                            Upload CV
+                          </Button>
+                        </div>
                       </FormGroup>
                     </Col>
                   </Row>
@@ -251,6 +259,19 @@ function CitizenAccount() {
         <TargetOccupation skills={skills}/>
         <RecommendOccupation skills={skills}/>
       </div>
+
+      {/* CV Upload Modal */}
+      <CVUploadModal
+        isOpen={cvModalOpen}
+        toggle={toggleCvModal}
+        onSkillsImported={(newSkills) => {
+          setSkills((prev) => {
+            const existingIds = new Set(prev.map(s => s.skill.id));
+            const unique = newSkills.filter(s => !existingIds.has(s.skill.id));
+            return [...prev, ...unique];
+          });
+        }}
+      />
 
       {/* Confirmation Modal */}
       <Modal isOpen={modalOpen} toggle={toggleModal}>
