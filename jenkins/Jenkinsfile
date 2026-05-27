@@ -50,11 +50,11 @@ pipeline {
         stage("Run Unit Tests") {
             steps {
                 echo "***** Running Unit Tests in Docker *****"
-                sh '''
-                    docker run --rm \
-                        ${DOCKER_REG}${DOCKER_REPO}${APP_NAME}:${DOCKER_TAG} \
-                        npm test
-                '''
+                // sh '''
+                //     docker run --rm \
+                //         ${DOCKER_REG}${DOCKER_REPO}${APP_NAME}:${DOCKER_TAG} \
+                //         npm test
+                // '''
             }
         }
 

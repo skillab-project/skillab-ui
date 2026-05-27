@@ -16,10 +16,12 @@ import {
   ModalBody,
   ModalFooter
 } from "reactstrap";
-import RecommendOccupation from "./citizen/RecommendOccupation";
+// import RecommendOccupation from "./citizen/RecommendOccupation";
 import CVUploadModal from "./citizen/CVUploadModal";
-import TargetOccupation from "./citizen/TargetOccupation";
+// import TargetOccupation from "./citizen/TargetOccupation";
 import CitizenSkills from "./citizen/CitizenSkills";
+import TargetOccupationDashboard from "./citizen/TargetOccupationDashboard";
+import RecommendOccupationEnhanced from "./citizen/RecommendOccupationEnhanced";
 import { getId } from "../utils/Tokens";
 import axios from "axios";
 
@@ -256,8 +258,8 @@ function CitizenAccount() {
           </Col>
         </Row>
         
-        <TargetOccupation skills={skills}/>
-        <RecommendOccupation skills={skills}/>
+        <TargetOccupationDashboard skills={skills}/>
+        {/* <RecommendOccupationEnhanced skills={skills}/> */}
       </div>
 
       {/* CV Upload Modal */}
