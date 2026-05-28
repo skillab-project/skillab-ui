@@ -403,8 +403,10 @@ const TargetOccupationDashboard = ({ skills }) => {
                                        Math.cos(l.angle) < -0.3 ? 'end' : 'middle';
                         return (
                             <text key={i} x={l.x} y={l.y} textAnchor={anchor}
-                                  fontSize="11" fill="#374151" dy="4">
+                                  fontSize="11" fill="#374151" dy="4"
+                                  style={{ cursor: 'default' }}>
                                 {d.Skill.length > 22 ? d.Skill.slice(0, 20) + '…' : d.Skill}
+                                <title>{d.Skill}</title>
                             </text>
                         );
                     })}
@@ -1007,20 +1009,14 @@ const TargetOccupationDashboard = ({ skills }) => {
     }, [ladder, allGapsByLabel, roadmapSearch]);
 
     const careerRows = useMemo(() => {
-        // Build transferable / missing counts per role for the Career Transition Analysis table
-        const transferableByRole = {};
-        transferList.forEach(t => {
-            transferableByRole[t.Roles] = (transferableByRole[t.Roles] || 0) + 1;
-        });
         return altCareers
             .filter(c => c.Roles.toLowerCase().includes(careerSearch.toLowerCase()))
             .map(c => ({
                 Career: c.Roles,
                 Fit: c.Fit,
                 Competition: c.Competition,
-                Transferable: transferableByRole[c.Roles] || 0,
             }));
-    }, [altCareers, transferList, careerSearch]);
+    }, [altCareers, careerSearch]);
 
     // ======================================================================
     //  Tab content
@@ -1333,7 +1329,7 @@ const TargetOccupationDashboard = ({ skills }) => {
                     <Card>
                         <CardHeader style={{ background: '#fef3c7', borderBottom: '1px solid #fcd34d' }}>
                             <CardTitle tag="h6" style={{ margin: 0, color: '#92400e' }}>
-                                Knowledge → Occupation → Transferable Skills
+                                Knowledge → Occupation → Skills
                             </CardTitle>
                         </CardHeader>
                         <CardBody>
@@ -1362,7 +1358,6 @@ const TargetOccupationDashboard = ({ skills }) => {
                                         <th>Career</th>
                                         <th style={{ width: '90px' }}>Fit</th>
                                         <th style={{ width: '130px' }}>Competition</th>
-                                        <th style={{ width: '110px' }}>Transferable</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1372,15 +1367,10 @@ const TargetOccupationDashboard = ({ skills }) => {
                                             <td>{r.Career}</td>
                                             <td><strong>{r.Fit}</strong></td>
                                             <td>{r.Competition}</td>
-                                            <td>
-                                                <Badge color={r.Transferable > 0 ? 'success' : 'secondary'} pill>
-                                                    {r.Transferable}
-                                                </Badge>
-                                            </td>
                                         </tr>
                                     ))}
                                     {careerRows.length === 0 && (
-                                        <tr><td colSpan="5" className="text-center text-muted">No alternative careers.</td></tr>
+                                        <tr><td colSpan="4" className="text-center text-muted">No alternative careers.</td></tr>
                                     )}
                                 </tbody>
                             </Table>
