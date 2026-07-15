@@ -26,7 +26,8 @@ const CVUploadModal = ({ isOpen, toggle, onSkillsImported }) => {
         setError('');
         try {
             const userId = await getId();
-             const formData = new FormData();
+            const formData = new FormData();
+            formData.append('file', file);
 
             const response = await axios.put(
                 `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/user/${userId}/cv`,
