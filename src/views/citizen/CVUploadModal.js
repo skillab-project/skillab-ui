@@ -29,13 +29,11 @@ const CVUploadModal = ({ isOpen, toggle, onSkillsImported }) => {
             //toDO
             // Change to multipart/form-data when backend is updated to accept files
 
-            // const formData = new FormData();
-            // formData.append('file', file);
+             const formData = new FormData();
 
             const response = await axios.put(
                 `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/user/${userId}/cv`,
                 null,
-                // formData,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}`,
