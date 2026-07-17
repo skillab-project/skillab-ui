@@ -28,24 +28,22 @@ const CVUploadModal = ({ isOpen, toggle, onSkillsImported }) => {
             const userId = await getId();
             const formData = new FormData();
             formData.append('file', file);
+            const auth = { Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}` };
 
-            const response = await axios.put(
+            // 1. start the job — returns immediately with a jobId
+            const { data: job } = await axios.put(
                 `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/user/${userId}/cv`,
                 formData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('accessTokenSkillab')}`,
-                        // 'Content-Type': 'multipart/form-data',
-                    },
-                }
+                { headers: auth }
             );
 
-            const results = Array.isArray(response.data) ? response.data : [];
+            // 2. poll until DONE / FAILED
+            const results = await pollCvJob(userId, job.id, auth);
+
             setExtractedSkills(results);
             const initial = {};
             results.forEach((s) => { initial[s.skillId] = ''; });
             setYearsMap(initial);
-            
             setStep('review');
         } catch (err) {
             console.error('CV upload error:', err);
@@ -53,6 +51,20 @@ const CVUploadModal = ({ isOpen, toggle, onSkillsImported }) => {
         } finally {
             setUploading(false);
         }
+    };
+
+    const pollCvJob = async (userId, jobId, auth, { interval = 2000, timeout = 120000 } = {}) => {
+        const start = Date.now();
+        while (Date.now() - start < timeout) {
+            const { data: job } = await axios.get(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/user/${userId}/cv/${jobId}`,
+                { headers: auth }
+            );
+            if (job.status === 'DONE') return JSON.parse(job.skillsJson || '[]');
+            if (job.status === 'FAILED') throw new Error(job.error || 'Extraction failed');
+            await new Promise((r) => setTimeout(r, interval));
+        }
+        throw new Error('CV extraction timed out');
     };
 
     const handleSaveSkills = async () => {
