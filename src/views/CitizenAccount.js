@@ -266,6 +266,7 @@ function CitizenAccount() {
       <CVUploadModal
         isOpen={cvModalOpen}
         toggle={toggleCvModal}
+        existingSkills={skills}
         onSkillsImported={(newSkills) => {
           setSkills((prev) => {
             const existingIds = new Set(prev.map(s => s.skill.id));
