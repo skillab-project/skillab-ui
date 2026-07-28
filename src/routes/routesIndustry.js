@@ -3,6 +3,7 @@ import Configuration from "views/configuration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
 import Artifacts from "views/industry/Artifacts";
 import JobAdvertisements from "views/industry/JobAdvertisements";
+import AutoJobAdvertisements from "views/industry/AutoJobAdvertisements";
 import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
 import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
@@ -39,6 +40,13 @@ var routes = [
     name: "My Advertisements",
     icon: "nc-icon nc-single-02",
     component: <JobAdvertisements />,
+    layout: "/industry",
+  },
+  {
+    path: "/account/auto-job-advertisements",
+    name: "Auto Job Advertisements",
+    icon: "nc-icon nc-single-02",
+    component: <AutoJobAdvertisements />,
     layout: "/industry",
   },
   {

@@ -15,6 +15,7 @@ services:
       - REACT_APP_API_URL_EMPLOYEE_MANAGEMENT=https://portal.skillab-project.eu/user-management/employee-management-backend
       - REACT_APP_API_URL_FUTURE_TECHNOLOGY_TRENDS_IDENTIFIER=https://portal.skillab-project.eu/user-management/future-technology-trends-identifier-backend
       - REACT_APP_API_URL_POLICY_SUCCESS_EVALUATOR=https://portal.skillab-project.eu/user-management/policy-success-evaluator-backend
+      - REACT_APP_API_URL_AUTO_JOB_ADS=https://portal.skillab-project.eu/user-management/auto-job-ads-backend
       - REACT_APP_API_URL_KPI=https://portal.skillab-project.eu/user-management/backend-policy
       - REACT_APP_API_URL_JBPM=https://portal.skillab-project.eu/jbpm/business-central/kie-wb.jsp
       - REACT_APP_API_URL_TRACKER=https://skillab-tracker.csd.auth.gr

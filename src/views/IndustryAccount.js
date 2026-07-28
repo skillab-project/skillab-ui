@@ -24,6 +24,7 @@ import { FaListUl, FaPeopleRoof } from "react-icons/fa6";
 import { SiJfrogpipelines } from "react-icons/si";
 import { MdModelTraining } from "react-icons/md";
 import { FaBuilding } from "react-icons/fa";
+import { FaHandsHelping } from "react-icons/fa";
 import { Bar } from 'react-chartjs-2';
 
 
@@ -39,6 +40,9 @@ function IndustryAccount() {
 
     function handelClickJobAdvertisements() {
         window.location.href = "/industry/account/advertisements";
+    }
+    function handelClickAutoJobAdvertisements() {
+        window.location.href = "/industry/account/auto-job-advertisements";
     }
     function handelClickArtifactRepositories() {
         window.location.href = "/industry/account/artifacts";
@@ -129,7 +133,17 @@ function IndustryAccount() {
                                             <TfiAnnouncement size="50"/>
                                         </CardBody>
                                         <CardFooter>
-                                            Job Advertisements
+                                            Job Advertisements / Interviews
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickAutoJobAdvertisements()}>
+                                        <CardBody>
+                                            <FaHandsHelping size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Auto Job Advertisements
                                         </CardFooter>
                                     </Card>
                                 </Col>
