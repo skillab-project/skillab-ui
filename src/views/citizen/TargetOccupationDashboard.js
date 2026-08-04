@@ -4,7 +4,7 @@ import {
     Tooltip, Badge, Progress, Table, Nav, NavItem, NavLink,
     TabContent, TabPane, Input
 } from 'reactstrap';
-import { FaInfoCircle, FaTrophy, FaCrown, FaChartLine, FaGraduationCap, FaCompass, FaSearch } from 'react-icons/fa';
+import { FaInfoCircle, FaTrophy, FaCrown, FaChartLine, FaGraduationCap, FaCompass, FaSearch, FaChartBar } from 'react-icons/fa';
 // import OccupationSelection from './OccupationSelection'; // disabled for testing — using plain text input
 import "../../assets/css/loader.css";
 import axios from 'axios';
@@ -53,6 +53,9 @@ const TargetOccupationDashboard = ({ skills }) => {
     const [ladder, setLadder] = useState([]);                // skill_learning_lader
     const [altCareers, setAltCareers] = useState([]);        // alternative_careers
     const [transferable, setTransferable] = useState(null);  // Transferable_skills
+    const [contribution, setContribution] = useState([]);    // skill_contribution (skills the user has)
+    const [mocgData, setMocgData] = useState([]);            // mocg (skills the user doesn't have)
+    const [mocgLearning, setMocgLearning] = useState([]);    // mocg_learning_opportunities
 
     // -- drill-down for a missing skill ------------------------------------
     const [selectedGapSkill, setSelectedGapSkill] = useState(null);
@@ -124,13 +127,16 @@ const TargetOccupationDashboard = ({ skills }) => {
             `${base}/${endpoint}?occupation_name=${encodeURIComponent(occupationLabel)}`;
 
         try {
-            const [fit, radar, miss, lad, alt, trans] = await Promise.allSettled([
+            const [fit, radar, miss, lad, alt, trans, contrib, mocg, mocgLearn] = await Promise.allSettled([
                 axios.post(url('fit_score_calculation_service'), body),
                 axios.post(url('skill_profile_radar_data'),       body),
                 axios.post(url('missing_skills'),                 body),
                 axios.post(url('skill_learning_lader'),           body),
                 axios.post(url('alternative_careers'),            body),
                 axios.post(url('Transferable_skills'),            body),
+                axios.post(url('skill_contribution'),             body),
+                axios.post(url('mocg'),                           body),
+                axios.post(url('mocg_learning_opportunities'),    body),
             ]);
 
             if (fit.status   === 'fulfilled') setFitData(fit.value.data);
@@ -139,6 +145,9 @@ const TargetOccupationDashboard = ({ skills }) => {
             if (lad.status   === 'fulfilled') setLadder(lad.value.data?.['Skill.Learning'] || []);
             if (alt.status   === 'fulfilled') setAltCareers(alt.value.data?.['alternative.careers'] || []);
             if (trans.status === 'fulfilled') setTransferable(trans.value.data);
+            if (contrib.status === 'fulfilled') setContribution(contrib.value.data?.['Skill.Contribution'] || []);
+            if (mocg.status  === 'fulfilled') setMocgData(mocg.value.data?.['MOCG'] || []);
+            if (mocgLearn.status === 'fulfilled') setMocgLearning(mocgLearn.value.data?.['Learning_opportunities'] || []);
         } catch (err) {
             console.error('Error fetching dashboard analyses:', err);
         } finally {
@@ -253,7 +262,7 @@ const TargetOccupationDashboard = ({ skills }) => {
         </Card>
     );
 
-    // ---- Competitiveness gauge (SVG) -------------------------------------
+    // ---- Occupational Competitiveness gauge (SVG) -------------------------------------
     //  Shows where the candidate stands relative to the quantile distribution
     //  of competitors. Quantiles[0] = lowest score, Quantiles[3] = top.
     const CompetitivenessGauge = ({ standing, quantiles }) => {
@@ -444,6 +453,137 @@ const TargetOccupationDashboard = ({ skills }) => {
         );
     };
 
+    // ---- Skill contribution horizontal bars (with "show more") -----------
+    //  Reused for both charts on the Skill Contribution tab. Generic over the
+    //  value key ("Contribution" for owned skills, "MOCG" for missing ones).
+    const ContributionBars = ({ items, valueKey, color, collapsedCount = 8 }) => {
+        const [expanded, setExpanded] = useState(false);
+        if (!items?.length) return <div className="text-center text-muted py-4">No data to display.</div>;
+        const maxValue = Math.max(...items.map(i => i[valueKey]), 1);
+        const visible = expanded ? items : items.slice(0, collapsedCount);
+        return (
+            <div style={{ padding: '8px 4px' }}>
+                {visible.map((item, idx) => {
+                    const pct = (item[valueKey] / maxValue) * 100;
+                    return (
+                        <div key={idx} style={{ marginBottom: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#374151', marginBottom: '4px' }}>
+                                <span style={{ fontWeight: 500 }} title={item.Skill}>{item.Skill}</span>
+                                <span style={{ color: '#6b7280', fontWeight: 600 }}>{item[valueKey]}</span>
+                            </div>
+                            <div style={{ background: '#f3f4f6', height: '14px', borderRadius: '7px', overflow: 'hidden' }}>
+                                <div style={{
+                                    width: `${pct}%`, height: '100%',
+                                    background: color, borderRadius: '7px',
+                                    transition: 'width 0.4s ease',
+                                }} />
+                            </div>
+                        </div>
+                    );
+                })}
+                {items.length > collapsedCount && (
+                    <div style={{ textAlign: 'center', marginTop: '8px' }}>
+                        <Button color="link" size="sm" onClick={() => setExpanded(!expanded)} style={{ textDecoration: 'none' }}>
+                            {expanded ? 'Show less' : `Show ${items.length - collapsedCount} more`}
+                        </Button>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // ---- MOCG learning-opportunities table -------------------------------
+    //  Ranked qualifications / learning opportunities and the fit +
+    //  competitiveness improvement each one delivers, with the skills gained.
+    const MocgLearningTable = ({ items, collapsedCount = 10 }) => {
+        const [search, setSearch] = useState('');
+        const [expanded, setExpanded] = useState(false);
+        if (!items?.length) return <div className="text-center text-muted py-4">No learning opportunities available.</div>;
+
+        const oppMeta = (u) => ({
+            id: (u || '').split('/').pop(),
+            type: u?.includes('/qualification/') ? 'Qualification'
+                : u?.includes('/learningOpportunity/') ? 'Learning Opportunity'
+                : 'Opportunity',
+        });
+
+        const maxFit = Math.max(...items.map(i => i['Fit.Improvement'] || 0), 0.0001);
+
+        const filtered = items.filter(it =>
+            (it['Skills.Acquired'] || []).some(s => s.toLowerCase().includes(search.toLowerCase())) ||
+            oppMeta(it['Learning.Opportunity']).type.toLowerCase().includes(search.toLowerCase())
+        );
+        const visible = expanded ? filtered : filtered.slice(0, collapsedCount);
+
+        return (
+            <>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+                    <Input type="text" placeholder="Search skills..." value={search}
+                           onChange={(e) => { setSearch(e.target.value); setExpanded(false); }}
+                           style={{ maxWidth: '220px', fontSize: '13px' }} bsSize="sm" />
+                </div>
+                <Table striped size="sm" style={{ fontSize: '13px' }}>
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40px' }}>#</th>
+                            <th>Learning Opportunity</th>
+                            <th style={{ width: '150px' }}>Fit Improvement</th>
+                            <th style={{ width: '150px' }}>Competitiveness</th>
+                            <th>Skills Acquired</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {visible.map((it, i) => {
+                            const meta = oppMeta(it['Learning.Opportunity']);
+                            const fitImp = it['Fit.Improvement'] || 0;
+                            return (
+                                <tr key={i}>
+                                    <td>{i + 1}</td>
+                                    <td>
+                                        <a href={it['Learning.Opportunity']} target="_blank" rel="noreferrer"
+                                           style={{ color: '#3b82f6', textDecoration: 'none' }}
+                                           title={it['Learning.Opportunity']}>
+                                            <Badge style={{ background: '#ede9fe', color: '#5b21b6', fontWeight: 600, marginRight: 6 }} pill>
+                                                {meta.type}
+                                            </Badge>
+                                            {meta.id.slice(0, 8)}…
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <Progress value={(fitImp / maxFit) * 100} color="success" style={{ height: '8px' }} />
+                                        <small>+{(fitImp * 100).toFixed(1)}%</small>
+                                    </td>
+                                    <td>
+                                        <Progress value={it['Competitiveness.Improvement'] || 0} color="info" style={{ height: '8px' }} />
+                                        <small>{it['Competitiveness.Improvement']}</small>
+                                    </td>
+                                    <td>
+                                        {(it['Skills.Acquired'] || []).map((s, si) => (
+                                            <Badge key={si} style={{
+                                                background: '#f3f4f6', color: '#374151', fontWeight: 500,
+                                                margin: '2px 4px 2px 0', fontSize: '11px',
+                                            }} pill>{s}</Badge>
+                                        ))}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                        {filtered.length === 0 && (
+                            <tr><td colSpan="5" className="text-center text-muted">No matching opportunities.</td></tr>
+                        )}
+                    </tbody>
+                </Table>
+                {filtered.length > collapsedCount && (
+                    <div style={{ textAlign: 'center' }}>
+                        <Button color="link" size="sm" onClick={() => setExpanded(!expanded)} style={{ textDecoration: 'none' }}>
+                            {expanded ? 'Show less' : `Show ${filtered.length - collapsedCount} more`}
+                        </Button>
+                    </div>
+                )}
+            </>
+        );
+    };
+
     // ---- Gap table with priority badges + drill-down button --------------
     const GapTable = ({ items, search, setSearch }) => {
         const filtered = items.filter(i =>
@@ -502,10 +642,12 @@ const TargetOccupationDashboard = ({ skills }) => {
     };
 
     // ---- Skill Learning Ladder (cumulative fit progression) --------------
-    //  Bars represent gain in Fit score when learning each consecutive skill.
+    //  Horizontal layout: one row per skill so the (often long) skill names
+    //  stay fully readable regardless of how many skills there are.
+    //  Each row shows the cumulative readiness (faint bar 0→Fit) with the
+    //  gain from that skill highlighted (solid segment prev→Fit).
     const LearningLadder = ({ items }) => {
         if (!items?.length) return <div className="text-center text-muted py-4">No learning progression data.</div>;
-        const max = Math.max(...items.map(i => i.Fit));
         const baseFit = fitData?.['Fit.Score']?.[0] != null ? fitData['Fit.Score'][0] * 100 : 0;
 
         // Compute the delta added by each skill (cumulative diff)
@@ -514,63 +656,67 @@ const TargetOccupationDashboard = ({ skills }) => {
             return { ...it, delta: it.Fit - prev, prev };
         });
 
-        const width = 700, height = 320, padding = { l: 60, r: 20, t: 20, b: 90 };
+        const rowH = 26;
+        const barH = 13;
+        const padding = { l: 230, r: 55, t: 34, b: 34 };
+        const width = 760;
         const innerW = width - padding.l - padding.r;
-        const innerH = height - padding.t - padding.b;
-        const barW = innerW / steps.length * 0.7;
-        const gap = innerW / steps.length * 0.3;
-        const yScale = (v) => padding.t + innerH * (1 - v / Math.max(max, 100));
+        const innerH = steps.length * rowH;
+        const height = padding.t + innerH + padding.b;
+        const maxX = 100;
+        const xScale = (v) => padding.l + (v / maxX) * innerW;
 
         return (
             <div style={{ overflowX: 'auto' }}>
                 <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', minWidth: '600px' }}>
-                    {/* Y axis */}
-                    <line x1={padding.l} y1={padding.t} x2={padding.l} y2={padding.t + innerH} stroke="#d1d5db" />
+                    {/* vertical gridlines + top axis labels */}
                     {[0, 25, 50, 75, 100].map(v => (
                         <g key={v}>
-                            <line x1={padding.l} y1={yScale(v)} x2={width - padding.r} y2={yScale(v)} stroke="#f3f4f6" />
-                            <text x={padding.l - 8} y={yScale(v) + 4} fontSize="11" fill="#6b7280" textAnchor="end">{v}</text>
+                            <line x1={xScale(v)} y1={padding.t} x2={xScale(v)} y2={padding.t + innerH} stroke="#f3f4f6" />
+                            <text x={xScale(v)} y={padding.t - 12} fontSize="11" fill="#6b7280" textAnchor="middle">{v}</text>
                         </g>
                     ))}
-                    {/* baseline marker */}
-                    <line x1={padding.l} y1={yScale(baseFit)} x2={width - padding.r} y2={yScale(baseFit)}
+
+                    {/* current-standing baseline (vertical) */}
+                    <line x1={xScale(baseFit)} y1={padding.t} x2={xScale(baseFit)} y2={padding.t + innerH}
                           stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="4 3" />
-                    <text x={width - padding.r} y={yScale(baseFit) - 6} fontSize="10" fill="#3b82f6" textAnchor="end">
+                    <text x={xScale(baseFit)} y={padding.t - 12} fontSize="10" fill="#3b82f6" textAnchor="middle">
                         current ({baseFit.toFixed(0)})
                     </text>
 
-                    {/* Floating bars showing the gain per skill */}
+                    {/* one horizontal bar per skill */}
                     {steps.map((s, i) => {
-                        const x = padding.l + i * (barW + gap) + gap / 2;
-                        const yTop = yScale(s.Fit);
-                        const yBot = yScale(s.prev);
-                        const h = Math.max(2, yBot - yTop);
+                        const y = padding.t + i * rowH + rowH / 2;
+                        const x0 = xScale(0);
+                        const xPrev = xScale(s.prev);
+                        const xFit = xScale(s.Fit);
+                        const label = s.Skills.length > 32 ? s.Skills.slice(0, 30) + '…' : s.Skills;
                         return (
                             <g key={i}>
-                                <rect x={x} y={yTop} width={barW} height={h}
-                                      fill="#10b981" opacity="0.85" rx="2">
+                                {/* skill label (left, fully readable) */}
+                                <text x={padding.l - 12} y={y + 4} fontSize="11" fill="#374151" textAnchor="end">
+                                    {label}
+                                    <title>{s.Skills}</title>
+                                </text>
+                                {/* cumulative readiness (faint) */}
+                                <rect x={x0} y={y - barH / 2} width={Math.max(0, xFit - x0)} height={barH}
+                                      fill="#a7f3d0" opacity="0.55" rx="3" />
+                                {/* gain from this skill (solid) */}
+                                <rect x={xPrev} y={y - barH / 2} width={Math.max(2, xFit - xPrev)} height={barH}
+                                      fill="#10b981" opacity="0.9" rx="3">
                                     <title>{s.Skills}: +{s.delta.toFixed(1)} Fit (→ {s.Fit})</title>
                                 </rect>
-                                {/* connector line to next bar */}
-                                {i < steps.length - 1 && (
-                                    <line x1={x + barW} y1={yTop}
-                                          x2={padding.l + (i + 1) * (barW + gap) + gap / 2}
-                                          y2={yScale(steps[i + 1].prev)}
-                                          stroke="#9ca3af" strokeDasharray="3 2" />
-                                )}
-                                {/* x label */}
-                                <text x={x + barW / 2} y={padding.t + innerH + 12}
-                                      fontSize="10" fill="#374151" textAnchor="end"
-                                      transform={`rotate(-35 ${x + barW / 2} ${padding.t + innerH + 12})`}>
-                                    {s.Skills.length > 22 ? s.Skills.slice(0, 20) + '…' : s.Skills}
+                                {/* cumulative value at the end of the bar */}
+                                <text x={xFit + 6} y={y + 4} fontSize="10" fill="#374151" textAnchor="start">
+                                    {typeof s.Fit === 'number' ? s.Fit.toFixed(0) : s.Fit}
                                 </text>
                             </g>
                         );
                     })}
-                    {/* Y axis title */}
-                    <text x={15} y={padding.t + innerH / 2} fontSize="11" fill="#6b7280"
-                          textAnchor="middle" transform={`rotate(-90 15 ${padding.t + innerH / 2})`}>
-                        Projected Fit Score
+
+                    {/* x axis title */}
+                    <text x={padding.l + innerW / 2} y={height - 8} fontSize="11" fill="#6b7280" textAnchor="middle">
+                        Projected Occupational Readiness
                     </text>
                 </svg>
             </div>
@@ -584,12 +730,19 @@ const TargetOccupationDashboard = ({ skills }) => {
 
         if (!items?.length) return <div className="text-center text-muted py-4">No alternative careers found.</div>;
 
+        // Drop roles with zero competition, and convert Fit (a fraction) to a percentage.
+        const data = items
+            .filter(i => i.Competition !== 0)
+            .map(i => ({ ...i, Fit: Math.round(i.Fit * 100 * 100) / 100 }));
+
+        if (!data.length) return <div className="text-center text-muted py-4">No alternative careers with market competition to display.</div>;
+
         const width = 700, height = 380, padding = { l: 55, r: 20, t: 20, b: 50 };
         const innerW = width - padding.l - padding.r;
         const innerH = height - padding.t - padding.b;
 
-        const fits = items.map(i => i.Fit);
-        const comps = items.map(i => i.Competition);
+        const fits = data.map(i => i.Fit);
+        const comps = data.map(i => i.Competition);
         const maxFit = Math.max(...fits, 100);
         const maxComp = Math.max(...comps, 100);
 
@@ -600,7 +753,7 @@ const TargetOccupationDashboard = ({ skills }) => {
 
         // ----- Group items by coordinate so overlapping points become one bubble
         const clusters = {};
-        items.forEach((it, i) => {
+        data.forEach((it, i) => {
             const key = `${it.Fit}|${it.Competition}`;
             if (!clusters[key]) {
                 clusters[key] = { fit: it.Fit, comp: it.Competition, roles: [], firstIdx: i };
@@ -635,7 +788,7 @@ const TargetOccupationDashboard = ({ skills }) => {
                         const cy = yScale(cl.fit);
                         // Size by the cluster's best (smallest) original index —
                         // first role from the endpoint is the largest, last is the smallest.
-                        const N = items.length;
+                        const N = data.length;
                         const R_MAX = 26, R_MIN = 10;
                         const rank = cl.firstIdx;        // 0 == best
                         const t = N > 1 ? rank / (N - 1) : 0;
@@ -819,26 +972,31 @@ const TargetOccupationDashboard = ({ skills }) => {
                         </text>
                     </g>
 
-                    {/* K → role flows */}
+                    {/* K → role flows — anchored to block edges so the line
+                        never runs across a box and its endpoints are clear. */}
                     {kItems.map((it, i) => {
                         const sLabel = it.Skill || it.Skills;
                         const p1 = leftPos(sLabel);
                         const p2 = rolePos(it.Roles);
+                        const from = { x: p1.x + skillW / 2, y: p1.y };  // right edge of Knowledge box
+                        const to   = { x: p2.x - roleW / 2,  y: p2.y };  // left edge of Occupation box
                         const stroke = 2 + (it.Importance || 0.1) * 8;
                         return (
-                            <path key={`k-${i}`} d={curve(p1, p2)} fill="none"
+                            <path key={`k-${i}`} d={curve(from, to)} fill="none"
                                   stroke={colorByPillar.K} strokeOpacity="0.35" strokeWidth={stroke} />
                         );
                     })}
 
-                    {/* role → S flows */}
+                    {/* role → S flows — anchored to block edges. */}
                     {sItems.map((it, i) => {
                         const sLabel = it.Skill || it.Skills;
                         const p1 = rolePos(it.Roles);
                         const p2 = rightPos(sLabel);
+                        const from = { x: p1.x + roleW / 2,  y: p1.y };  // right edge of Occupation box
+                        const to   = { x: p2.x - skillW / 2, y: p2.y };  // left edge of Skills box
                         const stroke = 2 + (it.Importance || 0.1) * 8;
                         return (
-                            <path key={`s-${i}`} d={curve(p1, p2)} fill="none"
+                            <path key={`s-${i}`} d={curve(from, to)} fill="none"
                                   stroke={colorByPillar.S} strokeOpacity="0.35" strokeWidth={stroke} />
                         );
                     })}
@@ -1013,7 +1171,7 @@ const TargetOccupationDashboard = ({ skills }) => {
             .filter(c => c.Roles.toLowerCase().includes(careerSearch.toLowerCase()))
             .map(c => ({
                 Career: c.Roles,
-                Fit: c.Fit,
+                Fit: Math.round(c.Fit * 100 * 100) / 100,
                 Competition: c.Competition,
             }));
     }, [altCareers, careerSearch]);
@@ -1116,12 +1274,12 @@ const TargetOccupationDashboard = ({ skills }) => {
                         value={standing != null ? standing : '—'}
                         icon={<FaTrophy />}
                         color="#f59e0b"
-                        sub={quantiles.length ? `vs. competitors (max ${(quantiles[quantiles.length - 1] * 100).toFixed(1)})` : ''}
+                        sub="based on your current skills"
                     />
                 </Col>
                 <Col md="4">
                     <StatCard
-                        label="Overall Fit Score"
+                        label="Overall Occupational Readiness"
                         value={fitScore != null ? (fitScore * 100).toFixed(0) : '—'}
                         suffix="%"
                         icon={<FaChartLine />}
@@ -1145,7 +1303,7 @@ const TargetOccupationDashboard = ({ skills }) => {
                 <Col md="6">
                     <Card>
                         <CardHeader style={{ background: '#fef3c7', borderBottom: '1px solid #fcd34d' }}>
-                            <CardTitle tag="h6" style={{ margin: 0, color: '#92400e' }}>Competitiveness Gauge</CardTitle>
+                            <CardTitle tag="h6" style={{ margin: 0, color: '#92400e' }}>Occupational Competitiveness Gauge</CardTitle>
                         </CardHeader>
                         <CardBody>
                             <CompetitivenessGauge standing={standing} quantiles={quantiles} />
@@ -1229,7 +1387,7 @@ const TargetOccupationDashboard = ({ skills }) => {
                         <CardHeader style={{ background: '#dcfce7', borderBottom: '1px solid #86efac' }}>
                             <CardTitle tag="h6" style={{ margin: 0, color: '#166534' }}>Skill Learning Ladder</CardTitle>
                             <small className="text-muted">
-                                Projected Fit score after learning each successive missing skill.
+                                Projected Occupational Readiness after learning each successive missing skill.
                             </small>
                         </CardHeader>
                         <CardBody>
@@ -1243,7 +1401,7 @@ const TargetOccupationDashboard = ({ skills }) => {
                 <Col md="12">
                     <Card>
                         <CardHeader style={{ background: '#dcfce7', borderBottom: '1px solid #86efac' }}>
-                            <CardTitle tag="h6" style={{ margin: 0, color: '#166534' }}>Learning Roadmap</CardTitle>
+                            <CardTitle tag="h6" style={{ margin: 0, color: '#166534' }}>Personalized Learning Roadmap</CardTitle>
                         </CardHeader>
                         <CardBody>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
@@ -1301,9 +1459,56 @@ const TargetOccupationDashboard = ({ skills }) => {
                 </Col>
             </Row>
 
+            <Row>
+                <Col md="12">
+                    <Card>
+                        <CardHeader style={{ background: '#ede9fe', borderBottom: '1px solid #c4b5fd' }}>
+                            <CardTitle tag="h6" style={{ margin: 0, color: '#5b21b6' }}>Learning Opportunities</CardTitle>
+                            <small className="text-muted">
+                                Qualifications and courses ranked by the fit and competitiveness improvement they deliver (MOCG).
+                            </small>
+                        </CardHeader>
+                        <CardBody>
+                            <MocgLearningTable items={mocgLearning} />
+                        </CardBody>
+                    </Card>
+                </Col>
+            </Row>
+
             {/* Reuse the drill-down */}
             {renderUpskillDrillDown()}
         </>
+    );
+
+    const renderContribution = () => (
+        <Row>
+            <Col md="6">
+                <Card>
+                    <CardHeader style={{ background: '#dcfce7', borderBottom: '1px solid #86efac' }}>
+                        <CardTitle tag="h6" style={{ margin: 0, color: '#166534' }}>Your Skills' Contribution</CardTitle>
+                        <small className="text-muted">
+                            How much each skill you already have contributes to this occupation.
+                        </small>
+                    </CardHeader>
+                    <CardBody>
+                        <ContributionBars items={contribution} valueKey="Contribution" color="#22c55e" />
+                    </CardBody>
+                </Card>
+            </Col>
+            <Col md="6">
+                <Card>
+                    <CardHeader style={{ background: '#fee2e2', borderBottom: '1px solid #fca5a5' }}>
+                        <CardTitle tag="h6" style={{ margin: 0, color: '#991b1b' }}>Missing Skills' Contribution</CardTitle>
+                        <small className="text-muted">
+                            Skills you don't have yet, ranked by their contribution (MOCG).
+                        </small>
+                    </CardHeader>
+                    <CardBody>
+                        <ContributionBars items={mocgData} valueKey="MOCG" color="#ef4444" />
+                    </CardBody>
+                </Card>
+            </Col>
+        </Row>
     );
 
     const renderCareer = () => (
@@ -1356,7 +1561,7 @@ const TargetOccupationDashboard = ({ skills }) => {
                                     <tr>
                                         <th style={{ width: '40px' }}>#</th>
                                         <th>Career</th>
-                                        <th style={{ width: '90px' }}>Fit</th>
+                                        <th style={{ width: '90px' }}>Fit (%)</th>
                                         <th style={{ width: '130px' }}>Competition</th>
                                     </tr>
                                 </thead>
@@ -1448,7 +1653,8 @@ const TargetOccupationDashboard = ({ skills }) => {
                                         {[
                                             { id: 'overview', label: 'Overview', icon: <FaChartLine /> },
                                             { id: 'gaps',     label: 'Skill Gaps & Upskilling', icon: <FaGraduationCap /> },
-                                            { id: 'roadmap',  label: 'Learning Roadmap', icon: <FaCompass /> },
+                                            { id: 'contribution', label: 'Skill Contribution', icon: <FaChartBar /> },
+                                            { id: 'roadmap',  label: 'Personalized Learning Roadmap', icon: <FaCompass /> },
                                             { id: 'career',   label: 'Career Path Explorer', icon: <FaCrown /> },
                                         ].map(t => (
                                             <NavItem key={t.id}>
@@ -1472,6 +1678,7 @@ const TargetOccupationDashboard = ({ skills }) => {
                                     <TabContent activeTab={activeTab}>
                                         <TabPane tabId="overview">{renderOverview()}</TabPane>
                                         <TabPane tabId="gaps">{renderGaps()}</TabPane>
+                                        <TabPane tabId="contribution">{renderContribution()}</TabPane>
                                         <TabPane tabId="roadmap">{renderRoadmap()}</TabPane>
                                         <TabPane tabId="career">{renderCareer()}</TabPane>
                                     </TabContent>
