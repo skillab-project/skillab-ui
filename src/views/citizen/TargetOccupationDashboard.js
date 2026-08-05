@@ -528,7 +528,7 @@ const TargetOccupationDashboard = ({ skills }) => {
                             <th style={{ width: '40px' }}>#</th>
                             <th>Learning Opportunity</th>
                             <th style={{ width: '150px' }}>Fit Improvement</th>
-                            <th style={{ width: '150px' }}>Competitiveness</th>
+                            <th style={{ width: '150px' }}>Competitiveness Improvement</th>
                             <th>Skills Acquired</th>
                         </tr>
                     </thead>
