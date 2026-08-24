@@ -7,6 +7,7 @@ import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import TaxonomyManagement from "views/taxonomies/TaxonomyManagement";
+import Recommendations from "views/education/Recommendations";
 
 var routes = [
   {
@@ -28,6 +29,13 @@ var routes = [
     name: "Taxonomy",
     icon: "nc-icon nc-single-02",
     component: <TaxonomyManagement />,
+    layout: "/education",
+  },
+  {
+    path: "/account/recommendations",
+    name: "Recommendations",
+    icon: "nc-icon nc-single-02",
+    component: <Recommendations />,
     layout: "/education",
   },
   {

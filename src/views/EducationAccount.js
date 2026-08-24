@@ -37,6 +37,10 @@ function EducationAccount() {
         window.location.href = "/education/account/taxonomy";
     }
 
+    const handleClickRecommendations =()=> {
+        window.location.href = "/education/account/recommendations";
+    }
+
     return (
     <>
       <div className="content">
@@ -80,7 +84,7 @@ function EducationAccount() {
                             </Row>
                             <Row>
                                 <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handleClickRecommendations()}>
                                         <CardBody>
                                             <GiTeamIdea size="50"/>
                                         </CardBody>

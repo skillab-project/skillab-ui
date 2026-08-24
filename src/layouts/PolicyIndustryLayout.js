@@ -39,7 +39,7 @@ function Dashboard(props) {
   React.useEffect(() => {
     async function checkAuth() {
       const installationString = await getInstallation();
-      if (installationString && installationString.split(",").includes("policy-industry")) {
+      if (installationString && installationString.split(",").includes("policy")) {
         setIsAuthorized(true);
       } else {
         setIsAuthorized(false);
