@@ -23,7 +23,7 @@ import {
     dashboardEmailStatisticsChart,
     dashboardNASDAQChart,
   } from "variables/charts.js";
-import { MdPolicy } from "react-icons/md";
+import { MdPolicy, MdSchool } from "react-icons/md";
 import { LuTrendingUpDown } from "react-icons/lu";
 
 
@@ -31,6 +31,10 @@ function PolicyEducationAccount() {
 
     function handelClickManagePolicies() {
         window.location.href = "/policy-education/account/manage-policies";
+    }
+
+    const handelClickManageUniversities =()=> {
+        window.location.href = "/policy-education/account/manage-universities";
     }
 
     const handelClickTaxonomy =()=> {
@@ -76,6 +80,16 @@ function PolicyEducationAccount() {
                                         </CardBody>
                                         <CardFooter>
                                             Taxonomy
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickManageUniversities()}>
+                                        <CardBody>
+                                            <MdSchool size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Manage Universities
                                         </CardFooter>
                                     </Card>
                                 </Col>

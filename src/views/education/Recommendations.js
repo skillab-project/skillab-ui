@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
     Card, CardHeader, CardBody, CardFooter, CardTitle,
     Row, Col, Button, Nav, NavItem, NavLink, TabContent, TabPane,
-    Input, Table, Badge, Alert, Collapse
+    Input, Table, Badge, Alert, Collapse, Spinner, Label, FormGroup
 } from "reactstrap";
 import classnames from "classnames";
 import axios from "axios";
 
 const API = process.env.REACT_APP_API_URL_CURRICULUM_SKILLS;
+const DIVERSITY = process.env.REACT_APP_API_URL_SKILLS_DIVERSITY;
 
 const errText = (err, fallback) =>
     err?.response?.data?.detail || err?.message || fallback;
@@ -36,6 +37,23 @@ const Recommendations = () => {
     const [loadingRecs, setLoadingRecs] = useState(false);
     const [openRec, setOpenRec] = useState(null);
 
+    // ---- Skill Recommendations (short-term skill-gap) ----
+    const [occupations, setOccupations] = useState([]);
+    const [occFilter, setOccFilter] = useState("");
+    const [selectedOccupations, setSelectedOccupations] = useState([]);
+    const [sgCountry, setSgCountry] = useState("");
+    const [sgUniversity, setSgUniversity] = useState("");
+    const [sgThreshold, setSgThreshold] = useState(0);
+    const [sgTopN, setSgTopN] = useState(10);
+    const [sgRunning, setSgRunning] = useState(false);
+    const [sgRunId, setSgRunId] = useState(null);
+    const [sgStatus, setSgStatus] = useState(null);      // running | completed
+    const [sgSummary, setSgSummary] = useState(null);    // {hot_skills, oversupplied_skills, ...}
+    const [sgLoading, setSgLoading] = useState(false);
+    const [sgOpen, setSgOpen] = useState(null);          // expanded skill key
+    const [sgMsg, setSgMsg] = useState(null);
+    const sgPollRef = useRef(null);
+
     const toggleTab = (tab) => {
         if (currentActiveTab !== tab) setCurrentActiveTab(tab);
     };
@@ -56,6 +74,112 @@ const Recommendations = () => {
     useEffect(() => {
         loadUniversities();
     }, [loadUniversities]);
+
+    // Load available occupations (for the Skill Recommendations tab) once.
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await axios.get(`${DIVERSITY}/available_occupation_names`);
+                const raw = res.data;
+                const list = Array.isArray(raw) && raw.length && Array.isArray(raw[0]) ? raw[0] : raw;
+                setOccupations(Array.isArray(list) ? list.filter(Boolean) : []);
+            } catch (err) {
+                setSgMsg({ type: "danger", text: `Could not load occupations: ${errText(err)}` });
+            }
+        })();
+        return () => { if (sgPollRef.current) clearTimeout(sgPollRef.current); };
+    }, []);
+
+    // Derived option lists shared by the skill-gap panel.
+    const countries = useMemo(() => {
+        const set = new Set(universities.map((u) => u.country).filter(Boolean));
+        return Array.from(set).sort();
+    }, [universities]);
+
+    const sgUniversitiesForCountry = useMemo(() => {
+        const list = sgCountry ? universities.filter((u) => u.country === sgCountry) : universities;
+        return [...list].sort((a, b) => (a.university_name || "").localeCompare(b.university_name || ""));
+    }, [universities, sgCountry]);
+
+    const filteredOccupations = useMemo(() => {
+        const q = occFilter.trim().toLowerCase();
+        const base = q ? occupations.filter((o) => o.toLowerCase().includes(q)) : occupations;
+        return base.slice(0, 200);
+    }, [occupations, occFilter]);
+
+    const toggleOccupation = (occ) => {
+        setSelectedOccupations((prev) =>
+            prev.includes(occ) ? prev.filter((o) => o !== occ) : [...prev, occ]
+        );
+    };
+
+    // Filter a skill's "taught at" course list by the chosen country/university.
+    // Course entries look like: "Course Name (University) - [Country]".
+    const filterCourses = (courses) =>
+        (courses || []).filter((c) =>
+            (!sgCountry || c.includes(`[${sgCountry}]`)) &&
+            (!sgUniversity || c.includes(`(${sgUniversity})`))
+        );
+
+    const runSkillGap = async () => {
+        setSgMsg(null);
+        setSgSummary(null);
+        if (!selectedOccupations.length) {
+            setSgMsg({ type: "warning", text: "Please select at least one occupation." });
+            return;
+        }
+        if (sgPollRef.current) clearTimeout(sgPollRef.current);
+        setSgRunning(true);
+        setSgStatus("running");
+        try {
+            const res = await axios.post(`${API}/skill-gap/analyze`, {
+                occupations: selectedOccupations,
+                threshold: Number(sgThreshold) || 0,
+                top_n: Number(sgTopN) || 10,
+            });
+            const rid = res.data.run_id;
+            setSgRunId(rid);
+            pollSkillGap(rid);
+        } catch (err) {
+            setSgMsg({ type: "danger", text: `Could not start the analysis: ${errText(err)}` });
+            setSgRunning(false);
+            setSgStatus(null);
+        }
+    };
+
+    const pollSkillGap = (rid) => {
+        const tick = async () => {
+            try {
+                const res = await axios.get(`${API}/skill-gap/status/${rid}`);
+                if (res.data.status === "completed") {
+                    setSgStatus("completed");
+                    setSgRunning(false);
+                    fetchSkillGapSummary(rid);
+                    return;
+                }
+            } catch (err) {
+                // transient — keep polling
+            }
+            sgPollRef.current = setTimeout(tick, 4000);
+        };
+        sgPollRef.current = setTimeout(tick, 3000);
+    };
+
+    const fetchSkillGapSummary = async (ridArg) => {
+        const rid = ridArg || sgRunId;
+        if (!rid) return;
+        setSgLoading(true);
+        try {
+            const res = await axios.get(`${API}/skill-gap/results/summary`, {
+                params: { run_id: rid, top_n: Number(sgTopN) || 10 },
+            });
+            setSgSummary(res.data || {});
+        } catch (err) {
+            setSgMsg({ type: "danger", text: `Could not load results: ${errText(err)}` });
+            setSgSummary({ hot_skills: [], oversupplied_skills: [] });
+        }
+        setSgLoading(false);
+    };
 
     // When the selected university changes, reset the dependent panels.
     const onSelectUniversity = async (univId) => {
@@ -185,6 +309,63 @@ const Recommendations = () => {
         (skills || []).slice(0, 60).map((s, i) => (
             <Badge key={i} color="info" style={{ marginRight: 4, marginBottom: 4 }}>{s}</Badge>
         ));
+
+    const renderGapSkill = (s, kind, idx) => {
+        const key = `${kind}::${idx}::${s.skill}`;
+        const open = sgOpen === key;
+        const courses = filterCourses(s.curriculum_courses);
+        const hidden = (s.curriculum_courses || []).length - courses.length;
+        return (
+            <Card key={key} style={{ marginBottom: 8 }}>
+                <CardHeader style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>
+                        <strong>{s.skill}</strong>{" "}
+                        <Badge color={kind === "hot" ? "danger" : "secondary"}>
+                            gap {s.gap_score}
+                        </Badge>{" "}
+                        <Badge color={s.in_curriculum ? "success" : "light"} style={{ color: s.in_curriculum ? "#fff" : "#333" }}>
+                            {s.in_curriculum ? "in curriculum" : "not in curriculum"}
+                        </Badge>
+                    </span>
+                    <Button size="sm" color="link" onClick={() => setSgOpen(open ? null : key)}>
+                        <i className={`fas ${open ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
+                    </Button>
+                </CardHeader>
+                <Collapse isOpen={open}>
+                    <CardBody>
+                        <div style={{ marginBottom: 6, color: "#555" }}>
+                            demand score <strong>{s.demand_score}</strong> ({s.demand_count} jobs) ·{" "}
+                            supply score <strong>{s.supply_score}</strong> ({s.supply_count} profiles)
+                        </div>
+                        {s.occupations && s.occupations.length > 0 && (
+                            <div style={{ marginBottom: 6 }}>
+                                <strong>Occupations:</strong>{" "}
+                                {s.occupations.map((o, i) => (
+                                    <Badge key={i} color="info" style={{ marginRight: 4, marginBottom: 4 }} outline>{o}</Badge>
+                                ))}
+                            </div>
+                        )}
+                        <div>
+                            <strong>Taught at</strong>{" "}
+                            <Badge color="light" style={{ color: "#333" }}>{courses.length}</Badge>
+                            {hidden > 0 && (
+                                <span style={{ color: "#999", fontSize: "0.85em" }}> ({hidden} hidden by filter)</span>
+                            )}
+                            {courses.length === 0 ? (
+                                <div><em style={{ color: "#999" }}>
+                                    {(s.curriculum_courses || []).length === 0 ? "Not found in any curriculum." : "No courses match the selected country/university."}
+                                </em></div>
+                            ) : (
+                                <ul style={{ marginTop: 4, maxHeight: 220, overflowY: "auto" }}>
+                                    {courses.map((c, i) => <li key={i} style={{ fontSize: "0.9em" }}>{c}</li>)}
+                                </ul>
+                            )}
+                        </div>
+                    </CardBody>
+                </Collapse>
+            </Card>
+        );
+    };
 
     return (
         <div className="content">
@@ -424,15 +605,175 @@ const Recommendations = () => {
 
                 {/* ================= Skill Recommendations ================= */}
                 <TabPane tabId="2">
+                    {sgMsg && (
+                        <Alert color={sgMsg.type} toggle={() => setSgMsg(null)}>{sgMsg.text}</Alert>
+                    )}
+
                     <Card>
                         <CardHeader>
-                            <CardTitle tag="h5">Skill Recommendations</CardTitle>
+                            <CardTitle tag="h5">Short-term skill gap</CardTitle>
+                            <span style={{ color: "#666" }}>
+                                Compare labour-market demand vs. supply for the skills of the occupations you pick,
+                                and see where each skill is taught.
+                            </span>
                         </CardHeader>
                         <CardBody>
-                            <div style={{ textAlign: "center", color: "#999", padding: "40px 0" }}>
-                                <i className="fas fa-tools" style={{ fontSize: "2em", marginBottom: 10 }}></i>
-                                <p>Skill recommendations are coming soon — the backend for this is still in progress.</p>
-                            </div>
+                            <Row>
+                                {/* Occupations picker */}
+                                <Col md="6">
+                                    <FormGroup>
+                                        <Label><strong>Occupations</strong> (one or more) *</Label>
+                                        <div style={{ marginBottom: 6 }}>
+                                            {selectedOccupations.length === 0 ? (
+                                                <em style={{ color: "#999" }}>No occupations selected yet.</em>
+                                            ) : (
+                                                selectedOccupations.map((o) => (
+                                                    <Badge
+                                                        key={o} color="primary"
+                                                        style={{ marginRight: 4, marginBottom: 4, cursor: "pointer" }}
+                                                        onClick={() => toggleOccupation(o)}
+                                                        title="Remove"
+                                                    >
+                                                        {o} <i className="fas fa-times"></i>
+                                                    </Badge>
+                                                ))
+                                            )}
+                                        </div>
+                                        <Input
+                                            bsSize="sm"
+                                            placeholder="Search occupations…"
+                                            value={occFilter}
+                                            onChange={(e) => setOccFilter(e.target.value)}
+                                        />
+                                        <div style={{ maxHeight: 220, overflowY: "auto", border: "1px solid #eee", borderRadius: 6, marginTop: 6 }}>
+                                            {occupations.length === 0 ? (
+                                                <div style={{ padding: 10 }}><Spinner size="sm" /> loading…</div>
+                                            ) : filteredOccupations.length === 0 ? (
+                                                <div style={{ padding: 10, color: "#999" }}>No matches.</div>
+                                            ) : (
+                                                filteredOccupations.map((o) => {
+                                                    const sel = selectedOccupations.includes(o);
+                                                    return (
+                                                        <div
+                                                            key={o}
+                                                            onClick={() => toggleOccupation(o)}
+                                                            style={{
+                                                                padding: "5px 10px", cursor: "pointer",
+                                                                background: sel ? "#e9f5ff" : "transparent",
+                                                                borderBottom: "1px solid #f4f4f4",
+                                                            }}
+                                                        >
+                                                            <i className={`far ${sel ? "fa-check-square" : "fa-square"}`} style={{ marginRight: 8 }}></i>
+                                                            {o}
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                    </FormGroup>
+                                </Col>
+
+                                {/* Parameters + course-list filters */}
+                                <Col md="6">
+                                    <Row>
+                                        <Col md="6">
+                                            <FormGroup>
+                                                <Label>Country</Label>
+                                                <Input
+                                                    type="select"
+                                                    value={sgCountry}
+                                                    onChange={(e) => { setSgCountry(e.target.value); setSgUniversity(""); }}
+                                                >
+                                                    <option value="">All countries</option>
+                                                    {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+                                                </Input>
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md="6">
+                                            <FormGroup>
+                                                <Label>University</Label>
+                                                <Input
+                                                    type="select"
+                                                    value={sgUniversity}
+                                                    onChange={(e) => setSgUniversity(e.target.value)}
+                                                >
+                                                    <option value="">All universities</option>
+                                                    {sgUniversitiesForCountry.map((u) => (
+                                                        <option key={u.university_id} value={u.university_name}>{u.university_name}</option>
+                                                    ))}
+                                                </Input>
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md="6">
+                                            <FormGroup>
+                                                <Label>Importance threshold</Label>
+                                                <Input
+                                                    type="number" min="0" max="1" step="0.05"
+                                                    value={sgThreshold}
+                                                    onChange={(e) => setSgThreshold(e.target.value)}
+                                                />
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md="6">
+                                            <FormGroup>
+                                                <Label>Top N skills</Label>
+                                                <Input
+                                                    type="number" min="1" max="100"
+                                                    value={sgTopN}
+                                                    onChange={(e) => setSgTopN(e.target.value)}
+                                                />
+                                            </FormGroup>
+                                        </Col>
+                                    </Row>
+                                    <small style={{ color: "#999" }}>
+                                        Country / University filter the "taught at" course lists in the results.
+                                    </small>
+                                    <div style={{ marginTop: 8 }}>
+                                        <Button color="primary" onClick={runSkillGap} disabled={sgRunning || selectedOccupations.length === 0}>
+                                            {sgRunning ? <><Spinner size="sm" /> Analysing…</> : "Run skill-gap analysis"}
+                                        </Button>
+                                    </div>
+                                </Col>
+                            </Row>
+
+                            {sgRunning && (
+                                <Alert color="info" style={{ marginTop: 12 }}>
+                                    <Spinner size="sm" /> Analysis running{sgRunId ? ` (run ${sgRunId.slice(0, 8)}…)` : ""}. Results appear automatically when it's done.
+                                </Alert>
+                            )}
+
+                            {sgStatus === "completed" && !sgRunning && (
+                                <div style={{ marginTop: 12 }}>
+                                    {sgLoading ? (
+                                        <div className="lds-dual-ring"></div>
+                                    ) : sgSummary ? (
+                                        <Row>
+                                            <Col md="6">
+                                                <h5>
+                                                    <i className="fas fa-fire" style={{ color: "#e74c3c" }}></i> Hot skills{" "}
+                                                    <span style={{ color: "#999", fontWeight: 400 }}>(demand &gt; supply)</span>
+                                                </h5>
+                                                {(sgSummary.hot_skills || []).length === 0 ? (
+                                                    <em style={{ color: "#999" }}>None.</em>
+                                                ) : (
+                                                    sgSummary.hot_skills.map((s, i) => renderGapSkill(s, "hot", i))
+                                                )}
+                                            </Col>
+                                            <Col md="6">
+                                                <h5>
+                                                    <i className="fas fa-water" style={{ color: "#3498db" }}></i> Oversupplied skills{" "}
+                                                    <span style={{ color: "#999", fontWeight: 400 }}>(supply &gt; demand)</span>
+                                                </h5>
+                                                {(sgSummary.oversupplied_skills || []).length === 0 ? (
+                                                    <em style={{ color: "#999" }}>None.</em>
+                                                ) : (
+                                                    sgSummary.oversupplied_skills.map((s, i) => renderGapSkill(s, "over", i))
+                                                )}
+                                            </Col>
+                                        </Row>
+                                    ) : null}
+                                </div>
+                            )}
                         </CardBody>
                     </Card>
                 </TabPane>

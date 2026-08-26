@@ -67,10 +67,11 @@ const fetchContinuously = async (url, signal, interval = 5000) => {
 // Lists the analysis *titles* that exist (with sector / description / count).
 // Selecting one loads all the PDF analyses stored under that title.
 
-const PreviousAnalysesModal = ({ isOpen, toggle, onLoad }) => {
+const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
   const [titles, setTitles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingTitle, setLoadingTitle] = useState(null);
+  const [deletingTitle, setDeletingTitle] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -109,6 +110,31 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad }) => {
       setLoadingTitle(null);
     }
   };
+
+  const handleDeleteTitle = async (titleItem) => {
+    const ok = window.confirm(
+      `Delete the analysis "${titleItem.title}" and all ${titleItem.count} PDF${titleItem.count === 1 ? '' : 's'} under it? This cannot be undone.`
+    );
+    if (!ok) return;
+
+    setDeletingTitle(titleItem.title);
+    setError(null);
+    try {
+      await axios.delete(
+        `${API_BASE_URL}/analyses/by-title/${encodeURIComponent(titleItem.title)}`,
+        { headers: authHeader() }
+      );
+      setTitles((prev) => prev.filter((t) => t.title !== titleItem.title));
+      if (onDeleted) onDeleted(titleItem.title);
+    } catch (err) {
+      setError("Failed to delete this analysis.");
+      console.error(err);
+    } finally {
+      setDeletingTitle(null);
+    }
+  };
+
+  const busy = loadingTitle !== null || deletingTitle !== null;
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="lg">
@@ -152,14 +178,24 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad }) => {
                       : <span className="text-muted">—</span>}
                   </td>
                   <td className="text-center">{t.count}</td>
-                  <td className="text-center">
+                  <td className="text-center" style={{ whiteSpace: 'nowrap' }}>
                     <Button
                       color="info"
                       size="sm"
-                      disabled={loadingTitle !== null}
+                      className="mr-2"
+                      disabled={busy}
                       onClick={() => handleSelectTitle(t)}
                     >
                       {loadingTitle === t.title ? <Spinner size="sm" /> : 'View'}
+                    </Button>
+                    <Button
+                      color="danger"
+                      outline
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => handleDeleteTitle(t)}
+                    >
+                      {deletingTitle === t.title ? <Spinner size="sm" /> : 'Delete'}
                     </Button>
                   </td>
                 </tr>
@@ -507,6 +543,14 @@ const FutureTechnologyTrendsIdentifier = () => {
     }
   };
 
+  // If the analysis currently open in the results view was just deleted,
+  // return to the setup screen so we're not showing stale data.
+  const handleDeletedPrevious = (deletedTitle) => {
+    if (phase === 'results' && meta.title === deletedTitle) {
+      resetAll();
+    }
+  };
+
   // ── Start over ────────────────────────────────────────────────────────────
   const resetAll = () => {
     cancelRun();
@@ -744,6 +788,7 @@ const FutureTechnologyTrendsIdentifier = () => {
         isOpen={showPreviousModal}
         toggle={() => setShowPreviousModal(false)}
         onLoad={handleLoadPrevious}
+        onDeleted={handleDeletedPrevious}
       />
     </Card>
   );

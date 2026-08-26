@@ -9,6 +9,7 @@ import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import TaxonomyManagement from "views/taxonomies/TaxonomyManagement";
 import FutureTechnologyTrends from "views/policies/FutureTechnologyTrends";
 import ProgramAndNeeds from "views/policies/ProgramAndNeeds";
+import EducationManagement from "views/education/EducationManagement";
 
 var routes = [
   {
@@ -23,6 +24,13 @@ var routes = [
     name: "Manage Policies",
     icon: "nc-icon nc-single-02",
     component: <ManagePolicies />,
+    layout: "/policy-education",
+  },
+  {
+    path: "/account/manage-universities",
+    name: "Manage Universities",
+    icon: "nc-icon nc-single-02",
+    component: <EducationManagement />,
     layout: "/policy-education",
   },
   {

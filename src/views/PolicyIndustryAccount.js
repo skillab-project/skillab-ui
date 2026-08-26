@@ -24,13 +24,17 @@ import {
     dashboardNASDAQChart,
   } from "variables/charts.js";
 import { LuTrendingUpDown } from "react-icons/lu";
-import { MdPolicy } from "react-icons/md";
+import { MdPolicy, MdSchool } from "react-icons/md";
 
 
 function PolicyIndustryAccount() {
 
     function handelClickManagePolicies() {
         window.location.href = "/policy-industry/account/manage-policies";
+    }
+
+    const handelClickManageUniversities =()=> {
+        window.location.href = "/policy-industry/account/manage-universities";
     }
 
     const handelClickTaxonomy =()=> {
@@ -77,6 +81,16 @@ function PolicyIndustryAccount() {
                                         </CardBody>
                                         <CardFooter>
                                             Taxonomy
+                                        </CardFooter>
+                                    </Card>
+                                </Col>
+                                <Col md="3">
+                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickManageUniversities()}>
+                                        <CardBody>
+                                            <MdSchool size="50"/>
+                                        </CardBody>
+                                        <CardFooter>
+                                            Manage Universities
                                         </CardFooter>
                                     </Card>
                                 </Col>
