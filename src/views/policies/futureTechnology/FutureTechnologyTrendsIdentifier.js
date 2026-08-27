@@ -500,11 +500,11 @@ const FutureTechnologyTrendsIdentifier = () => {
 
     // Then restore any previously stored policy results (ESCO mapping +
     // recommendations) so the user isn't asked to generate them again.
-    // These are saved as policy jobs whose source_job_id is the analysis job.
+    // These are saved as policy jobs whose source_job_id is the analysis job;
+    // /policies/by-title returns just this analysis's policies (any user).
     try {
-      const userId = await getId();
       const polRes = await axios.get(
-        `${API_BASE_URL}/users/${userId}/policies?include_content=true`,
+        `${API_BASE_URL}/policies/by-title/${encodeURIComponent(titleItem.title)}?include_content=true`,
         { headers: authHeader() }
       );
       const policyByJob = {};

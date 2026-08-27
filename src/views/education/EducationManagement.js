@@ -25,6 +25,77 @@ const cleanName = (filename) =>
         .replace(/[_\W]+/g, " ")
         .trim();
 
+const NEW_SENTINEL = "__cs_new__";
+
+// Dropdown (reactstrap select, same look as other views) that also lets the
+// user add a value not yet in the list via an "Add new…" option.
+function ComboSelect({
+    value,
+    options,
+    onChange,
+    selectPlaceholder,
+    inputPlaceholder,
+    bsSize,
+    disabled,
+}) {
+    const [adding, setAdding] = useState(false);
+    const isNew = adding || (!!value && !options.includes(value));
+
+    const handleSelect = (e) => {
+        const v = e.target.value;
+        if (v === NEW_SENTINEL) {
+            setAdding(true);
+            onChange("");
+        } else {
+            setAdding(false);
+            onChange(v);
+        }
+    };
+
+    if (isNew) {
+        return (
+            <div>
+                <Input
+                    bsSize={bsSize}
+                    type="text"
+                    value={value}
+                    placeholder={inputPlaceholder}
+                    onChange={(e) => onChange(e.target.value)}
+                />
+                <Button
+                    color="link"
+                    size="sm"
+                    style={{ padding: "2px 0" }}
+                    onClick={() => {
+                        setAdding(false);
+                        onChange("");
+                    }}
+                >
+                    &larr; choose from list
+                </Button>
+            </div>
+        );
+    }
+
+    return (
+        <Input
+            bsSize={bsSize}
+            type="select"
+            value={options.includes(value) ? value : ""}
+            onChange={handleSelect}
+            disabled={disabled}
+        >
+            <option value="">{selectPlaceholder}</option>
+            {options.map((o) => (
+                <option key={o} value={o}>
+                    {o}
+                </option>
+            ))}
+            <option value={NEW_SENTINEL}>&#43; Add new&hellip;</option>
+        </Input>
+    );
+}
+
 const EducationManagement = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState("1");
 
@@ -186,6 +257,24 @@ const EducationManagement = () => {
         }
     };
 
+    const deleteUniversity = async (uni) => {
+        if (!window.confirm(`Delete "${uni.university_name}" and ALL its programs and courses? This cannot be undone.`)) return;
+        try {
+            const res = await axios.delete(`${API}/university/${uni.university_id}`);
+            const p = res?.data?.deleted_programs ?? 0;
+            const c = res?.data?.deleted_courses ?? 0;
+            setResultsMsg({ type: "success", text: `University "${uni.university_name}" deleted (${p} program(s), ${c} course(s) removed).` });
+            if (selectedUni?.university_id === uni.university_id) {
+                setSelectedUni(null);
+                setCurriculum(null);
+            }
+            loadUniversities();
+        } catch (err) {
+            const detail = err?.response?.data?.detail || err?.message;
+            setResultsMsg({ type: "danger", text: `Failed to delete university: ${detail}` });
+        }
+    };
+
     useEffect(() => {
         loadUniversities();
     }, [loadUniversities]);
@@ -311,6 +400,27 @@ const EducationManagement = () => {
         );
     };
 
+    // ---- Combobox option lists derived from existing universities ----
+    const countryOptions = Array.from(
+        new Set(
+            (universities || [])
+                .map((u) => (u.country || "").trim())
+                .filter(Boolean)
+        )
+    ).sort((a, b) => a.localeCompare(b));
+
+    const universityOptionsForCountry = (country) => {
+        const c = (country || "").trim().toLowerCase();
+        return Array.from(
+            new Set(
+                (universities || [])
+                    .filter((u) => !c || (u.country || "").trim().toLowerCase() === c)
+                    .map((u) => (u.university_name || "").trim())
+                    .filter(Boolean)
+            )
+        ).sort((a, b) => a.localeCompare(b));
+    };
+
     return (
         <div className="content">
             <Nav tabs style={{ marginBottom: "10px" }}>
@@ -340,26 +450,29 @@ const EducationManagement = () => {
                             <CardTitle tag="h5">Upload curriculum PDFs</CardTitle>
                             <p style={{ color: "#666", marginBottom: 0 }}>
                                 Add one or many PDFs. Set a university (and optional program) per file —
-                                so a dean can upload several programs for one university, or a ministry can
-                                upload for many universities at once.
+                                so a dean can upload several programs for one university.
                             </p>
                         </CardHeader>
                         <CardBody>
                             <Row>
                                 <Col md="4">
-                                    <label>Default university (applied to new files)</label>
-                                    <Input
-                                        value={defaultUniversity}
-                                        onChange={(e) => setDefaultUniversity(e.target.value)}
-                                        placeholder="e.g. University of Macedonia"
+                                    <label>Default country</label>
+                                    <ComboSelect
+                                        value={defaultCountry}
+                                        options={countryOptions}
+                                        onChange={setDefaultCountry}
+                                        selectPlaceholder="— select a country —"
+                                        inputPlaceholder="Type a new country"
                                     />
                                 </Col>
                                 <Col md="4">
-                                    <label>Default country</label>
-                                    <Input
-                                        value={defaultCountry}
-                                        onChange={(e) => setDefaultCountry(e.target.value)}
-                                        placeholder="e.g. Greece"
+                                    <label>Default university (applied to new files)</label>
+                                    <ComboSelect
+                                        value={defaultUniversity}
+                                        options={universityOptionsForCountry(defaultCountry)}
+                                        onChange={setDefaultUniversity}
+                                        selectPlaceholder="— select a university —"
+                                        inputPlaceholder="Type a new university"
                                     />
                                 </Col>
                                 <Col md="4" style={{ display: "flex", alignItems: "flex-end" }}>
@@ -391,8 +504,8 @@ const EducationManagement = () => {
                                         <thead>
                                             <tr>
                                                 <th>File</th>
-                                                <th>University *</th>
                                                 <th>Country</th>
+                                                <th>University *</th>
                                                 <th>Program / degree title</th>
                                                 <th>Type</th>
                                                 <th>Split mode</th>
@@ -407,17 +520,23 @@ const EducationManagement = () => {
                                                         {row.file.name}
                                                     </td>
                                                     <td>
-                                                        <Input
+                                                        <ComboSelect
                                                             bsSize="sm"
-                                                            value={row.university}
-                                                            onChange={(e) => updateRow(idx, { university: e.target.value })}
+                                                            value={row.country}
+                                                            options={countryOptions}
+                                                            onChange={(v) => updateRow(idx, { country: v })}
+                                                            selectPlaceholder="— country —"
+                                                            inputPlaceholder="New country"
                                                         />
                                                     </td>
                                                     <td>
-                                                        <Input
+                                                        <ComboSelect
                                                             bsSize="sm"
-                                                            value={row.country}
-                                                            onChange={(e) => updateRow(idx, { country: e.target.value })}
+                                                            value={row.university}
+                                                            options={universityOptionsForCountry(row.country)}
+                                                            onChange={(v) => updateRow(idx, { university: v })}
+                                                            selectPlaceholder="— university —"
+                                                            inputPlaceholder="New university"
                                                         />
                                                     </td>
                                                     <td>
@@ -533,23 +652,35 @@ const EducationManagement = () => {
                                             {universities.map((u) => (
                                                 <li
                                                     key={u.university_id}
-                                                    onClick={() => loadCurriculum(u)}
                                                     style={{
                                                         listStyle: "none",
-                                                        cursor: "pointer",
                                                         padding: "8px",
                                                         borderRadius: 6,
                                                         marginBottom: 4,
                                                         background:
                                                             selectedUni?.university_id === u.university_id ? "#e9f5ff" : "transparent",
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
                                                     }}
                                                 >
-                                                    <div style={{ fontWeight: 500, textAlign: "left" }}>
-                                                        {u.university_name}
+                                                    <div style={{ cursor: "pointer", flex: 1 }} onClick={() => loadCurriculum(u)}>
+                                                        <div style={{ fontWeight: 500, textAlign: "left" }}>
+                                                            {u.university_name}
+                                                        </div>
+                                                        <div style={{ fontSize: "0.8em", color: "#666", textAlign: "left" }}>
+                                                            {u.country} · {u.program_count} program(s) · {u.course_count} course(s)
+                                                        </div>
                                                     </div>
-                                                    <div style={{ fontSize: "0.8em", color: "#666", textAlign: "left" }}>
-                                                        {u.country} · {u.program_count} program(s) · {u.course_count} course(s)
-                                                    </div>
+                                                    <Button
+                                                        size="sm"
+                                                        color="danger"
+                                                        outline
+                                                        title="Delete university"
+                                                        onClick={(e) => { e.stopPropagation(); deleteUniversity(u); }}
+                                                    >
+                                                        <i className="fas fa-trash"></i>
+                                                    </Button>
                                                 </li>
                                             ))}
                                         </ul>
