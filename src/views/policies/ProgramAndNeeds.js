@@ -333,7 +333,7 @@ const ProgramAndNeeds = () => {
         year: now.getFullYear(),
         country: ltCountry,
         esco_threshold: Number(ltEscoThreshold) || 0.4,
-      });
+      }, { headers: ftAuth() });
       setLtResults(res.data || { skills: [] });
       setLtActiveTitle(saveTitle);
       setLtActiveFilters(null); // fresh run — the form fields already show the filters
@@ -442,7 +442,7 @@ const ProgramAndNeeds = () => {
         occupations: selectedOccupations,
         threshold: Number(threshold) || 0,
         top_n: Number(topN) || 100,
-      });
+      }, { headers: ftAuth() });
       const rid = res.data.run_id;
       setRunId(rid);
       loadRuns();
