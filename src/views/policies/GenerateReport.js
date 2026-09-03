@@ -94,7 +94,7 @@ const mdToHtml = (md) => {
     }
 
     // headings
-    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    const h = line.match(/^\s*(#{1,6})\s+(.*)$/);
     if (h) { flushPara(); flushList(); const lvl = h[1].length; html += `<h${lvl}>${inlineMd(h[2].trim())}</h${lvl}>`; continue; }
 
     // horizontal rule
