@@ -14,6 +14,9 @@ const DIVERSITY = process.env.REACT_APP_API_URL_SKILLS_DIVERSITY;
 const errText = (err, fallback) =>
     err?.response?.data?.detail || err?.message || fallback;
 
+// Bearer token for POSTs through the authenticated user-management gateway.
+const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` });
+
 const Recommendations = () => {
     const [currentActiveTab, setCurrentActiveTab] = useState("1");
 
@@ -224,7 +227,7 @@ const Recommendations = () => {
                 occupations: selectedOccupations,
                 threshold: Number(sgThreshold) || 0,
                 top_n: Number(sgTopN) || 10,
-            });
+            }, { headers: authHeader() });
             const rid = res.data.run_id;
             setSgRunId(rid);
             loadSkillGapRuns();
@@ -354,7 +357,8 @@ const Recommendations = () => {
                     program_id: Number(selectedProgram.program_id),
                     degree_title: titles[0] || "",
                     top_n: Number(recTopN),
-                }
+                },
+                { headers: authHeader() }
             );
             setRecs(res.data?.recommendations || []);
         } catch (err) {
