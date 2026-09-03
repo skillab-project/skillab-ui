@@ -9,6 +9,7 @@ import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import TaxonomyManagement from "views/taxonomies/TaxonomyManagement";
 import FutureTechnologyTrends from "views/policies/FutureTechnologyTrends";
 import ProgramAndNeeds from "views/policies/ProgramAndNeeds";
+import GenerateReport from "views/policies/GenerateReport";
 import EducationManagement from "views/education/EducationManagement";
 
 var routes = [
@@ -52,6 +53,13 @@ var routes = [
     name: "Future Technology Trends",
     icon: "nc-icon nc-single-02",
     component: <FutureTechnologyTrends />,
+    layout: "/policy-education",
+  },
+  {
+    path: "/account/generate-report",
+    name: "Generate Report",
+    icon: "nc-icon nc-single-02",
+    component: <GenerateReport />,
     layout: "/policy-education",
   },
   {

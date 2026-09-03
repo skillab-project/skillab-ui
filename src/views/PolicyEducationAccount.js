@@ -1,205 +1,93 @@
-import React, { useState } from "react";
+import React from "react";
+import { Row, Col } from "reactstrap";
 import {
-  Button,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  CardTitle,
-  FormGroup,
-  Form,
-  Input,
-  Row,
-  Col,
-  Dropdown,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem
-} from "reactstrap";
-import { Line, Pie } from "react-chartjs-2";
-import {
-    dashboard24HoursPerformanceChart,
-    dashboardEmailStatisticsChart,
-    dashboardNASDAQChart,
-  } from "variables/charts.js";
-import { MdPolicy, MdSchool } from "react-icons/md";
-import { LuTrendingUpDown } from "react-icons/lu";
+  MdPolicy,
+  MdAccountTree,
+  MdSchool,
+  MdInsights,
+  MdTrendingUp,
+  MdDescription,
+} from "react-icons/md";
+import NavCard from "../components/Cards/NavCard";
 
+const MANAGE_POLICIES_PATH = "/policy-education/account/manage-policies";
 
 function PolicyEducationAccount() {
+  const go = (path) => () => {
+    window.location.href = path;
+  };
 
-    function handelClickManagePolicies() {
-        window.location.href = "/policy-education/account/manage-policies";
-    }
-
-    const handelClickManageUniversities =()=> {
-        window.location.href = "/policy-education/account/manage-universities";
-    }
-
-    const handelClickTaxonomy =()=> {
-        window.location.href = "/policy-education/account/taxonomy";
-    }
-    
-    const handelClickProgramAndNeeds =()=> {
-        window.location.href = "/policy-education/account/program-and-needs";
-    }
-
-    const handelClickFutureTechnologyTrends =()=> {
-        window.location.href = "/policy-education/account/future-technology-trends";
-    }
-
-    return (
+  return (
     <>
       <div className="content">
+        {/* Management */}
         <Row>
-            <Col md="12">
-                <Card>
-                    <Row>
-                        <Col md="12">
-                            <Row>
-                                <Col tag="h6">
-                                    Management
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}}onClick={()=>handelClickManagePolicies()}>
-                                        <CardBody>
-                                            <MdPolicy size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Manage Policies
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}}onClick={()=>handelClickTaxonomy()}>
-                                        <CardBody>
-                                            <MdPolicy size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Taxonomy
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickManageUniversities()}>
-                                        <CardBody>
-                                            <MdSchool size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Manage Universities
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                            </Row>
-
-                            <Row>
-                                <Col tag="h6">
-                                    Education and Industry Alignment 
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickProgramAndNeeds()}>
-                                        <CardBody>
-                                            <LuTrendingUpDown size="50"/> 
-                                        </CardBody>
-                                        <CardFooter>
-                                            Program and Needs
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickFutureTechnologyTrends()}>
-                                        <CardBody>
-                                            <LuTrendingUpDown size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Future Technology Trends
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                            </Row>
-
-                        </Col>
-                    </Row>
-                </Card>
-            </Col>
+          <Col md="12">
+            <h6 className="text-uppercase text-muted">Management</h6>
+          </Col>
+          <Col lg="3" md="6" className="mb-4">
+            <NavCard
+              icon={MdPolicy}
+              color="#51cbce"
+              title="Manage Policies"
+              description="Create, review and publish education policies."
+              onClick={go(MANAGE_POLICIES_PATH)}
+            />
+          </Col>
+          <Col lg="3" md="6" className="mb-4">
+            <NavCard
+              icon={MdAccountTree}
+              color="#6bd098"
+              title="Taxonomy"
+              description="Browse and maintain the skills taxonomy."
+              onClick={go("/policy-education/account/taxonomy")}
+            />
+          </Col>
+          <Col lg="3" md="6" className="mb-4">
+            <NavCard
+              icon={MdSchool}
+              color="#fbc658"
+              title="Manage Universities"
+              description="Add and organise participating universities."
+              onClick={go("/policy-education/account/manage-universities")}
+            />
+          </Col>
         </Row>
 
-
+        {/* Education and Industry Alignment */}
         <Row>
-            <Col md="12">
-                <Card>
-                    <CardHeader>
-                        <CardTitle tag="h5">My Policies</CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        Coming Soon
-                        {/* <Row>
-                            <Col xl="4" md="6" sm="12">
-                                <Card className="card-stats">
-                                    <CardHeader>
-                                        <CardTitle tag="h5">2022</CardTitle>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <Row>
-                                            <Col md="12">
-                                                table
-                                            </Col>
-                                        </Row>
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                            <Col xl="4" md="6" sm="12">
-                                <Card className="card-stats">
-                                    <CardHeader>
-                                        <CardTitle tag="h5">2023</CardTitle>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <Row>
-                                        <Col md="12">
-                                                table
-                                            </Col>
-                                        </Row>
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                            <Col xl="4" md="6" sm="12">
-                                <Card className="card-stats">
-                                    <CardHeader>
-                                        <CardTitle tag="h5">2024</CardTitle>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <Row>
-                                            <Col md="12">
-                                                table
-                                            </Col>
-                                        </Row>
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                        </Row>
-
-                        <Row>
-                            <Col md="12">
-                                <Card>
-                                    <CardBody>
-                                        <Line
-                                        data={dashboard24HoursPerformanceChart.data}
-                                        options={dashboard24HoursPerformanceChart.options}
-                                        width={400}
-                                        height={100}
-                                        />
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                        </Row> */}
-                    </CardBody>
-                </Card>
-            </Col>
+          <Col md="12">
+            <h6 className="text-uppercase text-muted" style={{ marginTop: 6 }}>
+              Education &amp; Industry Alignment
+            </h6>
+          </Col>
+          <Col lg="3" md="6" className="mb-4">
+            <NavCard
+              icon={MdInsights}
+              color="#51bcda"
+              title="Future Technology Trends"
+              description="Explore emerging technologies shaping skills."
+              onClick={go("/policy-education/account/future-technology-trends")}
+            />
+          </Col>
+          <Col lg="3" md="6" className="mb-4">
+            <NavCard
+              icon={MdTrendingUp}
+              color="#ef8157"
+              title="Program and Needs"
+              description="Compare programmes against labour-market needs."
+              onClick={go("/policy-education/account/program-and-needs")}
+            />
+          </Col>
+          <Col lg="3" md="6" className="mb-4">
+            <NavCard
+              icon={MdDescription}
+              color="#9a7fd1"
+              title="Generate Report"
+              description="Build a report from analyses you have already run."
+              onClick={go("/policy-education/account/generate-report")}
+            />
+          </Col>
         </Row>
       </div>
     </>

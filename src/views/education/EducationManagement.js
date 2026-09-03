@@ -132,6 +132,7 @@ const EducationManagement = () => {
             degreeType: "",
             splitMode: "full_text",
             status: "pending", // pending | uploading | done | error
+            progress: null,
             result: null,
             error: null,
         }));
@@ -150,7 +151,7 @@ const EducationManagement = () => {
         setRows((prev) => prev.filter((r) => r.status !== "done"));
 
     const uploadOne = async (row, idx) => {
-        updateRow(idx, { status: "uploading", error: null });
+        updateRow(idx, { status: "uploading", error: null, progress: null });
         const form = new FormData();
         form.append("file", row.file);
         if (row.university) form.append("university_name", row.university);
@@ -160,18 +161,59 @@ const EducationManagement = () => {
         form.append("split_mode", row.splitMode);
         form.append("save_to_db", "true");
         try {
+            // The endpoint now returns immediately with a job_id and processes
+            // the PDF in the background — poll until it finishes.
             const res = await axios.post(`${API}/pdf/upload_and_process`, form, {
-                headers: { "Content-Type": "multipart/form-data" },
+                headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
             });
-            updateRow(idx, { status: "done", result: res.data });
-            return true;
+            const jobId = res.data?.job_id;
+            if (!jobId) {
+                // Fallback: a backend that still returns the result directly.
+                updateRow(idx, { status: "done", result: res.data, progress: null });
+                return true;
+            }
+            return await pollUpload(jobId, idx);
         } catch (err) {
             const detail =
                 err?.response?.data?.detail || err?.message || "Upload failed";
-            updateRow(idx, { status: "error", error: String(detail) });
+            updateRow(idx, { status: "error", error: String(detail), progress: null });
             return false;
         }
     };
+
+    // Poll a background upload_and_process job until it finishes.
+    // Resolves true on success, false on failure.
+    const pollUpload = (jobId, idx) =>
+        new Promise((resolve) => {
+            const tick = async () => {
+                try {
+                    const res = await axios.get(
+                        `${API}/pdf/upload_and_process/status/${jobId}`
+                    );
+                    const task = res.data || {};
+                    if (task.status === "succeeded") {
+                        updateRow(idx, { status: "done", result: task.result, progress: null });
+                        resolve(true);
+                        return;
+                    }
+                    if (task.status === "failed") {
+                        updateRow(idx, {
+                            status: "error",
+                            error: task.error || "Processing failed",
+                            progress: null,
+                        });
+                        resolve(false);
+                        return;
+                    }
+                    // queued / running — reflect progress if the backend reports it
+                    updateRow(idx, { status: "uploading", progress: task.progress || null });
+                } catch (err) {
+                    // transient error — keep polling
+                }
+                setTimeout(tick, 3000);
+            };
+            setTimeout(tick, 2000);
+        });
 
     const uploadAll = async () => {
         setUploading(true);
@@ -456,7 +498,7 @@ const EducationManagement = () => {
                         <CardBody>
                             <Row>
                                 <Col md="4">
-                                    <label>Default country</label>
+                                    <label>Country</label>
                                     <ComboSelect
                                         value={defaultCountry}
                                         options={countryOptions}
@@ -466,7 +508,7 @@ const EducationManagement = () => {
                                     />
                                 </Col>
                                 <Col md="4">
-                                    <label>Default university (applied to new files)</label>
+                                    <label>University</label>
                                     <ComboSelect
                                         value={defaultUniversity}
                                         options={universityOptionsForCountry(defaultCountry)}
@@ -573,7 +615,15 @@ const EducationManagement = () => {
                                                     </td>
                                                     <td>
                                                         {row.status === "pending" && <Badge color="secondary">pending</Badge>}
-                                                        {row.status === "uploading" && <Badge color="info">uploading…</Badge>}
+                                                        {row.status === "uploading" && (
+                                                            <Badge color="info">
+                                                                {row.progress && row.progress.total
+                                                                    ? `processing ${row.progress.done}/${row.progress.total}`
+                                                                    : row.progress && row.progress.phase
+                                                                        ? String(row.progress.phase).replace(/_/g, " ")
+                                                                        : "processing…"}
+                                                            </Badge>
+                                                        )}
                                                         {row.status === "done" && (
                                                             <Badge color="success">
                                                                 {row.result?.lesson_count ?? 0} course(s)

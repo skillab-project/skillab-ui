@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Card, CardHeader, CardBody, CardFooter, CardTitle, Row, Col, Button,
   Nav, NavItem, NavLink, TabContent, TabPane, Alert, Spinner, Input, Label,
-  FormGroup, Badge, Table, Modal, ModalHeader, ModalBody, ListGroup, ListGroupItem
+  FormGroup, Badge, Table, Modal, ModalHeader, ModalBody, ListGroup, ListGroupItem,
+  Progress
 } from "reactstrap";
 import classnames from 'classnames';
 import axios from 'axios';
@@ -13,6 +14,8 @@ import { getId } from "../../../utils/Tokens";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL_FUTURE_TECHNOLOGY_TRENDS_IDENTIFIER;
 
+const OVERVIEW = '__overview__';
+
 const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` });
 
 // Format an ISO timestamp as a plain date (day / month / year), no time.
@@ -21,6 +24,18 @@ const formatAnalysisDate = (iso) => {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+// Human label for a pipeline stage.
+const stageLabel = (stage, status) => {
+  if (status === 'done') return 'Done';
+  if (status === 'error') return 'Failed';
+  switch (stage) {
+    case 'analyzing': return 'Analyzing PDF…';
+    case 'recommending': return 'Mapping to ESCO & generating recommendations…';
+    case 'queued': return 'Queued…';
+    default: return 'Processing…';
+  }
 };
 
 // Delay function that is cancellable
@@ -48,13 +63,9 @@ const fetchContinuously = async (url, signal, interval = 5000) => {
       const response = await axios.get(url, { signal, headers: authHeader() });
       return response.data;
     } catch (error) {
-      if (axios.isCancel(error)) {
-        console.log('Fetch canceled.');
-        throw error;
-      }
+      if (axios.isCancel(error)) throw error;
       if (error.response && error.response.status === 404) {
         attempt++;
-        console.log(`Attempt ${attempt} failed with 404. Retrying in ${interval / 1000}s...`);
         await cancellableDelay(interval, signal);
       } else {
         throw error;
@@ -63,9 +74,105 @@ const fetchContinuously = async (url, signal, interval = 5000) => {
   }
 };
 
+// Merge the recommendations of all PDFs into a single list, grouped by
+// technology, de-duplicating identical actions.
+const mergeRecommendations = (pdfs) => {
+  const byTech = new Map();
+  pdfs.forEach((p) => {
+    const recs = (p.recommendationsData && p.recommendationsData.recommendations) || [];
+    recs.forEach((r) => {
+      const key = r.technology || 'Unknown technology';
+      if (!byTech.has(key)) byTech.set(key, { technology: key, actions: [], _seen: new Set() });
+      const agg = byTech.get(key);
+      (r.actions || []).forEach((a) => {
+        const sig = `${a.area || ''}||${a.action || ''}`;
+        if (!agg._seen.has(sig)) { agg._seen.add(sig); agg.actions.push(a); }
+      });
+    });
+  });
+  return { recommendations: Array.from(byTech.values()).map(({ _seen, ...rest }) => rest) };
+};
+
+// Apply a stored policy result (mapping_evidence + recommendations) to a PDF.
+// Applied once per PDF (policyApplied guard) so a running poll won't fight the
+// user's tab navigation. A policy result is shown even when it produced zero
+// recommendations, so the "Policy Recommendations" tab still appears (with the
+// "No policy recommendations…" message) instead of staying disabled.
+const applyPolicyToPdf = (p, pol) => {
+  if (p.policyApplied) return p;
+  const content = pol && pol.content;
+  if (!content) return p; // policy not ready / job errored — leave as is
+  const me = content.mapping_evidence;
+  const hasMapping = !!me && (
+    (me.occupations && me.occupations.length) || (me.skills && me.skills.length)
+  );
+  const recs = Array.isArray(content.recommendations) ? content.recommendations : [];
+  return {
+    ...p,
+    policyApplied: true,
+    escoMapping: hasMapping ? me : p.escoMapping,
+    recommendationsData: { recommendations: recs }, // may be [] -> shows the empty message
+    activeTab: '3', // land on the Recommendations tab (its last/most-advanced tab)
+  };
+};
+
+// ─── Combo select (same look as EducationManagement) ────────────────────────
+// A dropdown of existing values plus an "Add new…" option that flips to a
+// free-text input (with a link back to the list).
+const NEW_SENTINEL = "__ftti_new__";
+
+function ComboSelect({ value, options, onChange, selectPlaceholder, inputPlaceholder, bsSize, disabled, id }) {
+  const [adding, setAdding] = useState(false);
+  const isNew = adding || (!!value && !options.includes(value));
+
+  const handleSelect = (e) => {
+    const v = e.target.value;
+    if (v === NEW_SENTINEL) {
+      setAdding(true);
+      onChange("");
+    } else {
+      setAdding(false);
+      onChange(v);
+    }
+  };
+
+  if (isNew) {
+    return (
+      <div>
+        <Input
+          id={id}
+          bsSize={bsSize}
+          type="text"
+          value={value}
+          placeholder={inputPlaceholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <Button color="link" size="sm" style={{ padding: "2px 0" }}
+          onClick={() => { setAdding(false); onChange(""); }}>
+          &larr; choose from list
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Input
+      id={id}
+      bsSize={bsSize}
+      type="select"
+      value={options.includes(value) ? value : ""}
+      onChange={handleSelect}
+      disabled={disabled}
+    >
+      <option value="">{selectPlaceholder}</option>
+      {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      <option value={NEW_SENTINEL}>&#43; Add new&hellip;</option>
+    </Input>
+  );
+}
+
 // ─── Previous Analyses Modal ────────────────────────────────────────────────
-// Lists the analysis *titles* that exist (with sector / description / count).
-// Selecting one loads all the PDF analyses stored under that title.
+// Lists the analysis *titles* that exist (including ones still running).
 
 const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
   const [titles, setTitles] = useState([]);
@@ -83,7 +190,7 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${API_BASE_URL}/analyses/titles`, { headers: authHeader() });
+      const res = await axios.get(`${API_BASE_URL}/analyses/titles?include_running=true`, { headers: authHeader() });
       setTitles(res.data || []);
     } catch (err) {
       setError("Failed to load previous analyses.");
@@ -98,7 +205,7 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
     setError(null);
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/analyses/by-title/${encodeURIComponent(titleItem.title)}?include_content=true`,
+        `${API_BASE_URL}/analyses/by-title/${encodeURIComponent(titleItem.title)}?include_content=true&include_running=true`,
         { headers: authHeader() }
       );
       onLoad(titleItem, res.data || []);
@@ -116,7 +223,6 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
       `Delete the analysis "${titleItem.title}" and all ${titleItem.count} PDF${titleItem.count === 1 ? '' : 's'} under it? This cannot be undone.`
     );
     if (!ok) return;
-
     setDeletingTitle(titleItem.title);
     setError(null);
     try {
@@ -135,6 +241,16 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
   };
 
   const busy = loadingTitle !== null || deletingTitle !== null;
+
+  const statusBadge = (t) => {
+    if (t.status === 'running') {
+      return <Badge color="warning"><Spinner size="sm" /> Running {t.done_count}/{t.total}</Badge>;
+    }
+    if (t.status === 'partial') {
+      return <Badge color="danger">Partial {t.done_count}/{t.total}</Badge>;
+    }
+    return <Badge color="success">Done</Badge>;
+  };
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="lg">
@@ -157,6 +273,7 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
                 <th>Title</th>
                 <th>Sector</th>
                 <th className="text-center"># PDFs</th>
+                <th className="text-center">Status</th>
                 <th className="text-center">Actions</th>
               </tr>
             </thead>
@@ -178,23 +295,14 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
                       : <span className="text-muted">—</span>}
                   </td>
                   <td className="text-center">{t.count}</td>
+                  <td className="text-center">{statusBadge(t)}</td>
                   <td className="text-center" style={{ whiteSpace: 'nowrap' }}>
-                    <Button
-                      color="info"
-                      size="sm"
-                      className="mr-2"
-                      disabled={busy}
-                      onClick={() => handleSelectTitle(t)}
-                    >
-                      {loadingTitle === t.title ? <Spinner size="sm" /> : 'View'}
+                    <Button color="info" size="sm" className="mr-2" disabled={busy}
+                      onClick={() => handleSelectTitle(t)}>
+                      {loadingTitle === t.title ? <Spinner size="sm" /> : (t.status === 'running' ? 'View progress' : 'View')}
                     </Button>
-                    <Button
-                      color="danger"
-                      outline
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => handleDeleteTitle(t)}
-                    >
+                    <Button color="danger" outline size="sm" disabled={busy}
+                      onClick={() => handleDeleteTitle(t)}>
                       {deletingTitle === t.title ? <Spinner size="sm" /> : 'Delete'}
                     </Button>
                   </td>
@@ -215,14 +323,16 @@ const makePdfEntry = (overrides = {}) => ({
   filename: overrides.filename || 'document.pdf',
   file: overrides.file || null,
   jobId: overrides.jobId || null,
-  status: overrides.status || 'pending', // pending | uploading | polling | done | error
+  status: overrides.status || 'pending', // pending | polling | done | error
+  stage: overrides.stage || null,
   message: '',
-  error: null,
+  error: overrides.error || null,
   technologies: overrides.technologies || [],
   escoMapping: null,
   escoLoading: false,
   recommendationsData: null,
   recLoading: false,
+  policyApplied: false,
   activeTab: '1',
   ...overrides,
 });
@@ -230,7 +340,7 @@ const makePdfEntry = (overrides = {}) => ({
 const PdfStatusIcon = ({ status }) => {
   if (status === 'done') return <span className="text-success mr-1">✓</span>;
   if (status === 'error') return <span className="text-danger mr-1">✗</span>;
-  if (status === 'uploading' || status === 'polling') return <Spinner size="sm" className="mr-1" />;
+  if (status === 'polling' || status === 'uploading') return <Spinner size="sm" className="mr-1" />;
   return <span className="text-muted mr-1">•</span>; // pending / queued
 };
 
@@ -239,16 +349,19 @@ const PdfStatusIcon = ({ status }) => {
 const FutureTechnologyTrendsIdentifier = () => {
   const [phase, setPhase] = useState('setup'); // 'setup' | 'results'
   const [meta, setMeta] = useState({ title: '', sector: '', description: '' });
+  const [titleTaken, setTitleTaken] = useState(false);
+  const [titleChecking, setTitleChecking] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [pdfs, setPdfs] = useState([]);
-  const [selectedPdfId, setSelectedPdfId] = useState(null);
+  const [selectedPdfId, setSelectedPdfId] = useState(OVERVIEW);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [escoParams, setEscoParams] = useState({ top_n: 5, threshold: 0.4, target: "both" });
   const [policyParams, setPolicyParams] = useState({ similarity_threshold: 0.5, max_actions_per_tech: 5, target: "both" });
   const [showPreviousModal, setShowPreviousModal] = useState(false);
+  const [sectorOptions, setSectorOptions] = useState([]); // existing sectors for the combobox
 
-  const runControllerRef = useRef(null);       // aborts the whole sequential run
+  const runControllerRef = useRef(null);       // aborts the whole batch run / polling
   const recControllersRef = useRef({});         // per-pdf recommendation abort controllers
 
   useEffect(() => {
@@ -257,6 +370,18 @@ const FutureTechnologyTrendsIdentifier = () => {
       Object.values(recControllersRef.current).forEach((c) => c?.abort());
     };
   }, []);
+
+  // Load the existing sectors so the Sector field can suggest them (and still
+  // allow typing a new one).
+  const loadSectorOptions = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/analyses/sectors`, { headers: authHeader() });
+      setSectorOptions(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      // Non-blocking — the field still works as free text.
+    }
+  };
+  useEffect(() => { loadSectorOptions(); }, []);
 
   const updatePdf = (id, patch) => {
     setPdfs((prev) => prev.map((p) =>
@@ -276,12 +401,10 @@ const FutureTechnologyTrendsIdentifier = () => {
     setSelectedFiles((prev) => {
       const seen = new Set(prev.map((f) => f.name + f.size));
       const merged = [...prev];
-      incoming.forEach((f) => {
-        if (!seen.has(f.name + f.size)) merged.push(f);
-      });
+      incoming.forEach((f) => { if (!seen.has(f.name + f.size)) merged.push(f); });
       return merged;
     });
-    e.target.value = ''; // allow re-selecting the same file later
+    e.target.value = '';
     setError(null);
   };
 
@@ -289,10 +412,105 @@ const FutureTechnologyTrendsIdentifier = () => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // ── Sequential analysis (one PDF at a time) ───────────────────────────────
+  // ── Title uniqueness check ────────────────────────────────────────────────
+  const checkTitleTaken = async (title) => {
+    const t = (title || '').trim();
+    if (!t) { setTitleTaken(false); return false; }
+    setTitleChecking(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/analyses/title-exists`, {
+        params: { title: t }, headers: authHeader(),
+      });
+      const taken = !!(res.data && res.data.exists);
+      setTitleTaken(taken);
+      return taken;
+    } catch (err) {
+      console.error(err);
+      setTitleTaken(false);
+      return false;
+    } finally {
+      setTitleChecking(false);
+    }
+  };
+
+  // ── Fetch a PDF's identified technologies once its analysis is done ────────
+  const fetchTechnologies = async (id, jobId, signal) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/results/${jobId}/download`, { signal, headers: authHeader() });
+      updatePdf(id, {
+        status: 'done', stage: 'done',
+        technologies: (res.data && res.data.technologies) || [],
+        message: '', error: null,
+      });
+    } catch (err) {
+      if (!axios.isCancel(err)) {
+        updatePdf(id, { status: 'error', stage: 'error', error: 'Could not fetch results for this PDF.' });
+        console.error(err);
+      }
+    }
+  };
+
+  // ── Pull stored policies for a title and merge them into the PDFs ──────────
+  const refreshPolicies = async (title, signal) => {
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/policies/by-title/${encodeURIComponent(title)}?include_content=true`,
+        { signal, headers: authHeader() }
+      );
+      const byJob = {};
+      (res.data || []).forEach((pol) => {
+        const src = pol.source_job_id;
+        if (src && !byJob[src]) byJob[src] = pol;
+      });
+      setPdfs((prev) => prev.map((p) => (p.jobId && byJob[p.jobId] ? applyPolicyToPdf(p, byJob[p.jobId]) : p)));
+    } catch (e) {
+      if (!axios.isCancel(e)) console.error('Could not load stored policy results.', e);
+    }
+  };
+
+  // ── Poll a set of analysis jobs until all finish ──────────────────────────
+  const pollBatch = async (batch, title, signal) => {
+    const pending = new Set(batch.map((b) => b.id));
+    while (pending.size > 0) {
+      if (signal.aborted) return;
+      for (const { id, jobId } of batch) {
+        if (!pending.has(id)) continue;
+        try {
+          const res = await axios.get(`${API_BASE_URL}/jobs/${jobId}`, { signal, headers: authHeader() });
+          const { status, stage, message } = res.data;
+          if (status === 'done') {
+            pending.delete(id);
+            await fetchTechnologies(id, jobId, signal);
+          } else if (status === 'error' || status === 'failed') {
+            pending.delete(id);
+            updatePdf(id, { status: 'error', stage: 'error', error: message || 'Analysis failed.', message: '' });
+          } else {
+            updatePdf(id, { status: 'polling', stage: stage || status, message });
+          }
+        } catch (err) {
+          if (axios.isCancel(err)) return;
+          // A 404 can happen briefly while a job registers — keep waiting.
+          if (!(err.response && err.response.status === 404)) console.error(err);
+        }
+      }
+      await refreshPolicies(title, signal);
+      if (pending.size === 0) break;
+      try { await cancellableDelay(3000, signal); } catch (e) { return; }
+    }
+    // Final sweep to pick up the last PDFs' recommendations.
+    await refreshPolicies(title, signal);
+  };
+
+  // ── Start the one-click full analysis ─────────────────────────────────────
   const startAnalysis = async () => {
     if (!meta.title.trim()) { setError("Please enter a title for this analysis."); return; }
     if (selectedFiles.length === 0) { setError("Please add at least one PDF file."); return; }
+
+    const taken = await checkTitleTaken(meta.title);
+    if (taken) {
+      setError("An analysis with this title already exists. Please choose a different title.");
+      return;
+    }
     setError(null);
 
     const metaSnapshot = {
@@ -300,12 +518,13 @@ const FutureTechnologyTrendsIdentifier = () => {
       sector: meta.sector.trim(),
       description: meta.description.trim(),
     };
+    const files = [...selectedFiles];
 
-    const entries = selectedFiles.map((file) =>
-      makePdfEntry({ filename: file.name, file, status: 'pending' })
+    const entries = files.map((file) =>
+      makePdfEntry({ filename: file.name, file, status: 'pending', stage: 'queued' })
     );
     setPdfs(entries);
-    setSelectedPdfId(entries[0].id);
+    setSelectedPdfId(OVERVIEW);
     setPhase('results');
     setProcessing(true);
 
@@ -313,107 +532,45 @@ const FutureTechnologyTrendsIdentifier = () => {
     const { signal } = runControllerRef.current;
 
     let userId;
-    try {
-      userId = await getId();
-    } catch (e) {
-      userId = undefined;
-    }
+    try { userId = await getId(); } catch (e) { userId = undefined; }
 
-    // Process the PDFs strictly one after another (performance-friendly).
-    for (const entry of entries) {
-      if (signal.aborted) {
-        updatePdf(entry.id, { status: 'error', error: 'Canceled.' });
-        continue;
-      }
-      await analyzeOne(entry, metaSnapshot, userId, signal);
-    }
-
-    setProcessing(false);
-  };
-
-  const analyzeOne = async (entry, metaSnapshot, userId, signal) => {
-    updatePdf(entry.id, { status: 'uploading', error: null, message: 'Uploading...' });
     try {
       const formData = new FormData();
-      formData.append('file', entry.file);
+      files.forEach((f) => formData.append('files', f));
       if (userId !== undefined && userId !== null) formData.append('user_id', userId);
       formData.append('title', metaSnapshot.title);
       if (metaSnapshot.sector) formData.append('sector', metaSnapshot.sector);
       if (metaSnapshot.description) formData.append('description', metaSnapshot.description);
 
-      const res = await axios.post(`${API_BASE_URL}/analyze/pdf`, formData, {
-        signal,
-        headers: { 'Content-Type': 'multipart/form-data', ...authHeader() },
+      const res = await axios.post(`${API_BASE_URL}/analyze/pdf/full`, formData, {
+        signal, headers: { 'Content-Type': 'multipart/form-data', ...authHeader() },
       });
-      const { job_id, status } = res.data;
-      updatePdf(entry.id, { jobId: job_id });
+      const jobIds = (res.data && res.data.job_ids) || [];
 
-      if (status === 'done') {
-        await fetchTechnologies(entry.id, job_id, signal);
-      } else {
-        updatePdf(entry.id, { status: 'polling', message: status });
-        await pollJob(entry.id, job_id, signal);
-      }
+      // Assign job ids to entries by index (backend keeps upload order).
+      setPdfs((prev) => prev.map((p, i) => ({
+        ...p, jobId: jobIds[i] || p.jobId, status: 'polling', stage: 'queued',
+      })));
+
+      const batch = entries
+        .map((e, i) => ({ id: e.id, jobId: jobIds[i] }))
+        .filter((x) => x.jobId);
+
+      await pollBatch(batch, metaSnapshot.title, signal);
     } catch (err) {
       if (axios.isCancel(err)) {
-        updatePdf(entry.id, { status: 'error', error: 'Canceled.', message: '' });
+        setPdfs((prev) => prev.map((p) => (p.status === 'done' ? p : { ...p, status: 'error', stage: 'error', error: 'Canceled.' })));
       } else {
-        updatePdf(entry.id, { status: 'error', error: 'Analysis failed for this PDF.', message: '' });
+        setError("Failed to start the analysis. Please try again.");
+        setPdfs((prev) => prev.map((p) => (p.status === 'done' ? p : { ...p, status: 'error', stage: 'error', error: 'Failed to start.' })));
         console.error(err);
       }
+    } finally {
+      setProcessing(false);
     }
   };
 
-  const pollJob = (id, jobId, signal) => new Promise(async (resolve) => {
-    while (true) {
-      if (signal.aborted) {
-        updatePdf(id, { status: 'error', error: 'Canceled.', message: '' });
-        return resolve();
-      }
-      try {
-        const res = await axios.get(`${API_BASE_URL}/jobs/${jobId}`, { signal, headers: authHeader() });
-        const { status, message } = res.data;
-        if (status === 'done') {
-          await fetchTechnologies(id, jobId, signal);
-          return resolve();
-        }
-        if (status === 'error' || status === 'failed') {
-          updatePdf(id, { status: 'error', error: message || 'Analysis job failed.', message: '' });
-          return resolve();
-        }
-        updatePdf(id, { status: 'polling', message: message || status });
-      } catch (err) {
-        if (axios.isCancel(err)) {
-          updatePdf(id, { status: 'error', error: 'Canceled.', message: '' });
-          return resolve();
-        }
-        // A 404 can happen briefly while the job registers — keep waiting.
-        if (!(err.response && err.response.status === 404)) {
-          updatePdf(id, { status: 'error', error: 'Could not get job status.', message: '' });
-          console.error(err);
-          return resolve();
-        }
-      }
-      try {
-        await cancellableDelay(3000, signal);
-      } catch (e) {
-        updatePdf(id, { status: 'error', error: 'Canceled.', message: '' });
-        return resolve();
-      }
-    }
-  });
-
-  const fetchTechnologies = async (id, jobId, signal) => {
-    const res = await axios.get(`${API_BASE_URL}/results/${jobId}/download`, { signal, headers: authHeader() });
-    updatePdf(id, {
-      status: 'done',
-      technologies: (res.data && res.data.technologies) || [],
-      message: '',
-      error: null,
-    });
-  };
-
-  // ── Per-PDF ESCO mapping ──────────────────────────────────────────────────
+  // ── Per-PDF ESCO mapping (manual re-run) ──────────────────────────────────
   const handleMapToEsco = async (pdf) => {
     updatePdf(pdf.id, { escoLoading: true, error: null });
     try {
@@ -429,29 +586,30 @@ const FutureTechnologyTrendsIdentifier = () => {
     }
   };
 
-  // ── Per-PDF policy recommendations ────────────────────────────────────────
+  // ── Per-PDF policy recommendations (manual re-run) ────────────────────────
   const handleGetRecommendations = async (pdf) => {
     updatePdf(pdf.id, { recLoading: true, error: null, message: '' });
-
     const controller = new AbortController();
     recControllersRef.current[pdf.id] = controller;
     const { signal } = controller;
-
     try {
       let userId;
       try { userId = await getId(); } catch (e) { userId = undefined; }
-
       const res = await axios.post(
         `${API_BASE_URL}/policy/recommendations`,
         { job_id: pdf.jobId, user_id: userId, ...policyParams },
         { signal, headers: authHeader() }
       );
-
       if (res.data.result_path) {
         updatePdf(pdf.id, { message: 'Recommendation job sent. Polling for results...' });
         const downloadUrl = `${API_BASE_URL}/results/${res.data.job_id}/download`;
         const finalData = await fetchContinuously(downloadUrl, signal);
-        updatePdf(pdf.id, { recommendationsData: finalData, activeTab: '3', recLoading: false, message: '' });
+        updatePdf(pdf.id, {
+          recommendationsData: { recommendations: finalData.recommendations || [] },
+          escoMapping: finalData.mapping_evidence || pdf.escoMapping,
+          policyApplied: true,
+          activeTab: '3', recLoading: false, message: '',
+        });
       } else {
         updatePdf(pdf.id, { recommendationsData: null, recLoading: false, message: '' });
       }
@@ -472,7 +630,7 @@ const FutureTechnologyTrendsIdentifier = () => {
 
   const setPdfTab = (id, tab) => updatePdf(id, { activeTab: tab });
 
-  // ── Load a previous analysis (by title) ───────────────────────────────────
+  // ── Load a previous analysis (by title), resuming if still running ────────
   const handleLoadPrevious = async (titleItem, records) => {
     cancelRun();
     setMeta({
@@ -481,89 +639,77 @@ const FutureTechnologyTrendsIdentifier = () => {
       description: titleItem.description || '',
     });
 
-    // Show the PDFs (with their technologies) right away.
     const entries = (records || []).map((rec, i) =>
       makePdfEntry({
         id: rec.job_id || `prev-${Date.now()}-${i}`,
         filename: rec.filename || `PDF ${i + 1}`,
         file: null,
         jobId: rec.job_id,
-        status: 'done',
+        status: rec.status === 'done' ? 'done' : (rec.status === 'error' ? 'error' : 'polling'),
+        stage: rec.stage,
         technologies: (rec.content && rec.content.technologies) || [],
+        error: rec.status === 'error' ? (rec.message || 'Analysis failed.') : null,
       })
     );
     setPdfs(entries);
-    setSelectedPdfId(entries.length ? entries[0].id : null);
-    setProcessing(false);
+    setSelectedPdfId(OVERVIEW);
     setError(null);
     setPhase('results');
 
-    // Then restore any previously stored policy results (ESCO mapping +
-    // recommendations) so the user isn't asked to generate them again.
-    // These are saved as policy jobs whose source_job_id is the analysis job;
-    // /policies/by-title returns just this analysis's policies (any user).
-    try {
-      const polRes = await axios.get(
-        `${API_BASE_URL}/policies/by-title/${encodeURIComponent(titleItem.title)}?include_content=true`,
-        { headers: authHeader() }
-      );
-      const policyByJob = {};
-      (polRes.data || []).forEach((pol) => {
-        const src = pol.source_job_id;
-        // The list is newest-first, so keep the first (most recent) per source.
-        if (src && !policyByJob[src]) policyByJob[src] = pol;
-      });
+    const running = entries.filter((e) => e.status !== 'done' && e.status !== 'error');
+    setProcessing(running.length > 0);
 
-      setPdfs((prev) => prev.map((p) => {
-        const pol = policyByJob[p.jobId];
-        const content = pol && pol.content;
-        if (!content) return p;
+    runControllerRef.current = new AbortController();
+    const { signal } = runControllerRef.current;
 
-        const me = content.mapping_evidence;
-        const hasMapping = !!me && (
-          (me.occupations && me.occupations.length) ||
-          (me.skills && me.skills.length)
-        );
-        const hasRecs = !!(content.recommendations && content.recommendations.length);
-        if (!hasMapping && !hasRecs) return p;
+    // Restore stored recommendations/mapping for the finished PDFs.
+    await refreshPolicies(titleItem.title, signal);
 
-        // Land on recommendations if they exist, otherwise the ESCO mapping.
-        const nextTab = hasRecs ? '3' : (hasMapping ? '2' : p.activeTab);
-
-        return {
-          ...p,
-          escoMapping: hasMapping ? me : p.escoMapping,
-          recommendationsData: hasRecs ? { recommendations: content.recommendations } : p.recommendationsData,
-          activeTab: nextTab,
-        };
-      }));
-    } catch (e) {
-      // Non-fatal: the user can still re-run mapping / recommendations.
-      console.error('Could not load stored policy results.', e);
+    // Resume polling any PDFs still in progress.
+    if (running.length > 0) {
+      const batch = running.map((e) => ({ id: e.id, jobId: e.jobId })).filter((x) => x.jobId);
+      pollBatch(batch, titleItem.title, signal).finally(() => setProcessing(false));
     }
   };
 
-  // If the analysis currently open in the results view was just deleted,
-  // return to the setup screen so we're not showing stale data.
   const handleDeletedPrevious = (deletedTitle) => {
-    if (phase === 'results' && meta.title === deletedTitle) {
-      resetAll();
-    }
+    if (phase === 'results' && meta.title === deletedTitle) resetAll();
   };
 
-  // ── Start over ────────────────────────────────────────────────────────────
   const resetAll = () => {
     cancelRun();
     setPhase('setup');
     setMeta({ title: '', sector: '', description: '' });
+    setTitleTaken(false);
+    setTitleChecking(false);
     setSelectedFiles([]);
     setPdfs([]);
-    setSelectedPdfId(null);
+    setSelectedPdfId(OVERVIEW);
     setProcessing(false);
     setError(null);
   };
 
+  // ── Derived ───────────────────────────────────────────────────────────────
   const selectedPdf = pdfs.find((p) => p.id === selectedPdfId) || null;
+  const overviewData = useMemo(() => mergeRecommendations(pdfs), [pdfs]);
+
+  const total = pdfs.length;
+  const doneCount = pdfs.filter((p) => p.status === 'done').length;
+  const errorCount = pdfs.filter((p) => p.status === 'error').length;
+  const finished = doneCount + errorCount;
+  const pct = total ? Math.round((100 * finished) / total) : 0;
+  const currentStagePdf = pdfs.find((p) => p.status === 'polling');
+
+  const progressBlock = (total > 0 && (processing || finished < total)) ? (
+    <div className="mb-3">
+      <Progress value={pct} striped animated={processing}>{pct}%</Progress>
+      <small className="text-muted">
+        {doneCount} of {total} PDF{total === 1 ? '' : 's'} analyzed
+        {errorCount > 0 ? ` · ${errorCount} failed` : ''}
+        {currentStagePdf ? ` · ${currentStagePdf.filename}: ${stageLabel(currentStagePdf.stage, currentStagePdf.status)}` : ''}
+      </small>
+    </div>
+  ) : null;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -590,19 +736,28 @@ const FutureTechnologyTrendsIdentifier = () => {
                     type="text"
                     placeholder="e.g. National AI Strategy 2026"
                     value={meta.title}
-                    onChange={(e) => setMeta({ ...meta, title: e.target.value })}
+                    invalid={titleTaken}
+                    onChange={(e) => { setMeta({ ...meta, title: e.target.value }); setTitleTaken(false); }}
+                    onBlur={(e) => checkTitleTaken(e.target.value)}
                   />
+                  {titleChecking && <small className="text-muted">Checking availability…</small>}
+                  {titleTaken && (
+                    <small className="text-danger">
+                      An analysis with this title already exists — please choose a different one.
+                    </small>
+                  )}
                 </FormGroup>
               </Col>
               <Col md="6">
                 <FormGroup>
                   <Label for="analysisSector">Sector</Label>
-                  <Input
+                  <ComboSelect
                     id="analysisSector"
-                    type="text"
-                    placeholder="e.g. ICT, Health, Energy"
                     value={meta.sector}
-                    onChange={(e) => setMeta({ ...meta, sector: e.target.value })}
+                    options={sectorOptions}
+                    onChange={(v) => setMeta({ ...meta, sector: v })}
+                    selectPlaceholder="— select a sector —"
+                    inputPlaceholder="Type a new sector"
                   />
                 </FormGroup>
               </Col>
@@ -623,7 +778,8 @@ const FutureTechnologyTrendsIdentifier = () => {
               <Label for="pdfFiles">PDF documents to analyze</Label>
               <Input type="file" id="pdfFiles" accept=".pdf" multiple onChange={handleFileChange} />
               <small className="text-muted">
-                You can add several PDFs — they are analyzed one at a time.
+                Add one or more PDFs. One click runs the whole pipeline for each —
+                technologies, ESCO mapping and policy recommendations — automatically.
               </small>
             </FormGroup>
 
@@ -645,7 +801,7 @@ const FutureTechnologyTrendsIdentifier = () => {
             <Button
               color="primary"
               onClick={startAnalysis}
-              disabled={!meta.title.trim() || selectedFiles.length === 0}
+              disabled={!meta.title.trim() || selectedFiles.length === 0 || titleTaken || titleChecking}
             >
               Analyze {selectedFiles.length > 0 ? `${selectedFiles.length} ` : ''}
               PDF{selectedFiles.length === 1 ? '' : 's'}
@@ -662,17 +818,22 @@ const FutureTechnologyTrendsIdentifier = () => {
                 {meta.sector && <Badge color="info" className="ml-2">{meta.sector}</Badge>}
               </h5>
               {meta.description && <p className="text-muted mb-0">{meta.description}</p>}
-              {processing && (
-                <p className="text-muted mt-2 mb-0">
-                  <Spinner size="sm" className="mr-1" /> Analyzing PDFs one at a time...
-                </p>
-              )}
             </div>
 
+            {progressBlock}
             {error && <Alert color="danger">{error}</Alert>}
 
-            {/* PDF selector */}
+            {/* Overview + per-PDF selector */}
             <Nav pills className="flex-wrap mb-3">
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: selectedPdfId === OVERVIEW })}
+                  onClick={() => setSelectedPdfId(OVERVIEW)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  🧭 Overview
+                </NavLink>
+              </NavItem>
               {pdfs.map((p) => (
                 <NavItem key={p.id}>
                   <NavLink
@@ -688,17 +849,43 @@ const FutureTechnologyTrendsIdentifier = () => {
               ))}
             </Nav>
 
-            {/* Selected PDF detail */}
-            {selectedPdf && (
+            {/* ── OVERVIEW (combined recommendations) ── */}
+            {selectedPdfId === OVERVIEW && (
+              <div>
+                <h5>
+                  Combined recommendations
+                </h5>
+                {overviewData.recommendations.length === 0 ? (
+                  processing ? (
+                    <Alert color="info">
+                      <Spinner size="sm" className="mr-2" />
+                      Recommendations will appear here as each PDF finishes…
+                    </Alert>
+                  ) : (
+                    <PolicyRecommendations data={overviewData} />
+                  )
+                ) : (
+                  <>
+                    {processing && (
+                      <p className="text-muted">
+                        <Spinner size="sm" className="mr-1" /> Still analyzing — this view updates as more PDFs finish.
+                      </p>
+                    )}
+                    <PolicyRecommendations data={overviewData} />
+                    <hr />
+                    <small className="text-muted">Open a PDF above to see its individual technologies and mapping.</small>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* ── PER-PDF DETAIL ── */}
+            {selectedPdfId !== OVERVIEW && selectedPdf && (
               <div key={selectedPdf.id}>
-                {(selectedPdf.status === 'pending' || selectedPdf.status === 'uploading' || selectedPdf.status === 'polling') && (
+                {(selectedPdf.status === 'pending' || selectedPdf.status === 'polling') && (
                   <div className="text-center py-4">
                     <Spinner color="primary" />
-                    <p className="mt-3 mb-0">
-                      {selectedPdf.status === 'pending' && 'Queued — waiting for earlier PDFs to finish...'}
-                      {selectedPdf.status === 'uploading' && 'Uploading and initiating analysis...'}
-                      {selectedPdf.status === 'polling' && `Processing: ${selectedPdf.message || 'running'}`}
-                    </p>
+                    <p className="mt-3 mb-0">{stageLabel(selectedPdf.stage, selectedPdf.status)}</p>
                   </div>
                 )}
 
@@ -767,6 +954,19 @@ const FutureTechnologyTrendsIdentifier = () => {
                         />
                       </TabPane>
                       <TabPane tabId="3">
+                        {selectedPdf.recommendationsData &&
+                          (selectedPdf.recommendationsData.recommendations || []).length === 0 && (
+                            <div className="mb-2">
+                              <Button
+                                color="secondary"
+                                outline
+                                size="sm"
+                                onClick={() => setPdfTab(selectedPdf.id, selectedPdf.escoMapping ? '2' : '1')}
+                              >
+                                ← Adjust parameters &amp; re-run
+                              </Button>
+                            </div>
+                          )}
                         <PolicyRecommendations data={selectedPdf.recommendationsData} />
                       </TabPane>
                     </TabContent>

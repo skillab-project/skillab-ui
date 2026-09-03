@@ -82,7 +82,6 @@ The remaining variables point at the SKILLAB backend services. Defaults in `.env
 | `REACT_APP_API_URL_JBPM` | jBPM business-central (workflows) |
 | `REACT_APP_API_URL_TRACKER` | SKILLAB tracker (`skillab-tracker.csd.auth.gr`) |
 | `REACT_APP_API_URL_TRACKER_USERNAME` / `_PASSWORD` | Basic-auth credentials for the tracker (do **not** commit) |
-| `REACT_APP_API_URL_SKILLS_REQUIRED` | Required-skills service |
 | `REACT_APP_API_URL_SKILLS_DIVERSITY` | Diversity analysis service |
 | `REACT_APP_API_URL_SKILL_ARCHETYPAL_DIVERSITY` | Archetypal diversity (often local, `:8087`) |
 | `REACT_APP_API_URL_SKILL_DEMAND_MATRIX` | Skill demand / HCV service |

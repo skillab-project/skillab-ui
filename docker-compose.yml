@@ -21,10 +21,9 @@ services:
       - REACT_APP_API_URL_TRACKER=https://skillab-tracker.csd.auth.gr
       # - REACT_APP_API_URL_TRACKER_USERNAME=${REACT_APP_API_URL_TRACKER_USERNAME}
       # - REACT_APP_API_URL_TRACKER_PASSWORD=${REACT_APP_API_URL_TRACKER_PASSWORD}
-      - REACT_APP_API_URL_SKILLS_REQUIRED=https://portal.skillab-project.eu/required-skills
+      - REACT_APP_API_URL_CURRICULUM_SKILLS=https://portal.skillab-project.eu/user-management/curriculum-skills-backend
       - REACT_APP_API_URL_SKILLS_DIVERSITY=https://portal.skillab-project.eu/diversity-analysis
       - REACT_APP_API_URL_SKILL_DEMAND_MATRIX=https://portal.skillab-project.eu/hcv
-      - REACT_APP_API_URL_CURRICULUM_SKILLS=https://portal.skillab-project.eu/curriculum-skills
       - REACT_APP_API_URL_SKILL_AGEING=https://portal.skillab-project.eu/skill-ageing
       - REACT_APP_API_URL_GIANT_COMPONENT_NETWORKS=https://portal.skillab-project.eu/giant-component-networks
       - REACT_APP_API_URL_ESCOPLUS_SKILLS_EXTENDER=https://portal.skillab-project.eu/escoplus-skills-extender

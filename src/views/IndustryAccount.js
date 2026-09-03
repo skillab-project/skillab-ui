@@ -1,250 +1,137 @@
-import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  CardTitle,
-  Row,
-  Col
-} from "reactstrap";
-import { Line, Pie } from "react-chartjs-2";
-import {
-    dashboard24HoursPerformanceChart,
-    dashboardEmailStatisticsChart,
-    dashboardNASDAQChart,
-  } from "variables/charts.js";
+import React from "react";
+import { Row, Col } from "reactstrap";
 import { GiStairsGoal } from "react-icons/gi";
 import { AiFillAlert } from "react-icons/ai";
 import { LuTrendingUpDown } from "react-icons/lu";
 import { TbZoomInArea } from "react-icons/tb";
 import { TfiAnnouncement } from "react-icons/tfi";
 import { FaListUl, FaPeopleRoof } from "react-icons/fa6";
-import { SiJfrogpipelines } from "react-icons/si";
-import { MdModelTraining } from "react-icons/md";
-import { FaBuilding } from "react-icons/fa";
-import { FaHandsHelping } from "react-icons/fa";
-import { Bar } from 'react-chartjs-2';
-
-
-
+import { FaBuilding, FaHandsHelping } from "react-icons/fa";
+import NavCard from "../components/Cards/NavCard";
 
 function IndustryAccount() {
-    const [chartData, setChartData] = useState(null);
+  const go = (path) => () => {
+    window.location.href = path;
+  };
 
-    useEffect(() => {
-        // handleViewOrganizationSkills();
-    }, []);
-    
-
-    function handelClickJobAdvertisements() {
-        window.location.href = "/industry/account/advertisements";
-    }
-    function handelClickAutoJobAdvertisements() {
-        window.location.href = "/industry/account/auto-job-advertisements";
-    }
-    function handelClickArtifactRepositories() {
-        window.location.href = "/industry/account/artifacts";
-    }
-    function handelClickEmployeeKnowleageUnits() {
-        window.location.href = "/industry/account/employee-skills";
-    }
-    function handelClickGapWithCompetition() {
-        window.location.href = "/industry/account/gap-competition";
-    }
-    function handelClickSkillsAtRisk() {
-        window.location.href = "/industry/account/at-risk";
-    }
-    function handleClickOrganizationInfo() {
-        window.location.href = "/industry/account/organization-info";
-    }
-
-    const handleViewOrganizationSkills = async () => {
-        //toDo
-        // once employee management is ready
-    };    
-
-
-    return (
+  return (
     <div className="content">
-        <Row>
-            <Col md="12">
-                <Card>
-                    <Row>
-                        <Col md="12">
-                            <Row>
-                                <Col tag="h6">
-                                    Organization Insights and Decision Making
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickGapWithCompetition()}>
-                                        <CardBody>
-                                            <GiStairsGoal size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Gap with Competition
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickSkillsAtRisk()}>
-                                        <CardBody>
-                                            <AiFillAlert size="50" />
-                                        </CardBody>
-                                        <CardFooter>
-                                            Skills at Risk
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
-                                        <CardBody>
-                                            <LuTrendingUpDown size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Future Needs
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
-                                        <CardBody>
-                                            <TbZoomInArea size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Insights on Future
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                            </Row>
+      {/* Organization Insights and Decision Making */}
+      <Row>
+        <Col md="12">
+          <h6 className="text-uppercase text-muted">
+            Organization Insights and Decision Making
+          </h6>
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={GiStairsGoal}
+            color="#51cbce"
+            title="Gap with Competition"
+            description="Benchmark your organisation's skills against competitors."
+            onClick={go("/industry/account/gap-competition")}
+          />
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={AiFillAlert}
+            color="#ef8157"
+            title="Skills at Risk"
+            description="Spot skills at risk of becoming obsolete."
+            onClick={go("/industry/account/at-risk")}
+          />
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={LuTrendingUpDown}
+            color="#fbc658"
+            title="Future Needs"
+            description="Anticipate upcoming skill needs. (Coming soon)"
+          />
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={TbZoomInArea}
+            color="#51bcda"
+            title="Insights on Future"
+            description="Forward-looking market insights. (Coming soon)"
+          />
+        </Col>
+      </Row>
 
-                            <Row>
-                                <Col tag="h6">
-                                    Job Management
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickJobAdvertisements()}>
-                                        <CardBody>
-                                            <TfiAnnouncement size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Job Advertisements / Interviews
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickAutoJobAdvertisements()}>
-                                        <CardBody>
-                                            <FaHandsHelping size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Auto Job Advertisements
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                            </Row>
+      {/* Job Management */}
+      <Row>
+        <Col md="12">
+          <h6 className="text-uppercase text-muted" style={{ marginTop: 6 }}>
+            Job Management
+          </h6>
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={TfiAnnouncement}
+            color="#6bd098"
+            title="Job Advertisements / Interviews"
+            description="Create job ads and manage interviews."
+            onClick={go("/industry/account/advertisements")}
+          />
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={FaHandsHelping}
+            color="#e14eca"
+            title="Auto Job Advertisements"
+            description="Generate job advertisements automatically."
+            onClick={go("/industry/account/auto-job-advertisements")}
+          />
+        </Col>
+      </Row>
 
-                            <Row>
-                                <Col tag="h6">
-                                    Data Analysis and Skill Identification
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickArtifactRepositories()}>
-                                        <CardBody>
-                                            <FaListUl size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Artifact Repositories
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                {/* <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
-                                        <CardBody>
-                                            <MdModelTraining size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Skill Training Sets
-                                        </CardFooter>
-                                    </Card>
-                                </Col> */}
-                                {/* <Col md="3">
-                                    <Card style={{cursor:"pointer"}}>
-                                        <CardBody>
-                                            <SiJfrogpipelines size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Data Analysis Pipelines
-                                        </CardFooter>
-                                    </Card>
-                                </Col> */}
-                            </Row>
+      {/* Data Analysis and Skill Identification */}
+      <Row>
+        <Col md="12">
+          <h6 className="text-uppercase text-muted" style={{ marginTop: 6 }}>
+            Data Analysis and Skill Identification
+          </h6>
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={FaListUl}
+            color="#8965e0"
+            title="Artifact Repositories"
+            description="Browse and manage artifact repositories."
+            onClick={go("/industry/account/artifacts")}
+          />
+        </Col>
+      </Row>
 
-                            <Row>
-                                <Col tag="h6">
-                                    Employee Skills and Information
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handelClickEmployeeKnowleageUnits()}>
-                                        <CardBody>
-                                            <FaPeopleRoof size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Employee Skills
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                                <Col md="3">
-                                    <Card style={{cursor:"pointer"}} onClick={()=>handleClickOrganizationInfo()} >
-                                        <CardBody>
-                                            <FaBuilding size="50"/>
-                                        </CardBody>
-                                        <CardFooter>
-                                            Organization Information
-                                        </CardFooter>
-                                    </Card>
-                                </Col>
-                            </Row>
-
-                        </Col>
-                    </Row>
-                </Card>
-            </Col>
-        </Row>
-
-
-        <Row>
-            <Col md="12">
-                <Card>
-                    <CardHeader>
-                        <CardTitle tag="h5">My Organization</CardTitle>
-                    </CardHeader>
-                    <CardBody>
-                        Coming Soon
-                        {/* <Row>
-                            <Col md="12">
-                                {chartData &&
-                                    <div className="mt-8">
-                                        <Bar data={chartData} />
-                                    </div>
-                                }
-                            </Col>
-                        </Row> */}
-                    </CardBody>
-                </Card>
-            </Col>
-        </Row>
+      {/* Employee Skills and Information */}
+      <Row>
+        <Col md="12">
+          <h6 className="text-uppercase text-muted" style={{ marginTop: 6 }}>
+            Employee Skills and Information
+          </h6>
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={FaPeopleRoof}
+            color="#51cbce"
+            title="Employee Skills"
+            description="View and manage employee skills."
+            onClick={go("/industry/account/employee-skills")}
+          />
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={FaBuilding}
+            color="#fbc658"
+            title="Organization Information"
+            description="Manage your organisation's profile and details."
+            onClick={go("/industry/account/organization-info")}
+          />
+        </Col>
+      </Row>
     </div>
-    );
+  );
 }
 
 export default IndustryAccount;
