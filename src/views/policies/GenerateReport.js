@@ -228,7 +228,7 @@ const GenerateReport = () => {
     };
     setGenerating(true);
     try {
-      const res = await axios.post(`${CURRICULUM}/recommendations/generate`, payload);
+      const res = await axios.post(`${CURRICULUM}/recommendations/generate`, payload, { headers: ftAuth() });
       const data = res.data || {};
       setReport(data.recommendations || "");
       setReportMeta({
