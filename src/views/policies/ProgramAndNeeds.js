@@ -677,7 +677,7 @@ const ProgramAndNeeds = () => {
         <div>
           <span style={{ color: "#888" }}>Occupations: </span>
           {occupations.map((o, i) => (
-            <Badge key={i} color="info" style={{ marginRight: 4, marginBottom: 4 }}>{o}</Badge>
+            <Badge key={i} color="info" style={{ marginRight: 4, marginBottom: 4, whiteSpace: "normal", wordBreak: "break-word", textAlign: "left", maxWidth: "100%" }}>{o}</Badge>
           ))}
         </div>
       )}
@@ -1135,6 +1135,9 @@ const ProgramAndNeeds = () => {
           ) : runs.length === 0 ? (
             <p className="text-muted mb-0">No past analyses yet. Run one to see it here.</p>
           ) : (
+            <>
+            {/* Desktop / tablet: full table */}
+            <div className="d-none d-md-block">
             <Table hover responsive size="sm" className="mb-0">
               <thead>
                 <tr>
@@ -1165,6 +1168,28 @@ const ProgramAndNeeds = () => {
                 ))}
               </tbody>
             </Table>
+            </div>
+
+            {/* Phones: stacked cards so the View action is never cut off */}
+            <div className="d-md-none">
+              {runs.map((r, i) => (
+                <Card key={r.title || r.run_id || i} className="mb-2 border">
+                  <CardBody className="p-2">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <strong style={{ minWidth: 0 }}>{r.title || <em className="text-muted">(untitled)</em>}</strong>
+                      <span className="text-muted small flex-shrink-0 ml-2">{runDateLabel(r)}</span>
+                    </div>
+                    {r.description && <div className="text-muted small mt-1">{r.description}</div>}
+                    <div className="mt-2">
+                      <Button color="primary" size="sm" outline disabled={!r.title} onClick={() => openPastAnalysis(r)}>
+                        View
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+            </>
           )}
         </ModalBody>
         <ModalFooter>
@@ -1186,6 +1211,9 @@ const ProgramAndNeeds = () => {
           ) : ltRuns.length === 0 ? (
             <p className="text-muted mb-0">No past analyses yet. Run one to see it here.</p>
           ) : (
+            <>
+            {/* Desktop / tablet: full table */}
+            <div className="d-none d-md-block">
             <Table hover responsive size="sm" className="mb-0">
               <thead>
                 <tr>
@@ -1220,6 +1248,36 @@ const ProgramAndNeeds = () => {
                 ))}
               </tbody>
             </Table>
+            </div>
+
+            {/* Phones: stacked cards so the View action is never cut off */}
+            <div className="d-md-none">
+              {ltRuns.map((r, i) => (
+                <Card key={r.title || r.run_id || i} className="mb-2 border">
+                  <CardBody className="p-2">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <strong style={{ minWidth: 0 }}>{r.title || <em className="text-muted">(untitled)</em>}</strong>
+                      <span className="text-muted small flex-shrink-0 ml-2">{runDateLabel(r)}</span>
+                    </div>
+                    <div className="text-muted small mt-1">
+                      {r.source_title && <div>Source: {r.source_title}</div>}
+                      {(r.filters?.country || r.country || r.skills_count != null) && (
+                        <div>
+                          {(r.filters?.country || r.country) && <span className="mr-3">Country: {r.filters?.country || r.country}</span>}
+                          {r.skills_count != null && <span>Skills: {r.skills_count}</span>}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <Button color="primary" size="sm" outline disabled={!r.title} onClick={() => openPastLt(r)}>
+                        View
+                      </Button>
+                    </div>
+                  </CardBody>
+                </Card>
+              ))}
+            </div>
+            </>
           )}
         </ModalBody>
         <ModalFooter>

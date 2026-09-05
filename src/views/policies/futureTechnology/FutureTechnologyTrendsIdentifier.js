@@ -267,6 +267,9 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
           <p className="text-muted">No previous analyses found.</p>
         )}
         {!loading && titles.length > 0 && (
+          <>
+          {/* Desktop / tablet: full table */}
+          <div className="d-none d-md-block">
           <Table bordered hover responsive size="sm">
             <thead className="thead-light">
               <tr>
@@ -310,6 +313,44 @@ const PreviousAnalysesModal = ({ isOpen, toggle, onLoad, onDeleted }) => {
               ))}
             </tbody>
           </Table>
+          </div>
+
+          {/* Phones: stacked cards so the actions are never cut off */}
+          <div className="d-md-none">
+            {titles.map((t) => (
+              <Card key={t.title} className="mb-2 border">
+                <CardBody className="p-2">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div style={{ minWidth: 0 }}>
+                      <strong>{t.title}</strong>
+                      {t.created_at && (
+                        <small className="text-muted d-block">{formatAnalysisDate(t.created_at)}</small>
+                      )}
+                    </div>
+                    <span className="flex-shrink-0 ml-2">{statusBadge(t)}</span>
+                  </div>
+                  {t.description && (
+                    <div className="text-muted small mt-1">{t.description}</div>
+                  )}
+                  <div className="d-flex flex-wrap align-items-center mt-2">
+                    {t.sector && <Badge color="info" className="mr-2 mb-1">{t.sector}</Badge>}
+                    <span className="text-muted small mb-1">{t.count} PDF{t.count === 1 ? '' : 's'}</span>
+                  </div>
+                  <div className="d-flex mt-2">
+                    <Button color="info" size="sm" className="mr-2" disabled={busy}
+                      onClick={() => handleSelectTitle(t)}>
+                      {loadingTitle === t.title ? <Spinner size="sm" /> : (t.status === 'running' ? 'View progress' : 'View')}
+                    </Button>
+                    <Button color="danger" outline size="sm" disabled={busy}
+                      onClick={() => handleDeleteTitle(t)}>
+                      {deletingTitle === t.title ? <Spinner size="sm" /> : 'Delete'}
+                    </Button>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+          </>
         )}
       </ModalBody>
     </Modal>
