@@ -52,6 +52,15 @@ const renderTable = (rows) => {
   return html;
 };
 
+// Some LLM responses wrap the ENTIRE body in a ```markdown ... ```
+const stripMarkdownFence = (md) => {
+  if (!md) return md;
+  const t = String(md).trim();
+  const m = t.match(/^```(?:markdown|md)?[ \t]*\n([\s\S]*?)\n?```$/i);
+  if (m && !m[1].includes("```")) return m[1].trim();
+  return t;
+};
+
 const mdToHtml = (md) => {
   if (!md) return "";
   const lines = escapeHtml(md.replace(/\r\n/g, "\n")).split("\n");
@@ -265,7 +274,7 @@ const GenerateReport = () => {
     const html =
       `<!doctype html><html><head><meta charset="utf-8">` +
       `<title>Curriculum Recommendations</title><style>${PRINT_CSS}</style></head>` +
-      `<body>${mdToHtml(report)}</body></html>`;
+      `<body>${mdToHtml(stripMarkdownFence(report))}</body></html>`;
     const iframe = document.createElement("iframe");
     iframe.style.position = "fixed";
     iframe.style.right = "0";
@@ -289,7 +298,7 @@ const GenerateReport = () => {
     }, 300);
   };
 
-  const reportHtml = report ? mdToHtml(report) : "";
+  const reportHtml = report ? mdToHtml(stripMarkdownFence(report)) : "";
 
   return (
     <div className="content">
