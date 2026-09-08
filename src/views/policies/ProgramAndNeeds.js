@@ -8,6 +8,7 @@ import {
 import classnames from 'classnames';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import { mdToHtml, stripMarkdownFence } from "../../utils/markdown";
 
 const DIVERSITY = process.env.REACT_APP_API_URL_SKILLS_DIVERSITY;
 const CURRICULUM = process.env.REACT_APP_API_URL_CURRICULUM_SKILLS;
@@ -50,6 +51,24 @@ const ProgramAndNeeds = () => {
   const [openSkill, setOpenSkill] = useState(null);
   const [openMissing, setOpenMissing] = useState({}); // per-university "Missing skills by occupation" toggle
   const [error, setError] = useState(null);
+
+  // ---- university-creation suggestions (LLM) ----
+  // After a short-term analysis completes we ask the curriculum service to
+  // recommend concrete actions for creating universities, keyed by the
+  // analysis title (policy_title) with suggest_universities = true.
+  const uniSuggestForTitle = useRef(null);
+  const [uniSuggest, setUniSuggest] = useState(null);      // markdown string
+  const [uniSuggestLoading, setUniSuggestLoading] = useState(false);
+  const [uniSuggestError, setUniSuggestError] = useState(null);
+  const [uniSuggestMeta, setUniSuggestMeta] = useState(null); // {cached, created_at}
+  const [resultsCollapsed, setResultsCollapsed] = useState(false); // minimize skill-gap results once suggestions are ready
+  const resetUniSuggest = () => {
+    uniSuggestForTitle.current = null;
+    setUniSuggest(null);
+    setUniSuggestError(null);
+    setUniSuggestMeta(null);
+    setResultsCollapsed(false);
+  };
 
   // ---- past analyses ----
   const [runs, setRuns] = useState([]);
@@ -401,6 +420,7 @@ const ProgramAndNeeds = () => {
     setRunning(false);
     setStatus("completed");
     setResults(null);
+    resetUniSuggest();
     fetchResults({ title, country, university: "" });
   };
 
@@ -408,6 +428,7 @@ const ProgramAndNeeds = () => {
   const runAnalysis = async () => {
     setError(null);
     setResults(null);
+    resetUniSuggest();
     const title = stTitle.trim();
     if (!title) {
       setError("Please give this analysis a title.");
@@ -501,6 +522,52 @@ const ProgramAndNeeds = () => {
     }
     setLoadingResults(false);
   };
+
+  // ---- university-creation suggestions ----
+  // POST /recommendations/generate with the analysis title as policy_title and
+  // suggest_universities = true, to get concrete actions for creating universities.
+  const suggestUniversities = async (title, { force = false } = {}) => {
+    if (!title) return;
+    setUniSuggestError(null);
+    setUniSuggest(null);
+    setUniSuggestLoading(true);
+    try {
+      const res = await axios.post(`${CURRICULUM}/recommendations/generate`, {
+        policy_title: title,
+        suggest_universities: true,
+        force_refresh: force,
+      }, { headers: ftAuth() });
+      const data = res.data || {};
+      setUniSuggest(data.recommendations || "");
+      setUniSuggestMeta({ cached: !!data.cached, created_at: data.created_at || null });
+      if (data.recommendations) {
+        // The suggestions are the main result — fold the skill-gap results away.
+        setResultsCollapsed(true);
+      } else {
+        setUniSuggestError("No university suggestions were returned.");
+      }
+    } catch (e) {
+      setUniSuggest(null);
+      setUniSuggestMeta(null);
+      setUniSuggestError(`Could not generate university suggestions: ${errText(e)}`);
+    } finally {
+      setUniSuggestLoading(false);
+    }
+  };
+
+  // Once results are on screen for a completed short-term analysis, generate
+  // the university-creation suggestions automatically — once per analysis title.
+  useEffect(() => {
+    if (
+      status === "completed" && !running && !loadingResults &&
+      activeTitle && Array.isArray(results) && results.length > 0 &&
+      uniSuggestForTitle.current !== activeTitle
+    ) {
+      uniSuggestForTitle.current = activeTitle;
+      suggestUniversities(activeTitle);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, running, loadingResults, results, activeTitle]);
 
   // ---- renderers ----
   const toggleMissing = (key) =>
@@ -894,13 +961,66 @@ const ProgramAndNeeds = () => {
                     <div><Spinner size="sm" /> loading results…</div>
                   ) : results && results.length > 0 ? (
                     <>
-                      <h5>
-                        Results{" "}
-                        <span style={{ color: "#999", fontWeight: 400 }}>
-                          ({results.length} universit{results.length === 1 ? "y" : "ies"})
-                        </span>
-                      </h5>
-                      {results.map(renderUniversityResult)}
+                      {/* ---- Suggested actions for creating universities (main result) ---- */}
+                      <Card style={{ borderTop: "3px solid #51bcda" }}>
+                        <CardHeader>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                            <div>
+                              <CardTitle tag="h5" className="mb-1">
+                                <i className="fas fa-university" style={{ marginRight: 6, color: "#51bcda" }}></i>
+                                Suggested actions for creating universities
+                              </CardTitle>
+                              {uniSuggestMeta && !uniSuggestLoading && (
+                                <span style={{ color: "#666" }}>
+                                  {uniSuggestMeta.cached ? (
+                                    <Badge color="secondary">cached{uniSuggestMeta.created_at ? ` · ${new Date(uniSuggestMeta.created_at).toLocaleDateString()}` : ""}</Badge>
+                                  ) : (
+                                    <Badge color="success">freshly generated</Badge>
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                            <Button color="info" outline size="sm"
+                              onClick={() => suggestUniversities(activeTitle, { force: true })}
+                              disabled={uniSuggestLoading || !activeTitle}>
+                              {uniSuggestLoading ? <><Spinner size="sm" /> Generating…</> : <><i className="fas fa-sync" style={{ marginRight: 6 }}></i>Regenerate</>}
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardBody>
+                          {uniSuggestError && <Alert color="danger" toggle={() => setUniSuggestError(null)}>{uniSuggestError}</Alert>}
+                          {uniSuggestLoading ? (
+                            <div><Spinner size="sm" /> Generating university-creation suggestions…</div>
+                          ) : uniSuggest ? (
+                            <div className="report-markdown" dangerouslySetInnerHTML={{ __html: mdToHtml(stripMarkdownFence(uniSuggest)) }} />
+                          ) : (
+                            !uniSuggestError && <em style={{ color: "#999" }}>No suggestions yet.</em>
+                          )}
+                        </CardBody>
+                      </Card>
+
+                      {/* ---- Skill-gap results (secondary) — minimized once suggestions are ready ---- */}
+                      <Card style={{ marginTop: 16 }}>
+                        <CardHeader
+                          style={{ cursor: "pointer" }}
+                          onClick={() => setResultsCollapsed((c) => !c)}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                            <CardTitle tag="h5" className="mb-0">
+                              Skill-gap results{" "}
+                              <span style={{ color: "#999", fontWeight: 400 }}>
+                                ({results.length} universit{results.length === 1 ? "y" : "ies"})
+                              </span>
+                            </CardTitle>
+                            <i className={`fas fa-chevron-${resultsCollapsed ? "down" : "up"}`} style={{ color: "#999" }}></i>
+                          </div>
+                        </CardHeader>
+                        <Collapse isOpen={!resultsCollapsed}>
+                          <CardBody>
+                            {results.map(renderUniversityResult)}
+                          </CardBody>
+                        </Collapse>
+                      </Card>
                     </>
                   ) : (
                     <Alert color="warning">
