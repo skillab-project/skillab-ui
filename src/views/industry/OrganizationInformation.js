@@ -37,6 +37,11 @@ function OrganizationInformation() {
     const [deletingSector, setDeletingSector] = useState(null);   // stores sector string being deleted
     const [deletingObjective, setDeletingObjective] = useState(null);
 
+    // Per-department objectives (managed inside the Edit Department modal)
+    const [newDeptObjective, setNewDeptObjective] = useState("");
+    const [addingDeptObjective, setAddingDeptObjective] = useState(false);
+    const [deletingDeptObjective, setDeletingDeptObjective] = useState(null);
+
     const [editModal, setEditModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState(false);
     const [selectedDept, setSelectedDept] = useState(null);
@@ -197,6 +202,58 @@ function OrganizationInformation() {
             console.error("Failed to delete objective:", error);
         } finally {
             setDeletingObjective(null);
+        }
+    };
+
+    // Re-fetch a single department so the edit modal + table reflect its latest objectives.
+    const refreshDepartment = async (deptId) => {
+        try {
+            const headers = await getHeaders();
+            const res = await axios.get(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/employee-management-backend/departments/${deptId}`,
+                { headers }
+            );
+            setSelectedDept(res.data);
+            setDepartments((prev) => prev.map((d) => (d.id === deptId ? res.data : d)));
+        } catch (error) {
+            console.error("Failed to refresh department:", error);
+        }
+    };
+
+    const handleAddDeptObjective = async () => {
+        const trimmed = newDeptObjective.trim();
+        if (!trimmed || !selectedDept) return;
+        setAddingDeptObjective(true);
+        try {
+            const headers = await getHeaders();
+            await axios.post(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/employee-management-backend/departments/${selectedDept.id}/objectives`,
+                trimmed,
+                { headers: { ...headers, "Content-Type": "application/json" } }
+            );
+            setNewDeptObjective("");
+            await refreshDepartment(selectedDept.id);
+        } catch (error) {
+            console.error("Failed to add department objective:", error);
+        } finally {
+            setAddingDeptObjective(false);
+        }
+    };
+
+    const handleDeleteDeptObjective = async (objective) => {
+        if (!selectedDept) return;
+        setDeletingDeptObjective(objective);
+        try {
+            const headers = await getHeaders();
+            await axios.delete(
+                `${process.env.REACT_APP_API_URL_USER_MANAGEMENT}/employee-management-backend/departments/${selectedDept.id}/objectives`,
+                { headers, params: { objective } }
+            );
+            await refreshDepartment(selectedDept.id);
+        } catch (error) {
+            console.error("Failed to delete department objective:", error);
+        } finally {
+            setDeletingDeptObjective(null);
         }
     };
 
@@ -363,6 +420,7 @@ function OrganizationInformation() {
             setSelectedDept(dept);
             setEditName(dept.name);
             setEditManagerId(dept.managerId || "");
+            setNewDeptObjective("");
             // Load employees for the dropdown when opening the modal
             await fetchDeptEmployees(dept.id);
         }
@@ -586,6 +644,7 @@ function OrganizationInformation() {
                             <tr>
                                 <th>Name</th>
                                 <th>Manager</th>
+                                <th>Objectives</th>
                                 <th className="text-right">Actions</th>
                             </tr>
                         </thead>
@@ -597,6 +656,13 @@ function OrganizationInformation() {
                                         {dept.managerFirstName 
                                             ? `${dept.managerFirstName} ${dept.managerLastName}` 
                                             : "No Manager Assigned"}
+                                    </td>
+                                    <td>
+                                        {(dept.objectives && dept.objectives.length > 0)
+                                            ? dept.objectives.map((obj, idx) => (
+                                                <Badge key={idx} color="info" className="mr-1 mb-1">{obj}</Badge>
+                                              ))
+                                            : <span className="text-muted small">—</span>}
                                     </td>
                                     <td className="text-right">
                                         <Button color="info" size="sm" className="mr-2" onClick={() => toggleEdit(dept)}>
@@ -749,6 +815,56 @@ function OrganizationInformation() {
                                 </option>
                             ))}
                         </Input>
+                    </FormGroup>
+                    <FormGroup>
+                        <Label>Objectives</Label>
+                        <InputGroup>
+                            <Input
+                                placeholder="New objective…"
+                                value={newDeptObjective}
+                                onChange={(e) => setNewDeptObjective(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAddDeptObjective()}
+                            />
+                            <InputGroupAddon addonType="append">
+                                <Button
+                                    color="primary"
+                                    onClick={handleAddDeptObjective}
+                                    disabled={!newDeptObjective.trim() || addingDeptObjective}
+                                >
+                                    {addingDeptObjective ? "Adding…" : "Add"}
+                                </Button>
+                            </InputGroupAddon>
+                        </InputGroup>
+                        {(!selectedDept?.objectives || selectedDept.objectives.length === 0) ? (
+                            <p className="text-muted small mt-2 mb-0">No objectives added yet.</p>
+                        ) : (
+                            <ul className="list-unstyled mb-0 mt-2">
+                                {selectedDept.objectives.map((obj, idx) => (
+                                    <li
+                                        key={idx}
+                                        className="d-flex align-items-center justify-content-between py-2"
+                                        style={{
+                                            borderBottom: idx < selectedDept.objectives.length - 1 ? "1px solid #f0f0f0" : "none"
+                                        }}
+                                    >
+                                        <span>
+                                            <i className="nc-icon nc-minimal-right mr-2 text-primary" style={{ fontSize: "0.7rem" }} />
+                                            {obj}
+                                        </span>
+                                        <Button
+                                            color="danger"
+                                            size="sm"
+                                            outline
+                                            onClick={() => handleDeleteDeptObjective(obj)}
+                                            disabled={deletingDeptObjective === obj}
+                                            style={{ flexShrink: 0, marginLeft: "8px" }}
+                                        >
+                                            <i className="nc-icon nc-simple-remove" />
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </FormGroup>
                 </ModalBody>
                 <ModalFooter>

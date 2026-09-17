@@ -9,6 +9,7 @@ import classnames from 'classnames';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { mdToHtml, stripMarkdownFence } from "../../utils/markdown";
+import { getUserUniversity } from "utils/Tokens";
 
 const DIVERSITY = process.env.REACT_APP_API_URL_SKILLS_DIVERSITY;
 const CURRICULUM = process.env.REACT_APP_API_URL_CURRICULUM_SKILLS;
@@ -74,6 +75,7 @@ const ProgramAndNeeds = () => {
   const [runs, setRuns] = useState([]);
   const [runsLoading, setRunsLoading] = useState(false);
   const [showPastModal, setShowPastModal] = useState(false);
+  const [deletingRunId, setDeletingRunId] = useState(null);
 
   const pollRef = useRef(null);
 
@@ -112,6 +114,7 @@ const ProgramAndNeeds = () => {
   const [ltRuns, setLtRuns] = useState([]);
   const [ltRunsLoading, setLtRunsLoading] = useState(false);
   const [ltShowPastModal, setLtShowPastModal] = useState(false);
+  const [ltDeletingRunId, setLtDeletingRunId] = useState(null);
 
   const [ltError, setLtError] = useState(null);
   const [ltInfo, setLtInfo] = useState(null);
@@ -151,6 +154,20 @@ const ProgramAndNeeds = () => {
       loadRuns();
     })();
     return () => { if (pollRef.current) clearTimeout(pollRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Pre-select this account's country (policy-education stores a country in the
+  // user's extraInfo) as the default for both the short- and long-term analyses.
+  // Still editable; only fills when the field is empty.
+  useEffect(() => {
+    (async () => {
+      const uni = await getUserUniversity();
+      const c = uni?.country;
+      if (!c) return;
+      setSelectedCountry((prev) => prev || c);
+      setLtCountry((prev) => prev || c);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -318,6 +335,33 @@ const ProgramAndNeeds = () => {
     fetchLtResults(saveTitle);
   };
 
+  // Delete a saved long-term analysis (all rows under its run_id).
+  const deletePastLt = async (run) => {
+    const runId = run?.run_id;
+    if (!runId) return;
+    const label = run?.title || "this analysis";
+    if (!window.confirm(`Delete the long-term analysis "${label}"? This cannot be undone.`)) return;
+    setLtDeletingRunId(runId);
+    setLtError(null);
+    try {
+      await axios.delete(`${CURRICULUM}/skill-gap/longterm/gap-by-title/runs/${encodeURIComponent(runId)}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+        },
+      });
+      setLtRuns((prev) => prev.filter((x) => x.run_id !== runId));
+      if (ltActiveTitle && run?.title && ltActiveTitle === run.title) {
+        setLtResults(null);
+        setLtActiveTitle(null);
+        setLtActiveFilters(null);
+      }
+    } catch (e) {
+      setLtError(`Could not delete the analysis: ${errText(e)}`);
+    } finally {
+      setLtDeletingRunId(null);
+    }
+  };
+
   const startLongTerm = async () => {
     setLtError(null);
     setLtInfo(null);
@@ -422,6 +466,36 @@ const ProgramAndNeeds = () => {
     setResults(null);
     resetUniSuggest();
     fetchResults({ title, country, university: "" });
+  };
+
+  // Delete a saved short-term analysis (all rows under its run_id).
+  const deletePastAnalysis = async (run) => {
+    const runId = run?.run_id;
+    if (!runId) return;
+    const label = run?.title || "this analysis";
+    if (!window.confirm(`Delete the analysis "${label}"? This cannot be undone.`)) return;
+    setDeletingRunId(runId);
+    setError(null);
+    try {
+      await axios.delete(`${CURRICULUM}/policy/runs/${encodeURIComponent(runId)}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+        },
+      });
+      setRuns((prev) => prev.filter((x) => x.run_id !== runId));
+      // If the deleted analysis is the one on screen, clear the results view.
+      if (activeTitle && run?.title && activeTitle === run.title) {
+        setResults(null);
+        setActiveTitle(null);
+        setActiveFilters(null);
+        setStatus(null);
+        resetUniSuggest();
+      }
+    } catch (e) {
+      setError(`Could not delete the analysis: ${errText(e)}`);
+    } finally {
+      setDeletingRunId(null);
+    }
   };
 
   // ---- run analysis ----
@@ -1283,6 +1357,16 @@ const ProgramAndNeeds = () => {
                       >
                         View
                       </Button>
+                      <Button
+                        color="danger"
+                        size="sm"
+                        outline
+                        className="ml-2"
+                        disabled={!r.run_id || deletingRunId != null && deletingRunId === r.run_id}
+                        onClick={() => deletePastAnalysis(r)}
+                      >
+                        {deletingRunId != null && deletingRunId === r.run_id ? <Spinner size="sm" /> : "Delete"}
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -1303,6 +1387,9 @@ const ProgramAndNeeds = () => {
                     <div className="mt-2">
                       <Button color="primary" size="sm" outline disabled={!r.title} onClick={() => openPastAnalysis(r)}>
                         View
+                      </Button>
+                      <Button color="danger" size="sm" outline className="ml-2" disabled={!r.run_id || deletingRunId != null && deletingRunId === r.run_id} onClick={() => deletePastAnalysis(r)}>
+                        {deletingRunId != null && deletingRunId === r.run_id ? <Spinner size="sm" /> : "Delete"}
                       </Button>
                     </div>
                   </CardBody>
@@ -1363,6 +1450,16 @@ const ProgramAndNeeds = () => {
                       >
                         View
                       </Button>
+                      <Button
+                        color="danger"
+                        size="sm"
+                        outline
+                        className="ml-2"
+                        disabled={!r.run_id || ltDeletingRunId != null && ltDeletingRunId === r.run_id}
+                        onClick={() => deletePastLt(r)}
+                      >
+                        {ltDeletingRunId != null && ltDeletingRunId === r.run_id ? <Spinner size="sm" /> : "Delete"}
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -1391,6 +1488,9 @@ const ProgramAndNeeds = () => {
                     <div className="mt-2">
                       <Button color="primary" size="sm" outline disabled={!r.title} onClick={() => openPastLt(r)}>
                         View
+                      </Button>
+                      <Button color="danger" size="sm" outline className="ml-2" disabled={!r.run_id || ltDeletingRunId != null && ltDeletingRunId === r.run_id} onClick={() => deletePastLt(r)}>
+                        {ltDeletingRunId != null && ltDeletingRunId === r.run_id ? <Spinner size="sm" /> : "Delete"}
                       </Button>
                     </div>
                   </CardBody>

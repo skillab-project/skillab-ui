@@ -39,11 +39,13 @@ function Dashboard(props) {
   React.useEffect(() => {
     async function checkAuth() {
       const installationString = await getInstallation();
-      if (installationString && installationString.split(",").some((inst) => inst.includes("policy"))) {
-        setIsAuthorized(true);
-      } else {
-        setIsAuthorized(false);
-      }
+      const installations = installationString
+        ? installationString.split(",").map((inst) => inst.trim())
+        : [];
+      // "policy" grants access to both policy areas; "policy-education" grants only this one.
+      const authorized =
+        installations.includes("policy") || installations.includes("policy-education");
+      setIsAuthorized(authorized);
     }
     checkAuth();
   }, []);

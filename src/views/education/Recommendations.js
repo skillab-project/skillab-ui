@@ -7,6 +7,7 @@ import {
 } from "reactstrap";
 import classnames from "classnames";
 import axios from "axios";
+import { getUserUniversity } from "utils/Tokens";
 
 const API = process.env.REACT_APP_API_URL_CURRICULUM_SKILLS;
 const DIVERSITY = process.env.REACT_APP_API_URL_SKILLS_DIVERSITY;
@@ -25,6 +26,8 @@ const Recommendations = () => {
     const [selectedUnivId, setSelectedUnivId] = useState("");
     const [loadingUnis, setLoadingUnis] = useState(false);
     const [msg, setMsg] = useState(null); // {type, text}
+    const [userUniversity, setUserUniversity] = useState(null); // {universityName, country} | null
+    const didPrefillRef = useRef(false);
 
     // similar universities
     const [simTopN, setSimTopN] = useState(5);
@@ -63,6 +66,7 @@ const Recommendations = () => {
     const [sgRuns, setSgRuns] = useState([]);
     const [sgRunsLoading, setSgRunsLoading] = useState(false);
     const [sgShowPastModal, setSgShowPastModal] = useState(false);
+    const [sgDeletingRunId, setSgDeletingRunId] = useState(null);
     const [sgActiveFilters, setSgActiveFilters] = useState(null); // filters of the loaded past analysis
     const sgPollRef = useRef(null);
 
@@ -86,6 +90,40 @@ const Recommendations = () => {
     useEffect(() => {
         loadUniversities();
     }, [loadUniversities]);
+
+    // This user's own university (education installation), fetched once.
+    useEffect(() => {
+        (async () => {
+            const uni = await getUserUniversity();
+            if (uni) setUserUniversity(uni);
+        })();
+    }, []);
+
+    // Once universities and the user's own university are known, pre-select it in
+    // both tabs (once) so they don't have to pick it again. Still editable.
+    useEffect(() => {
+        if (didPrefillRef.current) return;
+        if (!userUniversity) return;
+        if (!universities || universities.length === 0) return;
+        const target = (userUniversity.universityName || "").trim().toLowerCase();
+        const tctry = (userUniversity.country || "").trim().toLowerCase();
+        const match = universities.find(
+            (u) =>
+                (u.university_name || "").trim().toLowerCase() === target &&
+                (!tctry || (u.country || "").trim().toLowerCase() === tctry)
+        );
+        // Skills tab: pre-select country + university.
+        if (!sgCountry && userUniversity.country) setSgCountry(userUniversity.country);
+        if (!sgUniversity && (match?.university_name || userUniversity.universityName)) {
+            setSgUniversity(match?.university_name || userUniversity.universityName);
+        }
+        // Courses tab: pre-select the university (loads its programs).
+        if (match && !selectedUnivId) {
+            onSelectUniversity(String(match.university_id));
+        }
+        didPrefillRef.current = true;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [universities, userUniversity]);
 
     // Load available occupations (for the Skill Recommendations tab) once.
     useEffect(() => {
@@ -191,6 +229,35 @@ const Recommendations = () => {
         setSgStatus("completed");
         setSgSummary(null);
         fetchSkillGapSummary({ title });
+    };
+
+    // Delete a saved skill-gap analysis (all rows under its run_id).
+    const deletePastSkillGap = async (run) => {
+        const runId = run?.run_id;
+        if (!runId) return;
+        const label = run?.title || "this analysis";
+        if (!window.confirm(`Delete the analysis "${label}"? This cannot be undone.`)) return;
+        setSgDeletingRunId(runId);
+        setSgMsg(null);
+        try {
+            await axios.delete(`${API}/skill-gap/runs/${encodeURIComponent(runId)}`, {
+                headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                },
+            });
+            setSgRuns((prev) => prev.filter((x) => x.run_id !== runId));
+            // If the deleted analysis is the one on screen, clear the results view.
+            if (sgActiveTitle && run?.title && sgActiveTitle === run.title) {
+                setSgSummary(null);
+                setSgActiveTitle(null);
+                setSgActiveFilters(null);
+                setSgStatus(null);
+            }
+        } catch (err) {
+            setSgMsg({ type: "danger", text: `Could not delete the analysis: ${errText(err)}` });
+        } finally {
+            setSgDeletingRunId(null);
+        }
     };
 
     const runSkillGap = async () => {
@@ -951,6 +1018,9 @@ const Recommendations = () => {
                     ) : sgRuns.length === 0 ? (
                         <p className="text-muted mb-0">No past analyses yet. Run one to see it here.</p>
                     ) : (
+                        <>
+                        {/* Desktop / tablet: full table */}
+                        <div className="d-none d-md-block">
                         <Table hover responsive size="sm" className="mb-0">
                             <thead>
                                 <tr>
@@ -976,11 +1046,46 @@ const Recommendations = () => {
                                             >
                                                 View
                                             </Button>
+                                            <Button
+                                                color="danger"
+                                                size="sm"
+                                                outline
+                                                className="ml-2"
+                                                disabled={!r.run_id || sgDeletingRunId != null && sgDeletingRunId === r.run_id}
+                                                onClick={() => deletePastSkillGap(r)}
+                                            >
+                                                {sgDeletingRunId != null && sgDeletingRunId === r.run_id ? <Spinner size="sm" /> : "Delete"}
+                                            </Button>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </Table>
+                        </div>
+
+                        {/* Phones: stacked cards so the View action is never cut off */}
+                        <div className="d-md-none">
+                            {sgRuns.map((r, i) => (
+                                <Card key={r.title || r.run_id || i} className="mb-2 border">
+                                    <CardBody className="p-2">
+                                        <div className="d-flex justify-content-between align-items-start">
+                                            <strong style={{ minWidth: 0 }}>{r.title || <em className="text-muted">(untitled)</em>}</strong>
+                                            <span className="text-muted small flex-shrink-0 ml-2">{sgRunDateLabel(r)}</span>
+                                        </div>
+                                        {r.description && <div className="text-muted small mt-1">{r.description}</div>}
+                                        <div className="mt-2">
+                                            <Button color="primary" size="sm" outline disabled={!r.title} onClick={() => openPastSkillGap(r)}>
+                                                View
+                                            </Button>
+                                            <Button color="danger" size="sm" outline className="ml-2" disabled={!r.run_id || sgDeletingRunId != null && sgDeletingRunId === r.run_id} onClick={() => deletePastSkillGap(r)}>
+                                                {sgDeletingRunId != null && sgDeletingRunId === r.run_id ? <Spinner size="sm" /> : "Delete"}
+                                            </Button>
+                                        </div>
+                                    </CardBody>
+                                </Card>
+                            ))}
+                        </div>
+                        </>
                     )}
                 </ModalBody>
                 <ModalFooter>

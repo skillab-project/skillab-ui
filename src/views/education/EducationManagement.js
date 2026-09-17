@@ -6,6 +6,7 @@ import {
 } from "reactstrap";
 import classnames from "classnames";
 import axios from "axios";
+import { getUserUniversity, saveUserUniversity, getInstallation } from "utils/Tokens";
 
 const API = process.env.REACT_APP_API_URL_CURRICULUM_SKILLS;
 
@@ -116,6 +117,16 @@ const EducationManagement = () => {
     const [openPrograms, setOpenPrograms] = useState({});
     const [openCourse, setOpenCourse] = useState(null);
     const [resultsMsg, setResultsMsg] = useState(null);
+
+    // ---- Setup (this user's own university) ----
+    const [userUniversity, setUserUniversity] = useState(null); // {universityName, country} | null
+    const [setupUniversity, setSetupUniversity] = useState("");
+    const [setupCountry, setSetupCountry] = useState("");
+    const [savingSetup, setSavingSetup] = useState(false);
+    const [setupMsg, setSetupMsg] = useState(null);
+    const [allUnis, setAllUnis] = useState([]); // full University table (incl. no-curricula) for Setup options
+    // policy-education installations track a country only (no university).
+    const [isPolicy, setIsPolicy] = useState(false);
 
     const toggleTab = (tab) => {
         if (currentActiveTab !== tab) setCurrentActiveTab(tab);
@@ -321,6 +332,123 @@ const EducationManagement = () => {
         loadUniversities();
     }, [loadUniversities]);
 
+    // ============================ Setup ============================
+    // Full university list (including universities with no curricula yet) for the
+    // Setup dropdown — the browse tab's own list only covers ones with curricula.
+    const loadAllUniversities = useCallback(async () => {
+        try {
+            const res = await axios.get(`${API}/recommendation/filters/universities`);
+            setAllUnis(res.data?.universities || []);
+        } catch (e) {
+            /* non-fatal — Setup can still free-type a university */
+        }
+    }, []);
+
+    // On mount: load the full list and this user's saved university, pre-filling
+    // the Setup form and the Upload defaults (both still editable).
+    useEffect(() => {
+        loadAllUniversities();
+        (async () => {
+            const inst = await getInstallation();
+            const policy = !!inst && inst.includes("policy");
+            setIsPolicy(policy);
+            const uni = await getUserUniversity();
+            if (uni) {
+                setUserUniversity(uni);
+                setSetupUniversity(uni.universityName || "");
+                setSetupCountry(uni.country || "");
+                if (uni.universityName) setDefaultUniversity(uni.universityName);
+                if (uni.country) setDefaultCountry(uni.country);
+                // policy-education: default the Universities & Results filter to the user's country.
+                if (policy && uni.country) setCountryFilter(uni.country);
+            }
+        })();
+    }, [loadAllUniversities]);
+
+    // Once the browse list has loaded, auto-select this user's own university so
+    // its programs & courses show without them picking it each time.
+    useEffect(() => {
+        if (!userUniversity || selectedUni) return;
+        if (!universities || universities.length === 0) return;
+        const target = (userUniversity.universityName || "").trim().toLowerCase();
+        const tctry = (userUniversity.country || "").trim().toLowerCase();
+        const match = universities.find(
+            (u) =>
+                (u.university_name || "").trim().toLowerCase() === target &&
+                (!tctry || (u.country || "").trim().toLowerCase() === tctry)
+        );
+        if (match) loadCurriculum(match);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [universities, userUniversity]);
+
+    const saveSetup = async () => {
+        const name = (setupUniversity || "").trim();
+        const country = (setupCountry || "").trim();
+        if (isPolicy) {
+            if (!country) {
+                setSetupMsg({ type: "warning", text: "Please select or enter a country." });
+                return;
+            }
+        } else if (!name) {
+            setSetupMsg({ type: "warning", text: "Please select or enter a university name." });
+            return;
+        }
+        setSavingSetup(true);
+        setSetupMsg(null);
+        try {
+            // Education: ensure the university exists in the curriculum DB (get-or-create).
+            // Policy-education: country only — nothing to create.
+            if (!isPolicy) {
+                await axios.post(`${API}/universities`, { university_name: name, country }, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                    },
+                });
+            }
+            // Persist on the user (extraInfo JSON). Policy stores an empty university.
+            await saveUserUniversity(isPolicy ? "" : name, country);
+            setUserUniversity({ universityName: isPolicy ? "" : name, country });
+            if (!isPolicy) setDefaultUniversity(name);
+            setDefaultCountry(country);
+            if (isPolicy) setCountryFilter(country);
+            setSetupMsg({
+                type: "success",
+                text: isPolicy
+                    ? `Saved. "${country}" is now your default country.`
+                    : `Saved. "${name}" is now your default university.`,
+            });
+            loadUniversities();
+            loadAllUniversities();
+        } catch (e) {
+            const detail = e?.response?.data?.detail || e?.message || "Save failed";
+            setSetupMsg({ type: "danger", text: `Could not save: ${detail}` });
+        } finally {
+            setSavingSetup(false);
+        }
+    };
+
+    // ---- Setup option lists ----
+    // Pool = universities with curricula (same source the Upload tab uses, always
+    // available) unioned with the full University table (adds ones with no
+    // curricula yet, when that list loads).
+    const setupUniPool = [...(universities || []), ...(allUnis || [])];
+
+    const setupCountryOptions = Array.from(
+        new Set(setupUniPool.map((u) => (u.country || "").trim()).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
+
+    const setupUniversityOptions = (country) => {
+        const c = (country || "").trim().toLowerCase();
+        return Array.from(
+            new Set(
+                setupUniPool
+                    .filter((u) => !c || (u.country || "").trim().toLowerCase() === c)
+                    .map((u) => (u.university_name || "").trim())
+                    .filter(Boolean)
+            )
+        ).sort((a, b) => a.localeCompare(b));
+    };
+
     // ============================ Renderers ============================
     const renderCourse = (course) => {
         const isOpen = openCourse === course.course_id;
@@ -468,6 +596,14 @@ const EducationManagement = () => {
             <Nav tabs style={{ marginBottom: "10px" }}>
                 <NavItem style={{ cursor: "pointer" }}>
                     <NavLink
+                        className={classnames({ active: currentActiveTab === "setup" })}
+                        onClick={() => toggleTab("setup")}
+                    >
+                        Setup
+                    </NavLink>
+                </NavItem>
+                <NavItem style={{ cursor: "pointer" }}>
+                    <NavLink
                         className={classnames({ active: currentActiveTab === "1" })}
                         onClick={() => toggleTab("1")}
                     >
@@ -485,6 +621,66 @@ const EducationManagement = () => {
             </Nav>
 
             <TabContent activeTab={currentActiveTab}>
+                {/* ---------------- Setup tab ---------------- */}
+                <TabPane tabId="setup">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle tag="h5">{isPolicy ? "Your country" : "Your university"}</CardTitle>
+                            <p style={{ color: "#666", marginBottom: 0 }}>
+                                {isPolicy
+                                    ? "Set the country for this account. Once saved, it is pre-selected across Upload, Universities & Results and Program & Needs. Pick one from the list, or type a new name."
+                                    : "Set the university and country for this account. Once saved, it is pre-selected across Upload, Universities & Results and Recommendations. Pick one from the list, or type a new name to create it."}
+                            </p>
+                        </CardHeader>
+                        <CardBody>
+                            {userUniversity && (userUniversity.universityName || userUniversity.country) && (
+                                <Alert color="info" style={{ marginBottom: 12 }}>
+                                    Current: <strong>{isPolicy ? (userUniversity.country || "—") : (userUniversity.universityName || "—")}</strong>
+                                    {!isPolicy && userUniversity.country ? ` — ${userUniversity.country}` : ""}
+                                </Alert>
+                            )}
+                            <Row>
+                                <Col md="4">
+                                    <label>Country</label>
+                                    <ComboSelect
+                                        value={setupCountry}
+                                        options={setupCountryOptions}
+                                        onChange={setSetupCountry}
+                                        selectPlaceholder="— select a country —"
+                                        inputPlaceholder="Type a new country"
+                                    />
+                                </Col>
+                                {!isPolicy && (
+                                    <Col md="4">
+                                        <label>University</label>
+                                        <ComboSelect
+                                            value={setupUniversity}
+                                            options={setupUniversityOptions(setupCountry)}
+                                            onChange={setSetupUniversity}
+                                            selectPlaceholder="— select a university —"
+                                            inputPlaceholder="Type a new university"
+                                        />
+                                    </Col>
+                                )}
+                                <Col md="4" style={{ display: "flex", alignItems: "flex-end" }}>
+                                    <Button
+                                        color="primary"
+                                        disabled={savingSetup || (isPolicy ? !(setupCountry || "").trim() : !(setupUniversity || "").trim())}
+                                        onClick={saveSetup}
+                                    >
+                                        {savingSetup ? "Saving…" : "Save"}
+                                    </Button>
+                                </Col>
+                            </Row>
+                            {setupMsg && (
+                                <Alert color={setupMsg.type} style={{ marginTop: 12 }}>
+                                    {setupMsg.text}
+                                </Alert>
+                            )}
+                        </CardBody>
+                    </Card>
+                </TabPane>
+
                 {/* ---------------- Upload tab ---------------- */}
                 <TabPane tabId="1">
                     <Card>
