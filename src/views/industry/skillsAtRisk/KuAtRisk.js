@@ -10,6 +10,7 @@ import {
   Pagination,
   PaginationItem,
   PaginationLink,
+  UncontrolledTooltip,
 } from "reactstrap";
 import {
   BarChart,
@@ -23,7 +24,48 @@ import {
 } from "recharts";
 import axios from 'axios';
 import { getOrganization } from "../../../utils/Tokens";
+import { KU_NAMES, KU_DESCRIPTIONS, normalizeKuId, getKuLabel, getKuDescription } from "../../../utils/kuInfo";
 
+
+// Tooltip box for the KU Risk chart: same KU info (id - name + description)
+// that the Knowledge Units heatmap shows on hover.
+const KuRiskTooltip = ({ active, payload, label, valueFormatter }) => {
+    if (!active || !payload || !payload.length) return null;
+
+    const description = getKuDescription(label);
+
+    return (
+        <div
+            style={{
+                padding: "12px 16px",
+                maxWidth: "360px",
+                width: "360px",
+                fontSize: "13px",
+                lineHeight: 1.6,
+                background: "#fff",
+                border: "1px solid #ddd",
+                borderRadius: "6px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                whiteSpace: "normal",
+                wordWrap: "break-word",
+            }}
+        >
+            <div style={{ fontWeight: 700, marginBottom: "6px", color: "#333" }}>
+                {getKuLabel(label)}
+            </div>
+            {description && (
+                <div style={{ color: "#555", marginBottom: "8px", fontSize: "12px" }}>
+                    {description}
+                </div>
+            )}
+            {payload.map((entry) => (
+                <div key={entry.dataKey} style={{ color: "#f39423", fontWeight: 600 }}>
+                    {entry.name}: {valueFormatter ? valueFormatter(entry.value) : entry.value}
+                </div>
+            ))}
+        </div>
+    );
+};
 
 function KuAtRisk() {
     const [kuRisk, setkuRisk] = useState([]);
@@ -227,9 +269,31 @@ function KuAtRisk() {
                             </thead>
                             <tbody>
                                 {kuRisk.map((item, index) => {
+                                    const kuKey = normalizeKuId(item.ku_name);
+                                    const kuTooltipId = `ku-risk-tooltip-${kuKey}-${index}`;
+                                    const kuDescription = KU_DESCRIPTIONS[kuKey];
                                     return (
                                         <tr key={index}>
-                                            <td>{item.ku_name}</td>
+                                            <td>
+                                                <span id={kuTooltipId} style={{ cursor: "help" }}>
+                                                    {item.ku_name}
+                                                </span>
+                                                {(KU_NAMES[kuKey] || kuDescription) && (
+                                                    <UncontrolledTooltip
+                                                        placement="right"
+                                                        target={kuTooltipId}
+                                                        autohide={false}
+                                                        style={{ maxWidth: "360px", textAlign: "left" }}
+                                                    >
+                                                        <div style={{ fontWeight: 700, marginBottom: "4px" }}>
+                                                            {getKuLabel(item.ku_name)}
+                                                        </div>
+                                                        {kuDescription && (
+                                                            <div style={{ fontSize: "12px" }}>{kuDescription}</div>
+                                                        )}
+                                                    </UncontrolledTooltip>
+                                                )}
+                                            </td>
                                             <td>{item.employee_count}</td>
                                             <td>{formatPercent(item.impact)}</td>
                                             <td>{formatPercent(item.ku_risk)}</td>
@@ -377,8 +441,12 @@ function KuAtRisk() {
                                     tickFormatter={(val) => val.toExponential(1)}
                                 />
                                 <Tooltip
-                                    formatter={(value) => `${value.toExponential(2)}%`}
-                                    labelFormatter={(label) => `KU: ${label}`}
+                                    cursor={{ fill: "rgba(0,0,0,0.04)" }}
+                                    content={
+                                        <KuRiskTooltip
+                                            valueFormatter={(value) => `${value.toExponential(2)}%`}
+                                        />
+                                    }
                                 />
                                 <Bar
                                     dataKey="ku_risk"
@@ -391,90 +459,6 @@ function KuAtRisk() {
                 </Card>
             </Col>
         </Row>
-        <Row>
-            <Col>
-                <Card>
-                    <CardHeader>
-                        <CardTitle tag="h6">Developers per KU Count</CardTitle>
-                    </CardHeader>
-                    <CardBody style={{ height: "400px" }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                data={kuCountDistribution}
-                                margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-                            >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis
-                                dataKey="ku_count"
-                                label={{
-                                    value: "KU Count (eg. 3/27)",
-                                    position: "bottom",
-                                    offset: 0,
-                                }}
-                            />
-                            <YAxis
-                                label={{
-                                    value: "Developers",
-                                    angle: -90,
-                                    position: "insideLeft",
-                                }}
-                            />
-                            <Tooltip />
-                            <Bar
-                                dataKey="developer_count"
-                                fill="#f39423"
-                                name="Developers"
-                            />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardBody>
-                </Card>
-            </Col>
-        </Row>
-        <Row>
-            <Col>
-                <Card>
-                <CardHeader>
-                    <CardTitle tag="h6">Employee Absolute Risk Distribution</CardTitle>
-                </CardHeader>
-                <CardBody style={{ height: "400px" }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                            data={employeeRiskDistribution}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis
-                                dataKey="binLabel"
-                                label={{
-                                    value: "log₁₀(Absolute Employee Risk)",
-                                    position: "bottom",
-                                    offset: 0,
-                                }}
-                            />
-                            <YAxis
-                                label={{
-                                    value: "Developers",
-                                    angle: -90,
-                                    position: "insideLeft",
-                                }}
-                            />
-                            <Tooltip
-                                formatter={(val) => `${val}`}
-                                labelFormatter={(label) => `log₁₀(Risk): ${label}`}
-                            />
-                            <Bar
-                                dataKey="count"
-                                fill="#f39423"
-                                name="Developers"
-                                isAnimationActive={false}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </CardBody>
-                </Card>
-            </Col>
-            </Row>
     </>);
 }
 

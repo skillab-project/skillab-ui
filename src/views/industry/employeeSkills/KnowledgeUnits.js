@@ -8,10 +8,103 @@ import {
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
 import Heatmap from "./ku/Heatmap";
+import { KU_NAMES, KU_DESCRIPTIONS, normalizeKuId } from "../../../utils/kuInfo";
 import Commits from "./ku/Commits";
 import Form from "./ku/Form";
 import { getOrganization } from "../../../utils/Tokens";
 
+
+// Wrap a long KU description into short lines so the Chart.js tooltip stays readable
+const wrapText = (text, maxChars = 60) => {
+    if (!text) return [];
+    const lines = [];
+    let current = "";
+    String(text).split(/\s+/).forEach((word) => {
+        if (current && (current + " " + word).length > maxChars) {
+            lines.push(current);
+            current = word;
+        } else {
+            current = current ? current + " " + word : word;
+        }
+    });
+    if (current) lines.push(current);
+    return lines;
+};
+
+// Options for the "View Organization Skills" bar chart. The tooltip shows the
+// same KU info (id - name + description) as the Knowledge Units heatmap.
+const organizationSkillsChartOptions = {
+    responsive: true,
+    layout: {
+        padding: {
+            right: 150,
+        },
+    },
+    interaction: {
+        mode: "index",
+        intersect: false,
+    },
+    plugins: {
+        legend: {
+            position: "top",
+        },
+        tooltip: {
+            backgroundColor: "rgba(255, 255, 255, 0.98)",
+            titleColor: "#333",
+            bodyColor: "#555",
+            borderColor: "#ddd",
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 4,
+            titleFont: { size: 13, weight: "bold" },
+            bodyFont: { size: 12 },
+            callbacks: {
+                title: (items) => {
+                    if (!items.length) return "";
+                    const ku = items[0].label;
+                    const key = normalizeKuId(ku);
+                    const name = KU_NAMES[key];
+                    return name ? `${ku} \u2013 ${name}` : ku;
+                },
+                afterBody: (items) => {
+                    if (!items.length) return [];
+                    const key = normalizeKuId(items[0].label);
+                    const description = KU_DESCRIPTIONS[key];
+                    return description ? ["", ...wrapText(description)] : [];
+                },
+            },
+        },
+    },
+    scales: {
+        x: {
+            title: {
+                display: true,
+                text: "Knowledge Unit",
+            },
+        },
+        y: {
+            type: "linear",
+            position: "left",
+            beginAtZero: true,
+            title: {
+                display: true,
+                text: "Number of Files",
+            },
+        },
+        y1: {
+            type: "linear",
+            position: "right",
+            beginAtZero: true,
+            title: {
+                display: true,
+                text: "Number of Authors",
+            },
+            grid: {
+                drawOnChartArea: false,
+            },
+        },
+    },
+};
 
 function KnowleageUnits() {
     const [repos, setRepos] = useState([]);
@@ -89,41 +182,6 @@ function KnowleageUnits() {
                         yAxisID: 'y1',
                     },
                 ],
-                options: {
-                    responsive: true,
-                    layout: {
-                        padding: {
-                            right: 150,
-                        },
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                    },
-                    scales: {
-                        y: {
-                            type: 'linear',
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Number of Files',
-                            },
-                        },
-                        y1: {
-                            type: 'linear',
-                            position: 'right',
-                            offset: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Authors',
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                        },
-                    },
-                },
             });
             setShowChart(true);
         }
@@ -207,7 +265,7 @@ function KnowleageUnits() {
                             </Button>
                             {showChart && chartData && (
                                 <div className="mt-8">
-                                    <Bar data={chartData} />
+                                    <Bar data={chartData} options={organizationSkillsChartOptions} />
                                     <Button 
                                         color="info"
                                         onClick={handleCloseChart} 
