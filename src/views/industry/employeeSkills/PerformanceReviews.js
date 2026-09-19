@@ -329,7 +329,7 @@ function PerformanceReviews() {
                                     </FormGroup>
                                 </Col>
                             </Row>
-                            <Row>
+                            {/* <Row>
                                 <Col md={12}>
                                     <FormGroup>
                                         <Label>Review Text (Doesnt work at the moment)</Label>
@@ -339,7 +339,7 @@ function PerformanceReviews() {
                                         </Button>
                                     </FormGroup>
                                 </Col>
-                            </Row>
+                            </Row> */}
 
                             <Label><strong>Skills & Ratings</strong></Label>
                             <Table size="sm" bordered responsive className="align-middle">

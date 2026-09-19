@@ -20,7 +20,6 @@ import OccupationSelection from "./OccupationSelection";
 import "../../assets/css/loader.css";
 
 const sourceOptions = {
-    courses: ["All", "Udacity", "europass", "coursera"],
     jobs: ["All", "OJA", "kariera.gr"],
     profiles: [
         "All", "stack-biology", "stack-chemistry", "stack-earthscience", "stack-electronics",
@@ -32,7 +31,7 @@ const sourceOptions = {
 };
 
 const TaxonomyForecasting = () => {
-    const [sourceType, setSourceType] = useState("courses");
+    const [sourceType, setSourceType] = useState("jobs");
     const [params, setParams] = useState({
         keywords: "data",
         occupation_ids: "",
@@ -117,8 +116,7 @@ const TaxonomyForecasting = () => {
         const endpoints = {
             policies: "/api/forecasting/law_predict",
             profiles: "/api/forecasting/profiles",
-            jobs: "/api/forecasting/jobsd-forecast",
-            courses: "/api/forecasting/courses",
+            jobs: "/api/forecasting/jobsd-forecast"
         };
 
         const queryParams = new URLSearchParams();
@@ -184,7 +182,6 @@ const TaxonomyForecasting = () => {
                                         <FormGroup>
                                             <Label for="sourceType">Data Source</Label>
                                             <Input type="select" name="sourceType" value={sourceType} onChange={handleSourceTypeChange} disabled={loading}>
-                                                <option value="courses">Courses</option>
                                                 <option value="jobs">Jobs</option>
                                                 <option value="profiles">Profiles</option>
                                                 <option value="policies">Law & Policies</option>
