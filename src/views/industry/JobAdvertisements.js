@@ -18,6 +18,15 @@ const normalizeStatus = (s) =>
 
 const LOCKED_TABS = ['candidates', 'analytics', 'hire'];
 
+const TABS = [
+    { key: 'description', label: 'Description' },
+    { key: 'interview', label: 'Interview' },
+    { key: 'questions', label: 'Questions' },
+    { key: 'candidates', label: 'Candidates' },
+    { key: 'analytics', label: 'Analytics' },
+    { key: 'hire', label: 'Hire' },
+];
+
 function LockNotice({ statusLabel = 'Pending' }) {
     return (
         <div
@@ -69,7 +78,11 @@ function JobAdvertisements() {
                 return res.json();
             })
             .then((data) => {
-                const skillNames = data.map((skill) => skill.name);
+                const skillNames = (data || [])
+                    .map((skill) =>
+                        typeof skill === 'string' ? skill : (skill?.name ?? skill?.title ?? '')
+                    )
+                    .filter(Boolean);
                 setAllSkills(skillNames);
             })
             .catch(console.error);
@@ -98,10 +111,12 @@ function JobAdvertisements() {
     }, [selectedJobAdId]);
 
     React.useEffect(() => {
-        if (isPending && LOCKED_TABS.includes(selectedTab)) {
-            setSelectedTab('description');
-        }
-    }, [isPending, selectedTab]);
+        const jobSelected = !!selectedJobAdId;
+        const disabledNow =
+            (!jobSelected && selectedTab !== 'description') ||
+            (isPending && LOCKED_TABS.includes(selectedTab));
+        if (disabledNow) setSelectedTab('description');
+    }, [isPending, selectedTab, selectedJobAdId]);
 
     React.useEffect(() => {
         const onUpdated = (e) => {
@@ -123,73 +138,76 @@ function JobAdvertisements() {
         setSelectedTab('description');
     };
 
-    const disabledTabs = isPending ? LOCKED_TABS : [];
+    const jobSelected = !!selectedJobAdId;
+
+    const isTabDisabled = (tab) => {
+        if (tab === 'description') return false;
+        if (!jobSelected) return true;
+        if (isPending && LOCKED_TABS.includes(tab)) return true;
+        return false;
+    };
+
+    const disabledReason = (tab) => {
+        if (tab === 'description') return '';
+        if (!jobSelected) return 'Select a Job Ad first';
+        if (isPending && LOCKED_TABS.includes(tab)) return 'Available after you publish this Job Ad';
+        return '';
+    };
 
     const toggleTab = tab => {
-        if (selectedTab !== tab){
-            if (disabledTabs.includes(tab)) return;
-            setSelectedTab(tab);
-        }
+        if (selectedTab === tab) return;
+        if (isTabDisabled(tab)) return;
+        setSelectedTab(tab);
     }
+
+    const showSidebar = selectedTab === 'description';
 
     return (
         <div className="content">
             <Row>
                 <Col md="12">
                     <Nav tabs style={{marginBottom:"5px"}}>
-                        <NavItem key="description" style={{cursor:"pointer"}}>
-                            <NavLink
-                                className={classnames({ active: selectedTab === "description"})}
-                                onClick={() => { toggleTab("description"); }}
+                        {TABS.map(({ key, label }) => (
+                            <NavItem
+                                key={key}
+                                title={disabledReason(key)}
+                                style={{ cursor: isTabDisabled(key) ? "not-allowed" : "pointer" }}
                             >
-                                Description
-                            </NavLink>
-                        </NavItem>
-                        <NavItem key="interview" style={{cursor:"pointer"}}>
-                            <NavLink
-                                className={classnames({ active: selectedTab === "interview" })}
-                                onClick={() => { toggleTab("interview"); }}
-                            >
-                                Interview
-                            </NavLink>
-                        </NavItem>
-                        <NavItem key="questions" style={{cursor:"pointer"}}>
-                            <NavLink
-                                className={classnames({ active: selectedTab === "questions" })}
-                                onClick={() => { toggleTab("questions"); }}
-                            >
-                                Questions
-                            </NavLink>
-                        </NavItem>
-                        <NavItem key="candidates" style={{cursor:"pointer"}}> {/*  disabled?? */}
-                            <NavLink
-                                className={classnames({ active: selectedTab === "candidates" })}
-                                onClick={() => { toggleTab("candidates"); }}
-                            >
-                                Candidates
-                            </NavLink>
-                        </NavItem>
-                        <NavItem key="analytics" style={{cursor:"pointer"}}> {/*  disabled?? */}
-                            <NavLink
-                                className={classnames({ active: selectedTab === "analytics" })}
-                                onClick={() => { toggleTab("analytics"); }}
-                            >
-                                Analytics
-                            </NavLink>
-                        </NavItem>
-                        <NavItem key="hire" style={{cursor:"pointer"}}> {/*  disabled?? */}
-                            <NavLink
-                                className={classnames({ active: selectedTab === "hire" })}
-                                onClick={() => { toggleTab("hire"); }}
-                            >
-                                Hire
-                            </NavLink>
-                        </NavItem>
+                                <NavLink
+                                    disabled={isTabDisabled(key)}
+                                    aria-disabled={isTabDisabled(key)}
+                                    className={classnames({
+                                        active: selectedTab === key,
+                                        disabled: isTabDisabled(key),
+                                    })}
+                                    onClick={() => { toggleTab(key); }}
+                                >
+                                    {label}
+                                </NavLink>
+                            </NavItem>
+                        ))}
                     </Nav>
+                    <div
+                        style={{
+                            margin: "0 0 10px",
+                            fontSize: 12.5,
+                            color: "#6b7280",
+                            lineHeight: 1.4,
+                        }}
+                    >
+                        {!selectedJobAdId ? (
+                            <>Select a Job Ad on the left to begin. Only <b>Description</b> is available until then.</>
+                        ) : isPending ? (
+                            <>Complete the <b>Description</b> (details &amp; required skills), define <b>Interview</b> steps and add <b>Questions</b> per step, then <b>Publish</b> to unlock <b>Candidates</b>, <b>Hire</b> and <b>Analytics</b>.</>
+                        ) : (
+                            <>This Job Ad is published — all steps are available.</>
+                        )}
+                    </div>
                 </Col>
             </Row>
 
             <Row>
+                {showSidebar && (
                 <Col lg="3" md="12">
                     <SidebarCard
                         onJobAdSelect={(jobOrId) => {
@@ -250,9 +268,56 @@ function JobAdvertisements() {
                         selectedOccupationId={selectedOccupation?.id ?? null}
                     />
                 </Col>
-                    
+                )}
 
-                <Col lg="9" md="12" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <Col lg={showSidebar ? "9" : "12"} md="12" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                    {!showSidebar && selectedJobAdId && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                                flexWrap: 'wrap',
+                                margin: '0 0 8px',
+                                padding: '6px 12px',
+                                background: '#F3F4F6',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: 10,
+                                fontSize: 13,
+                            }}
+                        >
+                            <span style={{ color: '#6b7280' }}>Editing:</span>
+                            <b>{selectedJobAdMeta?.title || `Job Ad #${selectedJobAdId}`}</b>
+                            {selectedJobAdMeta?.departmentName && (
+                                <span style={{ color: '#6b7280' }}>· {selectedJobAdMeta.departmentName}</span>
+                            )}
+                            {selectedJobAdMeta?.occupationName && (
+                                <span style={{ color: '#6b7280' }}>· {selectedJobAdMeta.occupationName}</span>
+                            )}
+                            {jobStatus && (
+                                <span
+                                    style={{
+                                        marginLeft: 2,
+                                        padding: '1px 8px',
+                                        borderRadius: 999,
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        background: isPending ? '#FEF3C7' : '#DCFCE7',
+                                        color: isPending ? '#92400E' : '#166534',
+                                    }}
+                                >
+                                    {statusLabel}
+                                </span>
+                            )}
+                            <Button
+                                color="link"
+                                onClick={() => setSelectedTab('description')}
+                                style={{ padding: 0, marginLeft: 'auto', fontSize: 13 }}
+                            >
+                                Change Job Ad
+                            </Button>
+                        </div>
+                    )}
                     <Card
                         className="shadow-sm"
                         style={{

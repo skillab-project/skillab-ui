@@ -179,6 +179,14 @@ export default function StepsTree({
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <Row className="g-2">
+                {steps.length === 0 && (
+                    <Col xs="12">
+                        <div style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.5, padding: "6px 4px" }}>
+                            No interview steps for this Job Ad yet. Create them in the <b>Interview</b> tab first —
+                            questions are organised under each step.
+                        </div>
+                    </Col>
+                )}
                 {steps.map(step => {
                     const list = questionsByStep[step.id] || [];
                     return (

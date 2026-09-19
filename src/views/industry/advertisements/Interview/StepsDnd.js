@@ -75,6 +75,12 @@ export default function StepsDnd({
             <Droppable droppableId="steps-accordion">
                 {(provided) => (
                     <div ref={provided.innerRef} {...provided.droppableProps}>
+                        {steps.length === 0 && (
+                            <div style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.5, padding: "10px 12px" }}>
+                                No interview steps yet. Use <b>“Create New”</b> below to add your first step
+                                (e.g. Technical, HR Round). Drag the handle to reorder.
+                            </div>
+                        )}
                         {steps.map((s, idx) => {
                             const isSelected = idx === selectedIndex;
                             const isOpen = idx === openIndex;

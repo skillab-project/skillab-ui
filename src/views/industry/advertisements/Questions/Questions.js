@@ -47,7 +47,7 @@ export default function Questions({ selectedJobAdId }) {
     React.useEffect(() => {
         fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/skills`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
-            .then((data) => setAllSkills((data || []).map((s) => s?.title).filter(Boolean)))
+            .then((data) => setAllSkills((data || []).map((s) => (typeof s === 'string' ? s : (s?.title ?? s?.name ?? ''))).filter(Boolean)))
             .catch(() => setAllSkills([]));
     }, []);
 
@@ -62,7 +62,7 @@ export default function Questions({ selectedJobAdId }) {
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((d) => {
                 setQuestionDesc(d?.description || '');
-                setRequiredSkills(((d?.skills) || []).map((s) => s?.title).filter(Boolean));
+                setRequiredSkills(((d?.skills) || []).map((s) => (typeof s === 'string' ? s : (s?.title ?? s?.name ?? ''))).filter(Boolean));
             })
             .catch(() => {
                 setQuestionDesc('');
@@ -225,7 +225,7 @@ export default function Questions({ selectedJobAdId }) {
         <>
             <Row className="g-3 q-fill" style={{ height: '100%' }}>
                 {/* LEFT: Steps/Questions list */}
-                <Col md="5" className="q-col-flex">
+                <Col md="4" className="q-col-flex">
                     <Row className="mb-2">
                         <Col>
                             <label className="description-labels">Choose a Step...</label>
@@ -258,10 +258,10 @@ export default function Questions({ selectedJobAdId }) {
                 </Col>
 
                 {/* RIGHT: Description + Skills */}
-                <Col md="7" className="q-col-flex">
+                <Col md="8" className="q-col-flex">
                     <Row className="g-3 q-fill">
                         {/* Question Description */}
-                        <Col md="7" className="q-col-flex">
+                        <Col md="6" className="q-col-flex">
                             <div className="q-fill" ref={rightDescWrapRef}>
                                 <Description
                                     name="Question Description"
@@ -272,14 +272,13 @@ export default function Questions({ selectedJobAdId }) {
                             </div>
                         </Col>
 
-                        {/* Skills */}
-                        <Col md="5" className="q-col-flex" ref={rightSkillsColRef}>
-                            <div style={{ flex: '0 0 auto', minHeight: 0, height: skillsPanelHeight ?? 'auto' }}>
+                        {/* Skills — wider column, fills full height for more room */}
+                        <Col md="6" className="q-col-flex" ref={rightSkillsColRef}>
+                            <div className="q-fill" style={{ minHeight: 0 }}>
                                 <SkillSelector
                                     allskills={allSkills}
                                     requiredskills={requiredSkills}
                                     setRequiredskills={setRequiredSkills}
-                                    panelHeight={skillsPanelHeight}
                                 />
                             </div>
 
@@ -287,7 +286,7 @@ export default function Questions({ selectedJobAdId }) {
                                 <div
                                     ref={updateBtnRef}
                                     className="q-skills-update"
-                                    style={{ marginTop: 55, display: 'flex', justifyContent: 'center', width: '100%' }}
+                                    style={{ marginTop: 12, marginBottom: 4, flex: '0 0 auto', display: 'flex', justifyContent: 'center', width: '100%' }}
                                 >
                                     <Button
                                         color="secondary"

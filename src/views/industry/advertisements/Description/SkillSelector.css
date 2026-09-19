@@ -15,16 +15,18 @@ input[type="text"].form-control {
 /* Dropdown: να μην «πετάει» οριζόντιο scroll και να μην ξεχειλίζει */
 .dropdown-suggestions {
     position: absolute;
+    top: 50px;            /* κάτω από το search input (padding 10 + input 38 + ~2) */
+    left: 10px;
+    right: 10px;
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 10px;
-    z-index: 10;
+    z-index: 1000;        /* πάνω από badges/άλλα panels */
     min-width: 80px;
-    max-height: 200px;
+    max-height: 220px;
     overflow-y: auto;
     overflow-x: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 40px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
     padding: 2px;
 }
 
@@ -137,6 +139,18 @@ input[type="text"].form-control {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* === Base card for skill/step panels ===
+   Η κλάση .boxStyle χρησιμοποιούνταν παντού αλλά ΔΕΝ οριζόταν πουθενά,
+   με αποτέλεσμα τα κουτιά να εμφανίζονται χωρίς φόντο/περίγραμμα.
+   Ίδιο look με τα υπόλοιπα γκρι cards (.q-steps-card). */
+.boxStyle {
+    background: #E5E7EB;
+    border: 1px solid #bbb;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
+    box-sizing: border-box;
 }
 
 /* === 1) Το box των skills είναι flex column με scroll στη λίστα === */

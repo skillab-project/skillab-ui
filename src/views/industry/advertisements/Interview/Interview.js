@@ -259,7 +259,7 @@ export default function Interview({ selectedJobAdId }) {
         <>
             <Row className="g-3 iv-root-row">
                 {/* LEFT: Steps */}
-                <Col md="5" className="iv-col">
+                <Col md="4" className="iv-col">
                     <label className="description-labels" style={{ paddingLeft: 10, marginBottom: 14 }}>
                         Interview Steps
                     </label>
@@ -292,10 +292,10 @@ export default function Interview({ selectedJobAdId }) {
                 </Col>
 
                 {/* RIGHT: Description + Skills */}
-                <Col md="7" className="iv-col">
+                <Col md="8" className="iv-col">
                     <Row className="g-3 iv-fill">
                         {/* Interview Description */}
-                        <Col md="7" className="iv-col">
+                        <Col md="6" className="iv-col">
                             <div className="iv-right-fill" ref={rightDescWrapRef}>
                                 <JobDescription
                                     name="Interview Description"
@@ -307,18 +307,17 @@ export default function Interview({ selectedJobAdId }) {
                             </div>
                         </Col>
 
-                        {/* Skills */}
-                        <Col md="5" className="iv-col" ref={skillsColRef}>
-                            <div style={{ flex: "0 0 auto", minHeight: 0, height: skillsPanelHeight ?? "auto" }}>
+                        {/* Skills — wider column, fills full height for more room */}
+                        <Col md="6" className="iv-col" ref={skillsColRef}>
+                            <div className="iv-right-fill" style={{ minHeight: 0 }}>
                                 <SkillSelectorReadOnly
                                     label="Required Step Skills"
                                     requiredskills={stepSkills}
-                                    panelHeight={skillsPanelHeight}
                                 />
                             </div>
 
                             {canEdit && (
-                                <div ref={updateBtnRef} className="d-flex justify-content-center" style={{ marginTop: 22 }}>
+                                <div ref={updateBtnRef} className="d-flex justify-content-center" style={{ marginTop: 12, flex: "0 0 auto" }}>
                                     <Button
                                         color="secondary"
                                         className="delete-btn-req"

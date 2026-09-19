@@ -48,12 +48,13 @@ function SkillSelector({ allskills, requiredskills, setRequiredskills, panelHeig
                 <Row style={{ height: 'calc(100% - 28px)', minHeight: 0 }}>
                     <Col style={{ minHeight: 0 }}>
                         <div
-                            className="boxStyle"
+                            className="boxStyle skill-select-box"
                             style={{
                                 /* ΚΑΘΑΡΟ ύψος που έρχεται από τον γονέα */
                                 height: panelHeight ?? '100%',
                                 minHeight: 0,
-                                overflow: 'hidden',
+                                position: 'relative',
+                                overflow: 'visible',
                                 padding: 10,
                                 display: 'flex',
                                 flexDirection: 'column',
