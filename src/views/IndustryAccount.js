@@ -54,7 +54,7 @@ function IndustryAccount() {
             icon={TbZoomInArea}
             color="#51bcda"
             title="Insights on Future"
-            description="Forward-looking market insights. (Coming soon)"
+            description="Forward-looking EU market insights. (Coming soon)"
           />
         </Col>
       </Row>

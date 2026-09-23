@@ -286,7 +286,9 @@ const EducationManagement = () => {
     const deleteCourse = async (courseId) => {
         if (!window.confirm("Delete this course? This cannot be undone.")) return;
         try {
-            await axios.delete(`${API}/course/${courseId}`);
+            await axios.delete(`${API}/course/${courseId}`, {}, {
+                headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
+            });
             setResultsMsg({ type: "success", text: `Course ${courseId} deleted.` });
             if (selectedUni) await loadCurriculum(selectedUni);
             loadUniversities();
@@ -299,7 +301,9 @@ const EducationManagement = () => {
     const deleteProgram = async (programId) => {
         if (!window.confirm("Delete this program and all its courses? This cannot be undone.")) return;
         try {
-            const res = await axios.delete(`${API}/program/${programId}`);
+            const res = await axios.delete(`${API}/program/${programId}`, {}, {
+                headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
+            });
             const n = res?.data?.deleted_courses ?? 0;
             setResultsMsg({ type: "success", text: `Program ${programId} deleted (${n} course(s) removed).` });
             if (selectedUni) await loadCurriculum(selectedUni);
@@ -313,7 +317,9 @@ const EducationManagement = () => {
     const deleteUniversity = async (uni) => {
         if (!window.confirm(`Delete "${uni.university_name}" and ALL its programs and courses? This cannot be undone.`)) return;
         try {
-            const res = await axios.delete(`${API}/university/${uni.university_id}`);
+            const res = await axios.delete(`${API}/university/${uni.university_id}`, {}, {
+                headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
+            });
             const p = res?.data?.deleted_programs ?? 0;
             const c = res?.data?.deleted_courses ?? 0;
             setResultsMsg({ type: "success", text: `University "${uni.university_name}" deleted (${p} program(s), ${c} course(s) removed).` });

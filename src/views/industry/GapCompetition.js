@@ -1,107 +1,94 @@
-import React, { useState, useEffect } from "react";
-import {Button, Card, CardHeader, CardBody, Row, Col, Table, Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Form,
-  FormGroup,
-  Label,
-  Input, } from "reactstrap";
-import axios from 'axios';
-
+import React, { useEffect, useState } from "react";
+import { Nav, NavItem, NavLink, TabContent, TabPane, Alert } from "reactstrap";
+import classnames from "classnames";
+import GapAnalysisTab from "./gapCompetition/GapAnalysisTab";
+import WorkforceGapTab from "./gapCompetition/WorkforceGapTab";
+import { fetchOrganizationAndDepartments } from "./gapCompetition/gapCompetitionUtils";
 
 function GapCompetition() {
-    const [competitors, setCompetitors] = useState(["My company", "Accenture", "Deloitte"]);
-    const [competitorCreation, setCompetitorCreation] = useState(false);
-    const [selectedCompetitorForAnalysis, setSelectedCompetitorForAnalysis] = useState("");
-    const [newCompetitor, setNewCompetitor] = useState({name: "", industry: ""});
-    const [results, setResults] = useState([{skill:"Java", company:"My company", comparison:"20%"},
-                                            {skill:"Python", company:"My company", comparison:"-20%"},
-                                            {skill:"Java", company:"Accenture", comparison:"-20%"},
-                                            {skill:"Java", company:"Accenture", comparison:"20%"}])
+    const [currentActiveTab, setCurrentActiveTab] = useState('1');
+    const [departments, setDepartments] = useState([]);
+    const [loadingDepartments, setLoadingDepartments] = useState(true);
+    const [departmentsError, setDepartmentsError] = useState("");
 
-
-    const handleSelectAddCompetition = () => {
-        setCompetitorCreation(true);
-    };
-    
-    const handleCompetitorAnalysis = (competitor) => {
-        if(competitor){
-            setSelectedCompetitorForAnalysis(competitor);
-        }
-        else{
-            setSelectedCompetitorForAnalysis("");
-        }
-
-        // toDo
-        //  start analysis
-    };
-
-    const handleCompetitorDelete = async (competitor) => {
-        setCompetitors(competitors.filter((comp) => comp !== competitor));
-
-        // try {
-        //   const response = await fetch(process.env.REACT_APP_API_URL_GAP_WITH_COMPETITION+`/delete_competitor/${competitor}`, {
-        //     method: 'DELETE',
-        //   });
-        //   if (!response.ok) {
-        //     throw new Error('Failed to delete repository');
-        //   }
-        //   setCompetitors(repos.filter((repo) => repo.name !== repoName));
-        // } catch (error) {
-        //   console.error('Error deleting repo:', error);
-        // }
-    };
-
-    const handleSaveCompetitor = () => {
-        if (newCompetitor.name.trim() !== "") {
-            setCompetitors([...competitors, newCompetitor.name]);
-            
-            //toDo
-            // send to backend
-            // try {
-            //   const response = await fetch(process.env.REACT_APP_API_URL_GAP_WITH_COMPETITION+`/competitor/${newCompetitor.name}`, {
-            //     method: 'POST',
-            //   });
-            //   if (!response.ok) {
-            //     throw new Error('Failed to delete repository');
-            //   }
-            //   //todo
-            //   //ok set new competitor
-            // } catch (error) {
-            //   console.error('Error deleting repo:', error);
-            // }
-
-            setNewCompetitor({ name: "", industry: "" });
-            setCompetitorCreation(false);
-        }
-    };
-
-
-    const getCompetitors = async () => {
-        // axios
-        //     .get(process.env.REACT_APP_API_URL_GAP_WITH_COMPETITION + "/competitor")
-        //     .then((res) => {
-        //         console.log("repos: "+res.data);
-        //         setRepos(res.data);
-        //     });
-    };
+    const toggle = tab => {
+        if (currentActiveTab !== tab) setCurrentActiveTab(tab);
+    }
 
     useEffect(() => {
-        getCompetitors();
+        let isMounted = true;
+
+        const loadDepartments = async () => {
+            setLoadingDepartments(true);
+            setDepartmentsError("");
+            try {
+                const { departments: depts } = await fetchOrganizationAndDepartments();
+                if (isMounted) setDepartments(depts);
+            } catch (error) {
+                console.error("Failed to load departments:", error);
+                if (isMounted) {
+                    setDepartmentsError("Could not load departments for your organization. Please try again later.");
+                }
+            } finally {
+                if (isMounted) setLoadingDepartments(false);
+            }
+        };
+
+        loadDepartments();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
-    
 
     return (
         <div className="content">
-            <Row>
-                <Col md="12">
-                    <Card>
-                        <CardBody>
-                        </CardBody>
-                    </Card>
-                </Col>
-            </Row>
+            {departmentsError && <Alert color="warning">{departmentsError}</Alert>}
+
+            <Nav tabs style={{marginBottom:"5px"}}>
+                <NavItem style={{cursor:"pointer"}}>
+                    <NavLink
+                        className={classnames({
+                            active:
+                                currentActiveTab === '1'
+                        })}
+                        onClick={() => { toggle('1'); }}
+                    >
+                        Skills Gap vs Sector
+                    </NavLink>
+                </NavItem>
+                <NavItem style={{cursor:"pointer"}}>
+                    <NavLink
+                        className={classnames({
+                            active:
+                                currentActiveTab === '2'
+                        })}
+                        onClick={() => { toggle('2'); }}
+                    >
+                        Workforce Gap Recommendation
+                    </NavLink>
+                </NavItem>
+            </Nav>
+
+            <TabContent activeTab={currentActiveTab}>
+                {/**
+                 * Tab: Skills Gap vs Sector (POST /gap-analysis)
+                 */}
+                <TabPane tabId="1">
+                    {currentActiveTab == 1 &&
+                        <GapAnalysisTab departments={departments} loadingDepartments={loadingDepartments} />
+                    }
+                </TabPane>
+
+                {/**
+                 * Tab: Workforce Gap Recommendation (POST /workforce-gap-recommendation)
+                 */}
+                <TabPane tabId="2">
+                    {currentActiveTab == 2 &&
+                        <WorkforceGapTab departments={departments} loadingDepartments={loadingDepartments} />
+                    }
+                </TabPane>
+            </TabContent>
         </div>
     );
 }
