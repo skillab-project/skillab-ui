@@ -62,12 +62,16 @@ const ProgramAndNeeds = () => {
   const [uniSuggestLoading, setUniSuggestLoading] = useState(false);
   const [uniSuggestError, setUniSuggestError] = useState(null);
   const [uniSuggestMeta, setUniSuggestMeta] = useState(null); // {cached, created_at}
+  const [uniSuggestStatus, setUniSuggestStatus] = useState(""); // "running" wait message from the API
+  const uniSuggestPollRef = useRef(null);
   const [resultsCollapsed, setResultsCollapsed] = useState(false); // minimize skill-gap results once suggestions are ready
   const resetUniSuggest = () => {
     uniSuggestForTitle.current = null;
+    if (uniSuggestPollRef.current) clearTimeout(uniSuggestPollRef.current);
     setUniSuggest(null);
     setUniSuggestError(null);
     setUniSuggestMeta(null);
+    setUniSuggestStatus("");
     setResultsCollapsed(false);
   };
 
@@ -153,7 +157,10 @@ const ProgramAndNeeds = () => {
       }
       loadRuns();
     })();
-    return () => { if (pollRef.current) clearTimeout(pollRef.current); };
+    return () => {
+      if (pollRef.current) clearTimeout(pollRef.current);
+      if (uniSuggestPollRef.current) clearTimeout(uniSuggestPollRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -600,33 +607,65 @@ const ProgramAndNeeds = () => {
   // ---- university-creation suggestions ----
   // POST /recommendations/generate with the analysis title as policy_title and
   // suggest_universities = true, to get concrete actions for creating universities.
+  // The endpoint runs the LLM job asynchronously: the request either comes back
+  // "running" (still in progress server-side) or "completed" with the
+  // recommendations. There's no job id, so polling means resending the same
+  // request — only the first request of a run should carry force_refresh, every
+  // poll after that must send false so it checks on the job instead of
+  // re-triggering a brand new computation.
   const suggestUniversities = async (title, { force = false } = {}) => {
     if (!title) return;
+    if (uniSuggestPollRef.current) clearTimeout(uniSuggestPollRef.current);
     setUniSuggestError(null);
     setUniSuggest(null);
+    setUniSuggestStatus("");
     setUniSuggestLoading(true);
-    try {
-      const res = await axios.post(`${CURRICULUM}/recommendations/generate`, {
-        policy_title: title,
-        suggest_universities: true,
-        force_refresh: force,
-      }, { headers: ftAuth() });
-      const data = res.data || {};
-      setUniSuggest(data.recommendations || "");
-      setUniSuggestMeta({ cached: !!data.cached, created_at: data.created_at || null });
-      if (data.recommendations) {
-        // The suggestions are the main result — fold the skill-gap results away.
-        setResultsCollapsed(true);
-      } else {
-        setUniSuggestError("No university suggestions were returned.");
+
+    const poll = async (isFirstRequest) => {
+      try {
+        const res = await axios.post(`${CURRICULUM}/recommendations/generate`, {
+          policy_title: title,
+          suggest_universities: true,
+          force_refresh: isFirstRequest ? force : false,
+        }, { headers: ftAuth() });
+        const data = res.data || {};
+
+        if (data.status === "running") {
+          setUniSuggestStatus(data.message || "Your analysis is already running. Check back shortly.");
+          uniSuggestPollRef.current = setTimeout(() => poll(false), 5000);
+          return;
+        }
+
+        if (data.status && data.status !== "completed") {
+          setUniSuggest(null);
+          setUniSuggestMeta(null);
+          setUniSuggestError(data.message || `Unexpected status: ${data.status}`);
+          setUniSuggestLoading(false);
+          setUniSuggestStatus("");
+          return;
+        }
+
+        // status === "completed" (or an older response with no status field at all)
+        setUniSuggest(data.recommendations || "");
+        setUniSuggestMeta({ cached: !!data.cached, created_at: data.created_at || null });
+        if (data.recommendations) {
+          // The suggestions are the main result — fold the skill-gap results away.
+          setResultsCollapsed(true);
+        } else {
+          setUniSuggestError("No university suggestions were returned.");
+        }
+        setUniSuggestLoading(false);
+        setUniSuggestStatus("");
+      } catch (e) {
+        setUniSuggest(null);
+        setUniSuggestMeta(null);
+        setUniSuggestError(`Could not generate university suggestions: ${errText(e)}`);
+        setUniSuggestLoading(false);
+        setUniSuggestStatus("");
       }
-    } catch (e) {
-      setUniSuggest(null);
-      setUniSuggestMeta(null);
-      setUniSuggestError(`Could not generate university suggestions: ${errText(e)}`);
-    } finally {
-      setUniSuggestLoading(false);
-    }
+    };
+
+    poll(true);
   };
 
   // Once results are on screen for a completed short-term analysis, generate
@@ -1064,7 +1103,7 @@ const ProgramAndNeeds = () => {
                         <CardBody>
                           {uniSuggestError && <Alert color="danger" toggle={() => setUniSuggestError(null)}>{uniSuggestError}</Alert>}
                           {uniSuggestLoading ? (
-                            <div><Spinner size="sm" /> Generating university-creation suggestions…</div>
+                            <div><Spinner size="sm" /> {uniSuggestStatus || "Generating university-creation suggestions…"}</div>
                           ) : uniSuggest ? (
                             <div className="report-markdown" dangerouslySetInnerHTML={{ __html: mdToHtml(stripMarkdownFence(uniSuggest)) }} />
                           ) : (

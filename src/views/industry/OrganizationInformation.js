@@ -21,6 +21,7 @@ import {
 import Select from 'react-select';
 import axios from 'axios';
 import { getOrganization } from "../../utils/Tokens";
+import EmployeeReviewsModal from "./organizationInfo/EmployeeReviewsModal";
 
 function OrganizationInformation() {
     const [organizationId, setOrganizationId] = useState(null);
@@ -59,6 +60,8 @@ function OrganizationInformation() {
     const [filterOcc, setFilterOcc] = useState("All");
 
     const [employeeModal, setEmployeeModal] = useState(false);
+    const [reviewsModal, setReviewsModal] = useState(false);
+    const [reviewsEmployee, setReviewsEmployee] = useState(null);
     const [employeeDeleteModal, setEmployeeDeleteModal] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
 
@@ -743,6 +746,7 @@ function OrganizationInformation() {
                                         <td>{emp.departmentName || "N/A"}</td>
                                         <td>{emp.occupationTitle || "N/A"}</td>
                                         <td className="text-right">
+                                            <Button color="success" size="sm" className="mr-2" onClick={() => { setReviewsEmployee(emp); setReviewsModal(true); }}>Reviews</Button>
                                             <Button color="info" size="sm" className="mr-2" onClick={() => toggleEmployeeModal(emp)}>Edit</Button>
                                             <Button color="danger" size="sm" onClick={() => { setEmpForm(emp); setEmployeeDeleteModal(true); }}>Delete</Button>
                                         </td>
@@ -965,6 +969,16 @@ function OrganizationInformation() {
                     <Button color="danger" onClick={handleEmployeeDelete}>Delete</Button>
                 </ModalFooter>
             </Modal>
+
+            {/* Employee Performance Reviews */}
+            <EmployeeReviewsModal
+                isOpen={reviewsModal}
+                toggle={() => setReviewsModal(!reviewsModal)}
+                employee={reviewsEmployee}
+                organizationId={organizationId}
+                departments={departments}
+                employees={employees}
+            />
         </div>
     );
 }

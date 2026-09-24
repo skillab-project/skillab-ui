@@ -15,7 +15,8 @@ import axios from 'axios';
 import classnames from 'classnames';
 import KnowleageUnits from "./employeeSkills/KnowledgeUnits";
 import GeneralSkills from "./employeeSkills/GeneralSkills";
-import PerformanceReviews from "./employeeSkills/PerformanceReviews";
+import KuAtRisk from "./skillsAtRisk/KuAtRisk";
+import SkillsAtRisk from "./skillsAtRisk/SkillsAtRisk";
 
 
 function EmployeeSkills() {
@@ -47,7 +48,7 @@ function EmployeeSkills() {
                         })}
                         onClick={() => { toggle('2'); }}
                     >
-                        Skills
+                        KUs at Risk
                     </NavLink>
                 </NavItem>
                 <NavItem style={{cursor:"pointer"}}>
@@ -58,7 +59,18 @@ function EmployeeSkills() {
                         })}
                         onClick={() => { toggle('3'); }}
                     >
-                        Performance Reviews
+                        Skills
+                    </NavLink>
+                </NavItem>
+                <NavItem style={{cursor:"pointer"}}>
+                    <NavLink
+                        className={classnames({
+                            active:
+                                currentActiveTab === '4'
+                        })}
+                        onClick={() => { toggle('4'); }}
+                    >
+                        Skills at Risk
                     </NavLink>
                 </NavItem>
             </Nav>
@@ -72,22 +84,31 @@ function EmployeeSkills() {
                         <KnowleageUnits />
                     }
                 </TabPane>
+                
+                {/**
+                 * Tab: KUs at Risk
+                 */}
+                <TabPane tabId="2">
+                    {currentActiveTab == 2 &&
+                        <KuAtRisk />
+                    }
+                </TabPane>
     
                 {/**
                  * Tab: Skills
                  */}
-                <TabPane tabId="2">
-                    {currentActiveTab == 2 &&
+                <TabPane tabId="3">
+                    {currentActiveTab == 3 &&
                         <GeneralSkills />
                     }
                 </TabPane>
-
+                
                 {/**
-                 * Tab: Performance Reviews
+                 * Tab: Skills at Risk
                  */}
-                <TabPane tabId="3">
-                    {currentActiveTab == 3 &&
-                        <PerformanceReviews />
+                <TabPane tabId="4">
+                    {currentActiveTab == 4 &&
+                        <SkillsAtRisk />
                     }
                 </TabPane>
             </TabContent>

@@ -1,6 +1,6 @@
 import React from "react";
 import { Row, Col } from "reactstrap";
-import { MdManageAccounts, MdAccountTree } from "react-icons/md";
+import { MdManageAccounts, MdAccountTree, MdDescription } from "react-icons/md";
 import { GiTeamIdea } from "react-icons/gi";
 import NavCard from "../components/Cards/NavCard";
 
@@ -52,6 +52,15 @@ function EducationAccount() {
             title="Recommendations"
             description="Provide educational recommendations to learners."
             onClick={go("/education/account/recommendations")}
+          />
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={MdDescription}
+            color="#9a7fd1"
+            title="Generate Report"
+            description="Build a report from a Skill Recommendations analysis you have already run."
+            onClick={go("/education/account/generate-report")}
           />
         </Col>
       </Row>

@@ -1,13 +1,25 @@
-import { Col, Row } from 'reactstrap';
+import { Col, Row, Button } from 'reactstrap';
 import './description.css';
 
-function Description({ name, description, onDescriptionChange, readOnly, disabled }) {
+function Description({ name, description, onDescriptionChange, readOnly, disabled, onAdRecommendation }) {
     return (
         <Row className="desc-root">
             <Col className="desc-col">
-                <Row className="mb-2 desc-label-row">
-                    <Col>
-                        <label className="description-labels">{name}</label>
+                <Row className="mb-2 desc-label-row align-items-center">
+                    <Col className="d-flex justify-content-between align-items-center">
+                        <label className="description-labels mb-0">{name}</label>
+                        {onAdRecommendation && (
+                            <Button
+                                size="sm"
+                                color="info"
+                                outline
+                                disabled={disabled}
+                                onClick={onAdRecommendation}
+                            >
+                                <i className="fas fa-magic" style={{ marginRight: 6 }} />
+                                Ad Recommendation
+                            </Button>
+                        )}
                     </Col>
                 </Row>
 

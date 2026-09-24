@@ -237,6 +237,7 @@ function GapAnalysisTab({ departments, loadingDepartments }) {
         `${GAP_BASE_URL}/gap-analysis`,
         {
           department_id: Number(departmentId),
+          test: false,
           analysis_type: analysisType,
           page_size: Number(pageSize),
         },

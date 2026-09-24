@@ -6,6 +6,7 @@ import {
   MdSchool,
   MdInsights,
   MdTrendingUp,
+  MdDescription,
 } from "react-icons/md";
 import NavCard from "../components/Cards/NavCard";
 
@@ -58,6 +59,15 @@ function PolicyIndustryAccount() {
               title="Future Technology Trends"
               description="Explore emerging technologies shaping skills."
               onClick={go("/policy-industry/account/future-technology-trends")}
+            />
+          </Col>
+          <Col lg="3" md="6" className="mb-4">
+            <NavCard
+              icon={MdDescription}
+              color="#9a7fd1"
+              title="Generate Report"
+              description="Build a report from a Future Technology Trends analysis you have already run."
+              onClick={go("/policy-industry/account/generate-report")}
             />
           </Col>
         </Row>

@@ -3,13 +3,11 @@ import Configuration from "views/configuration/Configuration"
 import EuGeneralPurposeStatistics from "views/EuGeneralPurposeStatistics"
 import Artifacts from "views/industry/Artifacts";
 import JobAdvertisements from "views/industry/JobAdvertisements";
-import AutoJobAdvertisements from "views/industry/AutoJobAdvertisements";
 import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
 import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import GapCompetition from "views/industry/GapCompetition";
-import AtRisk from "views/industry/AtRisk";
 import EmployeeSkills from "views/industry/EmployeeSkills";
 import OrganizationInformation from "views/industry/OrganizationInformation";
 
@@ -19,13 +17,6 @@ var routes = [
     name: "My Organization",
     icon: "nc-icon nc-single-02",
     component: <IndustryAccount />,
-    layout: "/industry",
-  },
-  {
-    path: "/account/at-risk",
-    name: "Skills At Risk",
-    icon: "nc-icon nc-single-02",
-    component: <AtRisk />,
     layout: "/industry",
   },
   {
@@ -40,13 +31,6 @@ var routes = [
     name: "My Advertisements",
     icon: "nc-icon nc-single-02",
     component: <JobAdvertisements />,
-    layout: "/industry",
-  },
-  {
-    path: "/account/auto-job-advertisements",
-    name: "Auto Job Advertisements",
-    icon: "nc-icon nc-single-02",
-    component: <AutoJobAdvertisements />,
     layout: "/industry",
   },
   {

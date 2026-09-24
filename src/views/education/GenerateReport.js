@@ -7,35 +7,33 @@ import axios from "axios";
 import { mdToHtml, stripMarkdownFence, PRINT_CSS } from "../../utils/markdown";
 
 const CURRICULUM = process.env.REACT_APP_API_URL_CURRICULUM_SKILLS;
-const FTTI = process.env.REACT_APP_API_URL_FUTURE_TECHNOLOGY_TRENDS_IDENTIFIER;
 
-// FTTI is served behind the authenticated user-management gateway.
+// Curriculum-skills is served behind the authenticated user-management gateway.
 const ftAuth = () => ({ Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` });
 
 const errText = (err, fallback = "Something went wrong") =>
   err?.response?.data?.detail || err?.message || fallback;
 
-// The generate endpoint now runs the LLM job asynchronously: the first POST
-// (and every one after it, as long as the same analyses are selected) either
-// comes back "running" — meaning the job is still in progress server-side —
-// or "completed" with the recommendations. We poll by resending the same
+// The generate endpoint runs the LLM job asynchronously: the first POST (and
+// every one after it, as long as the same analysis is selected) either comes
+// back "running" — meaning the job is still in progress server-side — or
+// "completed" with the recommendations. We poll by resending the same
 // request until it reports "completed".
 const REPORT_POLL_INTERVAL_MS = 5000;
 
+const runDateValue = (r) => {
+  const t = Date.parse(r?.date || r?.created_at || "");
+  return Number.isNaN(t) ? 0 : t;
+};
 
-const GenerateReport = ({ industryOnly = false }) => {
+// Education accounts only ever get to build a report from their own Skill
+// Recommendations (short-term skill-gap) analyses — no Future Technology
+// Trends / Long Term picker here, unlike the policy accounts' Generate Report.
+const GenerateReport = () => {
   // ---- source analyses ----
-  const [fttiTitles, setFttiTitles] = useState([]);
-  const [fttiLoading, setFttiLoading] = useState(false);
-  const [fttiTitle, setFttiTitle] = useState("");
-
-  const [shortRuns, setShortRuns] = useState([]);
-  const [shortLoading, setShortLoading] = useState(false);
-  const [shortTitle, setShortTitle] = useState("");
-
-  const [longRuns, setLongRuns] = useState([]);
-  const [longLoading, setLongLoading] = useState(false);
-  const [longTitle, setLongTitle] = useState("");
+  const [runs, setRuns] = useState([]);
+  const [runsLoading, setRunsLoading] = useState(false);
+  const [shorttermTitle, setShorttermTitle] = useState("");
 
   // ---- options ----
   const [focus, setFocus] = useState("");
@@ -54,13 +52,8 @@ const GenerateReport = ({ industryOnly = false }) => {
   const mountedRef = useRef(true);
   const pollTimeoutRef = useRef(null);
 
-  // ---- load the selectable analyses ----
   useEffect(() => {
-    loadFttiTitles();
-    if (!industryOnly) {
-      loadShortRuns();
-      loadLongRuns();
-    }
+    loadRuns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -75,61 +68,29 @@ const GenerateReport = ({ industryOnly = false }) => {
     };
   }, []);
 
-  const loadFttiTitles = async () => {
-    setFttiLoading(true);
+  const loadRuns = async () => {
+    setRunsLoading(true);
     try {
-      const res = await axios.get(`${FTTI}/analyses/titles`, { headers: ftAuth() });
-      setFttiTitles(Array.isArray(res.data) ? res.data : []);
-    } catch (e) {
-      setError((prev) => prev || `Could not load Future Technology Trends analyses: ${errText(e)}`);
-    } finally {
-      setFttiLoading(false);
-    }
-  };
-
-  const loadShortRuns = async () => {
-    setShortLoading(true);
-    try {
-      const res = await axios.get(`${CURRICULUM}/policy/runs`);
+      const res = await axios.get(`${CURRICULUM}/skill-gap/runs`);
       const raw = res.data;
-      setShortRuns(Array.isArray(raw) ? raw : (raw?.runs || raw?.data || []));
+      const list = Array.isArray(raw) ? raw : (raw?.runs || raw?.data || []);
+      const sorted = [...list].sort((a, b) => runDateValue(b) - runDateValue(a));
+      setRuns(sorted);
     } catch (e) {
-      setError((prev) => prev || `Could not load Short Term analyses: ${errText(e)}`);
+      setError((prev) => prev || `Could not load Skill Recommendations analyses: ${errText(e)}`);
     } finally {
-      setShortLoading(false);
+      setRunsLoading(false);
     }
   };
-
-  const loadLongRuns = async () => {
-    setLongLoading(true);
-    try {
-      const res = await axios.get(`${CURRICULUM}/skill-gap/longterm/gap-by-title/runs`);
-      const raw = res.data;
-      setLongRuns(Array.isArray(raw) ? raw : (raw?.runs || raw?.data || []));
-    } catch (e) {
-      setError((prev) => prev || `Could not load Long Term analyses: ${errText(e)}`);
-    } finally {
-      setLongLoading(false);
-    }
-  };
-
-  const anySelected = !!fttiTitle || !!shortTitle || !!longTitle;
 
   const generate = async () => {
     setError(null);
-    if (!anySelected) {
-      setError("Select at least one analysis to include in the report.");
+    if (!shorttermTitle) {
+      setError("Select an analysis to include in the report.");
       return;
     }
-    // Field mapping:
-    //   FTTI trends   -> tsouk_title   (fetched live from the Tsouk API)
-    //   Short Term    -> policy_title
-    //   Long Term     -> longterm_title
-    // (shortterm_title / skill-hotness is intentionally not used here.)
     const basePayload = {
-      tsouk_title: fttiTitle || null,
-      policy_title: shortTitle || null,
-      longterm_title: longTitle || null,
+      shortterm_title: shorttermTitle,
       focus: focus.trim() || null,
     };
 
@@ -171,7 +132,7 @@ const GenerateReport = ({ industryOnly = false }) => {
           created_at: data.created_at || null,
         });
         if (!data.recommendations) {
-          setError("The report came back empty. Try again or adjust the selected analyses.");
+          setError("The report came back empty. Try again or adjust the selected analysis.");
         }
         setGenerating(false);
         setGeneratingStatus("");
@@ -204,9 +165,7 @@ const GenerateReport = ({ industryOnly = false }) => {
     }
     setGenerating(false);
     setGeneratingStatus("");
-    setFttiTitle("");
-    setShortTitle("");
-    setLongTitle("");
+    setShorttermTitle("");
     setFocus("");
     setForceRefresh(false);
     setReport(null);
@@ -218,7 +177,7 @@ const GenerateReport = ({ industryOnly = false }) => {
     if (!report) return;
     const html =
       `<!doctype html><html><head><meta charset="utf-8">` +
-      `<title>Curriculum Recommendations</title><style>${PRINT_CSS}</style></head>` +
+      `<title>Skill Recommendations Report</title><style>${PRINT_CSS}</style></head>` +
       `<body>${mdToHtml(stripMarkdownFence(report))}</body></html>`;
     const iframe = document.createElement("iframe");
     iframe.style.position = "fixed";
@@ -251,96 +210,37 @@ const GenerateReport = ({ industryOnly = false }) => {
         <CardHeader>
           <CardTitle tag="h4" className="mb-1">Generate Report</CardTitle>
           <span style={{ color: "#666" }}>
-            {industryOnly
-              ? "Build an LLM report from a Future Technology Trends analysis you have already run."
-              : "Build an LLM curriculum-recommendations report from analyses you have already run. Pick any combination of a Future Technology Trends analysis, a Short Term Analysis and a Long Term Analysis."}
+            Build an LLM report from a Skill Recommendations analysis you have already run.
           </span>
         </CardHeader>
         <CardBody>
           {error && <Alert color="danger" toggle={() => setError(null)}>{error}</Alert>}
 
           <Row>
-            {/* Future Technology Trends analysis -> tsouk_title */}
-            <Col md={industryOnly ? "6" : "4"}>
+            <Col md="6">
               <FormGroup>
                 <Label>
-                  <i className="fas fa-lightbulb" style={{ marginRight: 6, color: "#51bcda" }}></i>
-                  Future Technology Trends analysis
+                  <i className="fas fa-graduation-cap" style={{ marginRight: 6, color: "#ef8157" }}></i>
+                  Skill Recommendations analysis
                 </Label>
                 <Input
                   type="select"
-                  value={fttiTitle}
-                  onChange={(e) => setFttiTitle(e.target.value)}
-                  disabled={fttiLoading}
+                  value={shorttermTitle}
+                  onChange={(e) => setShorttermTitle(e.target.value)}
+                  disabled={runsLoading}
                 >
-                  <option value="">{fttiLoading ? "Loading…" : "— none —"}</option>
-                  {fttiTitles.filter((t) => t.title).map((t) => (
-                    <option key={t.title} value={t.title}>
-                      {t.title}{t.sector ? ` (${t.sector})` : ""}
+                  <option value="">{runsLoading ? "Loading…" : "— select an analysis —"}</option>
+                  {runs.filter((r) => r.title).map((r, i) => (
+                    <option key={r.title || r.run_id || i} value={r.title}>
+                      {r.title}{r.filters?.country ? ` · ${r.filters.country}` : ""}
                     </option>
                   ))}
                 </Input>
-                {!fttiLoading && fttiTitles.length === 0 && (
-                  <small className="text-muted">No analyses found.</small>
+                {!runsLoading && runs.length === 0 && (
+                  <small className="text-muted">No analyses found. Run one from Recommendations first.</small>
                 )}
               </FormGroup>
             </Col>
-
-            {!industryOnly && (
-              <>
-                {/* Short Term Analysis -> policy_title */}
-                <Col md="4">
-                  <FormGroup>
-                    <Label>
-                      <i className="fas fa-bolt" style={{ marginRight: 6, color: "#ef8157" }}></i>
-                      Short Term Analysis
-                    </Label>
-                    <Input
-                      type="select"
-                      value={shortTitle}
-                      onChange={(e) => setShortTitle(e.target.value)}
-                      disabled={shortLoading}
-                    >
-                      <option value="">{shortLoading ? "Loading…" : "— none —"}</option>
-                      {shortRuns.filter((r) => r.title).map((r, i) => (
-                        <option key={r.title || r.run_id || i} value={r.title}>
-                          {r.title}{r.filters?.country ? ` · ${r.filters.country}` : ""}
-                        </option>
-                      ))}
-                    </Input>
-                    {!shortLoading && shortRuns.length === 0 && (
-                      <small className="text-muted">No analyses found.</small>
-                    )}
-                  </FormGroup>
-                </Col>
-
-                {/* Long Term Analysis -> longterm_title */}
-                <Col md="4">
-                  <FormGroup>
-                    <Label>
-                      <i className="fas fa-chart-line" style={{ marginRight: 6, color: "#6bd098" }}></i>
-                      Long Term Analysis
-                    </Label>
-                    <Input
-                      type="select"
-                      value={longTitle}
-                      onChange={(e) => setLongTitle(e.target.value)}
-                      disabled={longLoading}
-                    >
-                      <option value="">{longLoading ? "Loading…" : "— none —"}</option>
-                      {longRuns.filter((r) => r.title).map((r, i) => (
-                        <option key={r.title || r.run_id || i} value={r.title}>
-                          {r.title}{r.filters?.country ? ` · ${r.filters.country}` : ""}
-                        </option>
-                      ))}
-                    </Input>
-                    {!longLoading && longRuns.length === 0 && (
-                      <small className="text-muted">No analyses found.</small>
-                    )}
-                  </FormGroup>
-                </Col>
-              </>
-            )}
           </Row>
 
           <Row>
@@ -369,17 +269,7 @@ const GenerateReport = ({ industryOnly = false }) => {
             </Col>
           </Row>
 
-          {/* Selection summary */}
-          {anySelected && (
-            <div style={{ marginBottom: 12 }}>
-              <small className="text-muted">Included: </small>
-              {fttiTitle && <Badge color="info" style={{ marginRight: 4 }}>Trends: {fttiTitle}</Badge>}
-              {shortTitle && <Badge color="warning" style={{ marginRight: 4 }}>Short term: {shortTitle}</Badge>}
-              {longTitle && <Badge color="success" style={{ marginRight: 4 }}>Long term: {longTitle}</Badge>}
-            </div>
-          )}
-
-          <Button color="primary" onClick={generate} disabled={!anySelected || generating}>
+          <Button color="primary" onClick={generate} disabled={!shorttermTitle || generating}>
             {generating ? <><Spinner size="sm" /> Generating…</> : "Generate report"}
           </Button>{" "}
           {generating ? (
@@ -387,14 +277,14 @@ const GenerateReport = ({ industryOnly = false }) => {
               Cancel
             </Button>
           ) : (
-            (anySelected || report) && (
+            (shorttermTitle || report) && (
               <Button color="secondary" outline onClick={clearAll}>
                 Clear
               </Button>
             )
           )}
-          {!anySelected && !generating && (
-            <small className="text-muted ml-2">Select at least one analysis.</small>
+          {!shorttermTitle && !generating && (
+            <small className="text-muted ml-2">Select an analysis.</small>
           )}
 
           {generating && (

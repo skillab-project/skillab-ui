@@ -144,6 +144,7 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
         `${GAP_BASE_URL}/workforce-gap-recommendation`,
         {
           department_id: Number(departmentId),
+          test: "true",
           market_page_size: Number(marketPageSize),
           top_market_skills: Number(topMarketSkills),
           reskill_threshold: Number(reskillThreshold),
@@ -299,16 +300,6 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
                 </CardTitle>
               </CardHeader>
               <CardBody>
-                <h6 className="text-muted text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.04em" }}>
-                  Search Keywords
-                </h6>
-                <p className="mb-3">
-                  {(result.market_insights?.query_keywords || []).map((kw, i) => (
-                    <Badge key={i} color="secondary" pill className="mr-1 mb-1" style={{ fontWeight: 400 }}>
-                      {kw}
-                    </Badge>
-                  ))}
-                </p>
                 <Row>
                   <Col md="6" className="mb-3">
                     <h6 className="text-muted text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.04em" }}>

@@ -12,6 +12,7 @@ import DescriptionButtons from "./DescriptionButtons";
 import SkillSelectorReadOnly from "./SkillSelectorReadOnly";
 import ConfirmModal from "../Hire/ConfirmModal";
 import RecommendedSkillsPanel from "./RecommendedSkillsPanel";
+import AdRecommendationModal from "./AdRecommendationModal";
 import "./description-card.css";
 
 const SKILLS_BOTTOM_GAP = 7;
@@ -31,6 +32,7 @@ export default function DescriptionCard({
     reloadSidebar,
     onDeleted,
     onPublished,
+    jobAdMeta,
 }) {
     const [description, setDescription] = useState("");
     const [requiredSkills, setRequiredSkills] = useState([]);
@@ -43,6 +45,7 @@ export default function DescriptionCard({
     const [deleting, setDeleting] = useState(false);
     const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
     const [publishing, setPublishing] = useState(false);
+    const [recommendModalOpen, setRecommendModalOpen] = useState(false);
 
     const canEdit = useMemo(() => {
         const n = normalizeStatus(status);
@@ -256,18 +259,19 @@ export default function DescriptionCard({
     return (
         <>
             <Row className="g-3 dc-root-row">
-                <Col md="6" className="dc-left-col" ref={leftPanelRef}>
+                <Col md="8" className="dc-left-col" ref={leftPanelRef}>
                     <Description
                         name="Description"
                         description={description}
                         onDescriptionChange={setDescription}
                         readOnly={!canEdit}
                         disabled={!canEdit}
+                        onAdRecommendation={canEdit ? () => setRecommendModalOpen(true) : undefined}
                     />
                 </Col>
 
                 <Col
-                    md="6"
+                    md="4"
                     ref={rightColRef}
                     className={`dc-right-col ${measured ? "is-visible" : "is-hidden"}`}
                 >
@@ -349,6 +353,19 @@ export default function DescriptionCard({
                 loading={deleting}
                 onConfirm={handleDeleteConfirmed}
                 onCancel={() => setConfirmDeleteOpen(false)}
+            />
+
+            <AdRecommendationModal
+                isOpen={recommendModalOpen}
+                toggle={() => setRecommendModalOpen(false)}
+                defaultJobRole={jobAdMeta?.occupationName || jobAdMeta?.title || ""}
+                defaultLocation=""
+                excludeJobAdId={selectedJobAdId}
+                onGenerated={(text) => {
+                    setDescription(text);
+                    setRecommendModalOpen(false);
+                    window.hfToast?.("Description generated — remember to Update to save it", "success");
+                }}
             />
         </>
     );

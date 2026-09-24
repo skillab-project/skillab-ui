@@ -19,7 +19,7 @@ const normalizeStatus = (s) =>
 const LOCKED_TABS = ['candidates', 'analytics', 'hire'];
 
 const TABS = [
-    { key: 'description', label: 'Description' },
+    { key: 'description', label: 'Job Ads' },
     { key: 'interview', label: 'Interview' },
     { key: 'questions', label: 'Questions' },
     { key: 'candidates', label: 'Candidates' },
@@ -196,9 +196,9 @@ function JobAdvertisements() {
                         }}
                     >
                         {!selectedJobAdId ? (
-                            <>Select a Job Ad on the left to begin. Only <b>Description</b> is available until then.</>
+                            <>Select a Job Ad on the left to begin. Only <b>Job Ad</b> is available until then.</>
                         ) : isPending ? (
-                            <>Complete the <b>Description</b> (details &amp; required skills), define <b>Interview</b> steps and add <b>Questions</b> per step, then <b>Publish</b> to unlock <b>Candidates</b>, <b>Hire</b> and <b>Analytics</b>.</>
+                            <>Complete the <b>Job Ad</b> (details &amp; required skills), define <b>Interview</b> steps and add <b>Questions</b> per step, then <b>Publish</b> to unlock <b>Candidates</b>, <b>Hire</b> and <b>Analytics</b>.</>
                         ) : (
                             <>This Job Ad is published — all steps are available.</>
                         )}
@@ -208,7 +208,7 @@ function JobAdvertisements() {
 
             <Row>
                 {showSidebar && (
-                <Col lg="3" md="12">
+                <Col lg="12" md="12">
                     <SidebarCard
                         onJobAdSelect={(jobOrId) => {
                             const id =
@@ -270,7 +270,7 @@ function JobAdvertisements() {
                 </Col>
                 )}
 
-                <Col lg={showSidebar ? "9" : "12"} md="12" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <Col lg="12" md="12" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                     {!showSidebar && selectedJobAdId && (
                         <div
                             style={{
@@ -341,6 +341,7 @@ function JobAdvertisements() {
                                 <DescriptionCard
                                     selectedJobAdId={selectedJobAdId}
                                     allskills={allskills}
+                                    jobAdMeta={selectedJobAdMeta}
                                     onDeleted={handleJobAdDeleted}
                                     onPublished={() => {
                                         setJobStatus('Published');

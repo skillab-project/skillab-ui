@@ -8,6 +8,7 @@ import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import TaxonomyManagement from "views/taxonomies/TaxonomyManagement";
 import Recommendations from "views/education/Recommendations";
+import GenerateReport from "views/education/GenerateReport";
 
 var routes = [
   {
@@ -36,6 +37,13 @@ var routes = [
     name: "Recommendations",
     icon: "nc-icon nc-single-02",
     component: <Recommendations />,
+    layout: "/education",
+  },
+  {
+    path: "/account/generate-report",
+    name: "Generate Report",
+    icon: "nc-icon nc-single-02",
+    component: <GenerateReport />,
     layout: "/education",
   },
   {

@@ -8,6 +8,7 @@ import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import TaxonomyManagement from "views/taxonomies/TaxonomyManagement";
 import FutureTechnologyTrends from "views/policies/FutureTechnologyTrends";
+import GenerateReport from "views/policies/GenerateReport";
 
 var routes = [
   {
@@ -36,6 +37,13 @@ var routes = [
     name: "Future Technology Trends",
     icon: "nc-icon nc-single-02",
     component: <FutureTechnologyTrends />,
+    layout: "/policy-industry",
+  },
+  {
+    path: "/account/generate-report",
+    name: "Generate Report",
+    icon: "nc-icon nc-single-02",
+    component: <GenerateReport industryOnly />,
     layout: "/policy-industry",
   },
   {
