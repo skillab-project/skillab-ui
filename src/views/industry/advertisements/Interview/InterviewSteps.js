@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import StepsDnd from "./StepsDnd";
 import "./interview.css";
 
@@ -12,30 +12,9 @@ export default function InterviewSteps({
     reloadSteps,
     onLocalReorder,
     canEdit = true,
-    /** extra "ανάσα" κάτω, όπως στο sidebar */
-    reserve = 80,
 }) {
     const [internalSelectedIndex, setInternalSelectedIndex] = useState(null);
     const selectedIndex = controlledSelectedIndex ?? internalSelectedIndex;
-
-    /* ---- exact ίδιο fitting με το sidebar ---- */
-    const scrollRef = useRef(null);
-    useLayoutEffect(() => {
-        const fit = () => {
-            const el = scrollRef.current;
-            if (!el) return;
-
-            const rect = el.getBoundingClientRect();
-            // αν έχει footer κάτω στο card (Create/Delete), αφαιρείται αυτόματα μέσω reserve
-            const height = window.innerHeight - rect.top - reserve;
-            el.style.height = `${Math.max(160, height)}px`;
-            el.style.overflowY = "auto";
-            el.style.overflowX = "hidden";
-        };
-        fit();
-        window.addEventListener("resize", fit);
-        return () => window.removeEventListener("resize", fit);
-    }, [reserve, interviewsteps.length]);
 
     useEffect(() => {
         if (
@@ -90,28 +69,16 @@ export default function InterviewSteps({
     };
 
     return (
-        <div className="iv-no-x">
-            <div className="iv-steps-head">
-                <label className="active-label" style={{ margin: 0 }}>Steps:</label>
-                <label className="active-label" style={{ margin: 0 }}>Category:</label>
-            </div>
-
-            {/* 🟩 Ο scroller είναι εδώ, όπως στο sidebar */}
-            <div ref={scrollRef} className="iv-dnd-scroll row">
-                <div className="iv-dnd-list">
-                    <StepsDnd
-                        steps={interviewsteps}
-                        selectedIndex={selectedIndex ?? 0}
-                        onSelect={handleSelect}
-                        onReorder={onLocalReorder}
-                        onApplyServerReorder={applyServerReorder}
-                        onUpdateDescription={canEdit ? updateDescription : undefined}
-                        readOnlyDescription={!canEdit}
-                        showSaveButton={!!canEdit}
-                        dndDisabled={!canEdit}
-                    />
-                </div>
-            </div>
-        </div>
+        <StepsDnd
+            steps={interviewsteps}
+            selectedIndex={selectedIndex ?? 0}
+            onSelect={handleSelect}
+            onReorder={onLocalReorder}
+            onApplyServerReorder={applyServerReorder}
+            onUpdateDescription={canEdit ? updateDescription : undefined}
+            readOnlyDescription={!canEdit}
+            showSaveButton={!!canEdit}
+            dndDisabled={!canEdit}
+        />
     );
 }

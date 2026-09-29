@@ -1,376 +1,308 @@
-/* ===== Analytics header (scope) ===== */
-.analytics-scope-bar {
-    margin-top: 8px;
+/* ==========================================================================
+   Analytics tab — Paper Dashboard look & feel, scoped under .an-root so
+   nothing leaks into the rest of the app.
+   Palette: primary #51cbce, info #51bcda, success #6bd098, warning #fbc658,
+   danger #ef8157, text #252422 / #66615b, muted #9a9a9a, border #e3e3e3.
+   ========================================================================== */
+
+/* The whole tab scrolls as one page (like Interview / Questions). */
+.an-root {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 6px 12px;
+    text-align: left;
 }
 
-.analytics-scope-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+/* Layout helpers the sub-tabs use */
+.an-root .q-col-flex { display: flex; flex-direction: column; min-height: 0; }
+.an-root .q-fill { flex: 1; min-height: 0; }
+.an-root .q-no-x { overflow-x: hidden; }
+.an-root .q-card-fill { height: 100%; }
+.an-root .q-card-body-scroll { overflow: visible; }
+
+/* ---------- Sub-tabs (Overview / Candidates / Steps / …) as pills ---------- */
+.an-root .analytics-tabs {
+    border-bottom: none;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.an-root .analytics-tabs .nav-item {
+    margin-bottom: 0;
+}
+
+.an-root .analytics-tabs .analytics-tablink {
+    border: 1px solid #e3e3e3 !important;
+    border-radius: 999px !important;
+    padding: 6px 16px;
+    margin-right: 0;
+    color: #66615b;
+    font-size: 13px;
     font-weight: 600;
-}
-
-/* μικρό κυκλικό κουμπί “×” */
-.btn-circle-sm {
-    width: 22px;
-    height: 22px;
-    line-height: 22px;
-    border-radius: 50%;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-circle-sm.is-disabled,
-.btn-circle-sm:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-/* (προαιρετικά) αν θες λίγη ενοποίηση με το υπόλοιπο theme σου: */
-.text-muted {
-    color: #6B7280;
-}
-
-/* ===== Tabs header ===== */
-.analytics-tabs .analytics-tablink {
-    color: #111;
-    margin-right: 14px;
+    background: #fff;
     cursor: pointer;
-    font-weight: 400;
     user-select: none;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
 
-/* ===== Utilities ===== */
-.gap-8 {
-    gap: 8px;
+.an-root .analytics-tabs .analytics-tablink:hover {
+    border-color: #51cbce !important;
+    color: #51cbce;
 }
 
-.gap-12 {
-    gap: 12px;
-}
-
-.mb-6 {
-    margin-bottom: 6px;
-}
-
-.fs-10 {
-    font-size: 10px;
-}
-
-.fs-12 {
-    font-size: 12px;
-}
-
-.fw-600 {
-    font-weight: 600;
-}
-
-.fw-700 {
-    font-weight: 700;
-}
-
-.op-60 {
-    opacity: .6;
-}
-
-.op-70 {
-    opacity: .7;
-}
-
-/* ===== KPIs & section titles ===== */
-.kpi-title {
-    font-size: 12px;
-    opacity: .7;
-}
-
-.kpi-value {
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.kpi-sub {
-    font-size: 12px;
-    opacity: .6;
-    margin-top: 4px;
-}
-
-.section-title {
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-/* ===== CandidatesTab ===== */
-.ct-card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    height: 100%;
-}
-
-.cand-list {
-    max-height: 220px;
-    overflow: auto;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 8px;
-}
-
-/* ===== Histogram ===== */
-.hist-wrap {
-    height: 150px;
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    padding: 8px 4px;
-}
-
-.hist-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.hist-bar-container {
-    width: 100%;
-    height: 120px;
-    display: flex;
-    align-items: flex-end;
-}
-
-.hist-bar {
-    width: 100%;
-    height: var(--h, 0%);
-    background: #e9ecef;
-    border-radius: 4px;
-    box-shadow: inset 0 0 1px rgba(0, 0, 0, .15);
-    transition: height .3s ease;
-}
-
-.hist-label {
-    font-size: 10px;
-    white-space: nowrap;
-}
-
-/* ===== DepartmentsSidebar ===== */
-.sidebar-header-title {
-    font-weight: 600;
-}
-
-.sidebar-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.sidebar-btn {
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
-}
-
-/* ===== Analytics header (scope) ===== */
-.analytics-scope-bar {
-    margin-top: 8px;
-}
-
-.analytics-scope-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-}
-
-/* μικρό κυκλικό κουμπί “×” */
-.btn-circle-sm {
-    width: 22px;
-    height: 22px;
-    line-height: 22px;
-    border-radius: 50%;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-circle-sm.is-disabled,
-.btn-circle-sm:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-/* (προαιρετικά) αν θες λίγη ενοποίηση με το υπόλοιπο theme σου: */
-.text-muted {
-    color: #6B7280;
-}
-
-/* ===== Tabs header ===== */
-.analytics-tabs .analytics-tablink {
-    color: #111;
-    margin-right: 14px;
-    cursor: pointer;
-    font-weight: 400;
-    user-select: none;
-}
-
-/* ===== Utilities ===== */
-.gap-8 {
-    gap: 8px;
-}
-
-.gap-12 {
-    gap: 12px;
-}
-
-.mb-6 {
-    margin-bottom: 6px;
-}
-
-.fs-10 {
-    font-size: 10px;
-}
-
-.fs-12 {
-    font-size: 12px;
-}
-
-.fw-600 {
-    font-weight: 600;
-}
-
-.fw-700 {
-    font-weight: 700;
-}
-
-.op-60 {
-    opacity: .6;
-}
-
-.op-70 {
-    opacity: .7;
-}
-
-/* ===== KPIs & section titles ===== */
-.kpi-title {
-    font-size: 12px;
-    opacity: .7;
-}
-
-.kpi-value {
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.kpi-sub {
-    font-size: 12px;
-    opacity: .6;
-    margin-top: 4px;
-}
-
-.section-title {
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-/* ===== CandidatesTab ===== */
-.ct-card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    height: 100%;
-}
-
-.cand-list {
-    max-height: 220px;
-    overflow: auto;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 8px;
-}
-
-/* ===== Histogram ===== */
-.hist-wrap {
-    height: 150px;
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    padding: 8px 4px;
-}
-
-.hist-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.hist-bar-container {
-    width: 100%;
-    height: 120px;
-    display: flex;
-    align-items: flex-end;
-}
-
-.hist-bar {
-    width: 100%;
-    height: var(--h, 0%);
-    background: #e9ecef;
-    border-radius: 4px;
-    box-shadow: inset 0 0 1px rgba(0, 0, 0, .15);
-    transition: height .3s ease;
-}
-
-.hist-label {
-    font-size: 10px;
-    white-space: nowrap;
-}
-
-/* ===== DepartmentsSidebar ===== */
-.sidebar-header-title {
-    font-weight: 600;
-}
-
-.sidebar-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.sidebar-btn {
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
-}
-
-/* ===== Selectable list (used in SkillsTab) ===== */
-.selectable-list .list-group-item {
-    border: none;
-    margin-bottom: 8px;
-    border-radius: 10px;
-    background: #f8f9fa;
-    cursor: pointer;
-    transition: all .15s ease;
-}
-
-.selectable-list .list-group-item:hover {
-    background: #f1f3f5;
-}
-
-.selectable-list .list-group-item.active {
-    background: #495057 !important;
-    /* σκούρο γκρι */
+.an-root .analytics-tabs .analytics-tablink.active {
+    background: #51cbce !important;
+    border-color: #51cbce !important;
     color: #fff !important;
+}
+
+/* ---------- Scope bar ---------- */
+.an-root .analytics-scope-bar {
+    margin-top: 10px;
+}
+
+.an-root .analytics-scope-label {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.an-root .analytics-scope-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9a9a9a;
+}
+
+.an-root .analytics-scope-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(81, 203, 206, .15);
+    color: #1f7f82;
+    font-size: 13px;
     font-weight: 600;
 }
 
-.metric-number {
-    font-size: 20px;
-    /* ή 1rem */
+.an-root .analytics-scope-breadcrumb {
+    font-weight: 400;
+    color: #3aa9ac;
+}
+
+.an-root .analytics-scope-breadcrumb::before {
+    content: "·";
+    margin: 0 6px 0 2px;
+}
+
+.an-root .analytics-scope-reset {
+    padding: 2px 6px;
+    font-size: 12px;
+    color: #9a9a9a;
+    text-transform: none;
+}
+
+.an-root .analytics-scope-reset:hover {
+    color: #ef8157;
+    text-decoration: none;
+}
+
+.an-root .analytics-scope-reset.is-disabled,
+.an-root .analytics-scope-reset:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ---------- Cards ---------- */
+.an-root .card {
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    box-shadow: none !important;
+    margin-bottom: 0;
+}
+
+/* The outer wrapper cards only group content: keep them flat */
+.an-root .q-card-fill {
+    border: none;
+    background: transparent;
+}
+
+.an-root .q-card-fill > .card-body,
+.an-root .q-card-fill > div:first-child {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.an-root .card .card-body {
+    padding: 14px 16px;
+}
+
+.an-root .metric-number {
+    display: block;
+    font-size: 1.6rem;
     font-weight: 700;
-    /* ίδιο bold */
-    line-height: 1;
+    line-height: 1.2;
+    color: #252422;
+    margin-top: 4px;
+}
+
+.an-root .kpi-title { font-size: 12px; color: #9a9a9a; }
+.an-root .kpi-value { font-size: 1.6rem; font-weight: 700; color: #252422; }
+.an-root .kpi-sub { font-size: 12px; color: #9a9a9a; margin-top: 4px; }
+.an-root .section-title { font-weight: 600; margin-bottom: 8px; color: #252422; }
+
+.an-root .list-group-item {
+    padding: 8px 4px;
+    border-color: #f0f0f0;
+    font-size: 13.5px;
+    color: #252422;
+}
+
+.an-root .list-group-item strong {
+    color: #3aa9ac;
+}
+
+.an-root .form-select,
+.an-root select.form-select-sm {
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    color: #66615b;
+    background: #fff;
+}
+
+/* ---------- Selectable rows (steps, questions, skills, candidates) ---------- */
+.an-root .btn.an-item {
+    display: block;
+    margin: 0 0 6px 0 !important;
+    padding: 9px 12px;
+    text-transform: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: #252422 !important;
+    border: 1px solid #ececec !important;
+    border-left: 3px solid transparent !important;
+    box-shadow: none !important;
+    white-space: normal;
+}
+
+.an-root .btn.an-item:hover,
+.an-root .btn.an-item:focus {
+    background: #f7fdfd !important;
+    border-color: #cfeff0 !important;
+}
+
+.an-root .btn.an-item.is-active {
+    background: rgba(81, 203, 206, .12) !important;
+    border-color: #51cbce !important;
+    border-left-color: #51cbce !important;
+    font-weight: 600;
+}
+
+/* ---------- Pills ---------- */
+.an-root .an-pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f1f1f1;
+    color: #66615b;
+    white-space: nowrap;
+}
+
+.an-root .an-pill--score { background: rgba(81, 203, 206, .15); color: #1f7f82; }
+.an-root .an-pill--pending { background: #fff4d6; color: #8a6100; }
+.an-root .an-pill--approved { background: #dcf5e7; color: #1e7e4a; }
+.an-root .an-pill--rejected { background: #fde3da; color: #b3461f; }
+.an-root .an-pill--hired { background: #dff3f9; color: #1b6f87; }
+
+/* Bootstrap-5 style badges used in a few places */
+.an-root .badge.bg-success { background: #6bd098 !important; }
+.an-root .badge.bg-secondary { background: #fbc658 !important; color: #5c4400 !important; }
+
+/* ---------- Empty states ---------- */
+.an-root .an-empty {
+    text-align: center;
+    color: #9a9a9a;
+    padding: 28px 12px;
+    font-size: 13px;
+    border: 1px dashed #dddddd;
+    border-radius: 8px;
+}
+
+/* ---------- Utilities used by the sub-tabs ---------- */
+.an-root .gap-8 { gap: 8px; }
+.an-root .gap-12 { gap: 12px; }
+.an-root .mb-6 { margin-bottom: 6px; }
+.an-root .fs-10 { font-size: 10px; }
+.an-root .fs-12 { font-size: 12px; }
+.an-root .fw-600 { font-weight: 600; }
+.an-root .fw-700 { font-weight: 700; }
+.an-root .op-60 { opacity: .6; }
+.an-root .op-70 { opacity: .7; }
+
+/* ---------- CandidatesTab ---------- */
+.an-root .ct-card-body { display: flex; flex-direction: column; gap: 12px; height: 100%; }
+.an-root .cand-list {
+    max-height: 320px;
+    overflow: auto;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+/* ---------- Histogram (class-based variant) ---------- */
+.an-root .hist-wrap { height: 150px; display: flex; align-items: flex-end; gap: 8px; padding: 8px 4px; }
+.an-root .hist-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.an-root .hist-bar-container { width: 100%; height: 120px; display: flex; align-items: flex-end; }
+.an-root .hist-bar {
+    width: 100%;
+    height: var(--h, 0%);
+    background: #51cbce;
+    border-radius: 4px;
+    transition: height .3s ease;
+}
+.an-root .hist-label { font-size: 10px; white-space: nowrap; }
+
+/* ---------- DepartmentsSidebar ---------- */
+.an-root .sidebar-header-title { font-weight: 600; }
+.an-root .sidebar-stack { display: flex; flex-direction: column; gap: 8px; }
+.an-root .sidebar-btn { border-radius: 6px; }
+
+/* ---------- Selectable list (SkillsTab) ---------- */
+.an-root .selectable-list .list-group-item {
+    border: 1px solid #ececec;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.an-root .selectable-list .list-group-item:hover { background: #f7fdfd; }
+.an-root .selectable-list .list-group-item.active {
+    background: rgba(81, 203, 206, .12) !important;
+    border-color: #51cbce !important;
+    color: #252422 !important;
+    font-weight: 600;
+}
+
+/* Bootstrap 4 has no "g-3" gutters: give the card grids vertical spacing */
+.an-root .row.g-3 > [class*="col"] {
+    margin-bottom: 16px;
+}
+
+/* KPI labels never break inside a word */
+.an-root .card-body > div:first-child {
+    overflow-wrap: normal;
+    word-break: normal;
 }

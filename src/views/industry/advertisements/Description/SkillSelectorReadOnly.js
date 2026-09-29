@@ -130,7 +130,7 @@ export default function SkillSelectorReadOnly({
                             >
                                 {filtered.length ? (
                                     filtered.map((skill, i) => (
-                                        <Badge key={i} color="info" pill className="skill-badge">
+                                        <Badge key={i} color="info" pill className="skill-badge skill-badge--wrap">
                                             <span className="skill-badge-text" title={skill}>
                                                 {skill}
                                             </span>

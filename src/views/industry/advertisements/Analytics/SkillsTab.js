@@ -35,21 +35,21 @@ function Histogram({ buckets }) {
             </div>
             <div
                 className="d-flex align-items-end"
-                style={{ gap: 10, height: 150, padding: '8px 6px', border: '1px solid #eee', borderRadius: 8, background: '#fff' }}
+                style={{ gap: 4, height: 164, padding: '8px 6px', overflow: 'hidden', minWidth: 0, border: '1px solid #eee', borderRadius: 8, background: '#fff' }}
             >
                 {mapped.map((b, i) => {
                     const hPx = (b.value / max) * 120;
                     const pct = total > 0 ? `${((b.value / total) * 100).toFixed(1)}%` : '0%';
                     return (
-                        <div key={i} style={{ textAlign: 'center', flex: 1 }}>
+                        <div key={i} style={{ textAlign: 'center', flex: '1 1 0', minWidth: 0 }}>
                             <div style={{ height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                <div style={{ fontSize: 10, opacity: 0.85, marginBottom: 4 }}>{pct}</div>
+                                <div style={{ fontSize: 9, opacity: 0.85, marginBottom: 4, whiteSpace: 'nowrap' }}>{pct}</div>
                                 <div
-                                    style={{ height: `${hPx}px`, background: '#e5e7eb', borderRadius: 6, width: '100%' }}
+                                    style={{ height: `${hPx}px`, background: '#51cbce', borderRadius: 6, width: '100%' }}
                                     title={`${b.label}: ${b.value} (${pct})`}
                                 />
                             </div>
-                            <div style={{ fontSize: 10, opacity: 0.7, marginTop: 4 }}>{b.label.replace('–', '-')}</div>
+                            <div style={{ fontSize: 9, opacity: 0.7, marginTop: 4, whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>{b.label.replace('–', '-')}</div>
                         </div>
                     );
                 })}
@@ -253,7 +253,7 @@ export default function SkillsTab({
                                         <Button
                                             key={s.id}
                                             onClick={() => chooseSkill(s.id)}
-                                            className={`w-100 text-start ${active ? 'btn-secondary' : 'btn-light'}`}
+                                            className={`an-item w-100 text-start ${active ? 'is-active' : ''}`}
                                             style={{ marginBottom: 6, borderRadius: 8 }}
                                         >
                                             <div className="d-flex align-items-center justify-content-between">

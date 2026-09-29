@@ -3,12 +3,28 @@ import {
   Modal, ModalHeader, ModalBody, ModalFooter,
   Form, FormGroup, Label, Input, Button, Row, Col, Spinner, Alert,
 } from "reactstrap";
+import axios from "axios";
 import { getOrganization } from "../../../../utils/Tokens";
+import SectorSelect from "../../../../components/SectorSelect";
 import {
   API_BASE, POLL_INTERVAL_MS, EMPLOYMENT_TYPES, WORK_MODELS, SENIORITIES,
   authHeaders, normalizeJobStatus, buildJobAdPayload, formatStructuredExportAsText,
   fetchOrgJobAds, fetchJobAdDescription,
 } from "./jobAdRecommendation";
+
+// The organization's own sectors (Employee Management), used to pre-select
+// the "Company sector" field.
+const fetchOrganizationSectors = async (orgName) => {
+  const base = process.env.REACT_APP_API_URL_EMPLOYEE_MANAGEMENT;
+  if (!base || !orgName) return [];
+  const headers = {
+    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+    "X-User-Organization": orgName,
+  };
+  const res = await axios.get(`${base}/organizations`, { headers });
+  const org = (res.data || []).find((o) => o.name === orgName);
+  return Array.isArray(org?.sectors) ? org.sectors.filter(Boolean) : [];
+};
 
 const emptyFields = {
   companySector: "",
@@ -112,6 +128,7 @@ function AdRecommendationModal({ isOpen, toggle, onGenerated, defaultJobRole, de
   const [selectedExistingId, setSelectedExistingId] = useState("");
   const [addingExisting, setAddingExisting] = useState(false);
   const [pastAdsError, setPastAdsError] = useState("");
+  const [orgSectors, setOrgSectors] = useState([]);
 
   const pollRef = useRef(null);
   const mountedRef = useRef(true);
@@ -149,8 +166,14 @@ function AdRecommendationModal({ isOpen, toggle, onGenerated, defaultJobRole, de
         if (mountedRef.current && org) {
           setFields((f) => ({ ...f, companyName: f.companyName || org }));
         }
+        // Pre-select the organization's (first) sector; the user can still change it.
+        const sectors = await fetchOrganizationSectors(org);
+        if (mountedRef.current) {
+          setOrgSectors(sectors);
+          if (sectors.length) setFields((f) => ({ ...f, companySector: f.companySector || sectors[0] }));
+        }
       } catch {
-        // ignore — company name just stays editable/empty
+        // ignore — the sector just isn't pre-selected
       }
     })();
     (async () => {
@@ -290,28 +313,32 @@ function AdRecommendationModal({ isOpen, toggle, onGenerated, defaultJobRole, de
         {phase === "form" && (
           <Form onSubmit={handleSubmit}>
             {error && <Alert color="danger">{error}</Alert>}
-            <FormGroup>
-              <Label>Company sector *</Label>
-              <Input value={fields.companySector} placeholder="e.g., Industrial Manufacturing" onChange={setField("companySector")} />
-            </FormGroup>
+            {/* Job role and company come from the selected job ad / organization */}
+            <p className="text-muted mb-3" style={{ fontSize: 13 }}>
+              Generating a description for{" "}
+              <b style={{ color: "#252422" }}>{fields.jobRole || "this job ad"}</b>
+              {fields.companyName ? <> at <b style={{ color: "#252422" }}>{fields.companyName}</b></> : null}.
+            </p>
             <Row>
-              <Col sm="6">
+              <Col sm="7">
                 <FormGroup>
-                  <Label>Job role *</Label>
-                  <Input value={fields.jobRole} placeholder="e.g., Maintenance Technician" onChange={setField("jobRole")} />
+                  <Label for="adRecCompanySector">Company sector *</Label>
+                  <SectorSelect
+                    inputId="adRecCompanySector"
+                    value={fields.companySector}
+                    onChange={(v) => setFields((f) => ({ ...f, companySector: v }))}
+                    preferredOptions={orgSectors}
+                    preferredLabel="Your organization's sectors"
+                  />
                 </FormGroup>
               </Col>
-              <Col sm="6">
+              <Col sm="5">
                 <FormGroup>
-                  <Label>Location *</Label>
-                  <Input value={fields.location} placeholder="e.g., Athens, Greece" onChange={setField("location")} />
+                  <Label for="adRecLocation">Location *</Label>
+                  <Input id="adRecLocation" value={fields.location} placeholder="e.g., Athens, Greece" onChange={setField("location")} />
                 </FormGroup>
               </Col>
             </Row>
-            <FormGroup>
-              <Label>Company name *</Label>
-              <Input value={fields.companyName} placeholder="e.g., Acme Industries" onChange={setField("companyName")} />
-            </FormGroup>
             <Row>
               <Col sm="4">
                 <FormGroup>

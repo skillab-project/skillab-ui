@@ -11,6 +11,7 @@ import TechnologyList from "./TechnologyList";
 import EscoMappingResults from "./EscoMappingResults";
 import PolicyRecommendations from "./PolicyRecommendations";
 import { getId } from "../../../utils/Tokens";
+import SectorSelect from "../../../components/SectorSelect";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL_FUTURE_TECHNOLOGY_TRENDS_IDENTIFIER;
 
@@ -115,61 +116,6 @@ const applyPolicyToPdf = (p, pol) => {
     activeTab: '3', // land on the Recommendations tab (its last/most-advanced tab)
   };
 };
-
-// ─── Combo select (same look as EducationManagement) ────────────────────────
-// A dropdown of existing values plus an "Add new…" option that flips to a
-// free-text input (with a link back to the list).
-const NEW_SENTINEL = "__ftti_new__";
-
-function ComboSelect({ value, options, onChange, selectPlaceholder, inputPlaceholder, bsSize, disabled, id }) {
-  const [adding, setAdding] = useState(false);
-  const isNew = adding || (!!value && !options.includes(value));
-
-  const handleSelect = (e) => {
-    const v = e.target.value;
-    if (v === NEW_SENTINEL) {
-      setAdding(true);
-      onChange("");
-    } else {
-      setAdding(false);
-      onChange(v);
-    }
-  };
-
-  if (isNew) {
-    return (
-      <div>
-        <Input
-          id={id}
-          bsSize={bsSize}
-          type="text"
-          value={value}
-          placeholder={inputPlaceholder}
-          onChange={(e) => onChange(e.target.value)}
-        />
-        <Button color="link" size="sm" style={{ padding: "2px 0" }}
-          onClick={() => { setAdding(false); onChange(""); }}>
-          &larr; choose from list
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <Input
-      id={id}
-      bsSize={bsSize}
-      type="select"
-      value={options.includes(value) ? value : ""}
-      onChange={handleSelect}
-      disabled={disabled}
-    >
-      <option value="">{selectPlaceholder}</option>
-      {options.map((o) => <option key={o} value={o}>{o}</option>)}
-      <option value={NEW_SENTINEL}>&#43; Add new&hellip;</option>
-    </Input>
-  );
-}
 
 // ─── Previous Analyses Modal ────────────────────────────────────────────────
 // Lists the analysis *titles* that exist (including ones still running).
@@ -792,13 +738,11 @@ const FutureTechnologyTrendsIdentifier = () => {
               <Col md="6">
                 <FormGroup>
                   <Label for="analysisSector">Sector</Label>
-                  <ComboSelect
-                    id="analysisSector"
+                  <SectorSelect
+                    inputId="analysisSector"
                     value={meta.sector}
-                    options={sectorOptions}
+                    extraOptions={sectorOptions}
                     onChange={(v) => setMeta({ ...meta, sector: v })}
-                    selectPlaceholder="— select a sector —"
-                    inputPlaceholder="Type a new sector"
                   />
                 </FormGroup>
               </Col>

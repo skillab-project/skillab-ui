@@ -26,6 +26,7 @@ import {
 } from "reactstrap";
 import classnames from 'classnames';
 import axios from 'axios';
+import SectorSelect from '../../../components/SectorSelect';
 
 const EVAL_API_URL = process.env.REACT_APP_API_URL_POLICY_SUCCESS_EVALUATOR;
 
@@ -215,7 +216,11 @@ function PoliciesMain({ policies, onPolicyCreated }) {
                                 <Col md="6">
                                     <FormGroup>
                                         <Label for="policySector">Sector</Label>
-                                        <Input type="text" name="sector" id="policySector" placeholder="e.g., Technology" value={newPolicy.sector} onChange={handleInputChange} required />
+                                        <SectorSelect
+                                            inputId="policySector"
+                                            value={newPolicy.sector}
+                                            onChange={(v) => setNewPolicy((prev) => ({ ...prev, sector: v }))}
+                                        />
                                     </FormGroup>
                                 </Col>
                                 <Col md="6">

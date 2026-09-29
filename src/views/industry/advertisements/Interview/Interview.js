@@ -1,17 +1,8 @@
-import React, {
-    useEffect,
-    useMemo,
-    useState,
-    useCallback,
-    useLayoutEffect,
-    useRef,
-} from "react";
-import { Row, Col, Button } from "reactstrap";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { Button, Input } from "reactstrap";
 
 import InterviewSteps from "./InterviewSteps";
-import JobDescription from "../Description/Description";
 import AddStepModal from "./AddStepModal";
-import SkillSelectorReadOnly from "../Description/SkillSelectorReadOnly";
 import ConfirmModal from "../Hire/ConfirmModal";
 
 import "./interview.css";
@@ -35,7 +26,6 @@ export default function Interview({ selectedJobAdId }) {
     const [description, setDescription] = useState("");
     const [steps, setSteps] = useState([]);
     const [selectedStepIndex, setSelectedStepIndex] = useState(0);
-    const [stepSkills, setStepSkills] = useState([]);
     const [error, setError] = useState(null);
     const [saving, setSaving] = useState(false);
     const [showAddStep, setShowAddStep] = useState(false);
@@ -46,58 +36,6 @@ export default function Interview({ selectedJobAdId }) {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
-    /* ====== ΥΠΟΛΟΓΙΣΜΟΣ ΥΨΟΥΣ ΓΙΑ ΤΟ SKILLS PANEL ====== */
-    const rightDescWrapRef = useRef(null);
-    const skillsColRef = useRef(null);
-    const updateBtnRef = useRef(null);
-    const [skillsPanelHeight, setSkillsPanelHeight] = useState(null);
-
-    const recalcHeights = useCallback(() => {
-        const col = skillsColRef.current;
-        const btn = updateBtnRef.current;
-        if (!col) return;
-
-        const colH = col.clientHeight;
-
-        let buttonsTotal = 0;
-        if (btn) {
-            const csBtn = getComputedStyle(btn);
-            const btnH = btn.offsetHeight || 0;
-            const btnMt = parseFloat(csBtn.marginTop || "0");
-            const btnMb = parseFloat(csBtn.marginBottom || "0");
-            buttonsTotal = btnH + btnMt + btnMb;
-        }
-
-        const SKILLS_HEADER_H = 28;
-        const buffer = 8;
-
-        let available = Math.max(140, colH - buttonsTotal - SKILLS_HEADER_H - buffer);
-
-        if (rightDescWrapRef.current) {
-            const leftH = rightDescWrapRef.current.clientHeight;
-            if (leftH > 0) available = Math.min(available, leftH);
-        }
-
-        setSkillsPanelHeight(available);
-    }, []);
-
-    const kickRecalc = useCallback(() => {
-        recalcHeights();
-        requestAnimationFrame(() => recalcHeights());
-        setTimeout(recalcHeights, 0);
-        setTimeout(recalcHeights, 120);
-        if (document?.fonts?.ready) document.fonts.ready.then(() => recalcHeights());
-    }, [recalcHeights]);
-
-    useLayoutEffect(() => { kickRecalc(); }, [kickRecalc]);
-    useEffect(() => {
-        let raf = 0;
-        const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(kickRecalc); };
-        window.addEventListener("resize", onResize);
-        const t = setTimeout(kickRecalc, 0);
-        return () => { window.removeEventListener("resize", onResize); cancelAnimationFrame(raf); clearTimeout(t); };
-    }, [kickRecalc, steps.length, selectedStepIndex]);
-
     /* ====== DATA ====== */
     useEffect(() => {
         if (!selectedJobAdId) return;
@@ -106,7 +44,6 @@ export default function Interview({ selectedJobAdId }) {
         setInterviewId(null);
         setDescription("");
         setSteps([]);
-        setStepSkills([]);
         setSelectedStepIndex(0);
         setStatus(null);
 
@@ -124,17 +61,6 @@ export default function Interview({ selectedJobAdId }) {
             .catch(() => setStatus(null));
     }, [selectedJobAdId]);
 
-    const fetchStepSkills = useCallback((stepId) => {
-        if (stepId == null) { setStepSkills([]); return; }
-        fetch(`${API}/api/v1/step/${stepId}/skills`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } })
-            .then((r) => (r.ok ? r.json() : Promise.reject()))
-            .then((data) => {
-                const names = (data || []).map((x) => x.skillName).filter(Boolean);
-                setStepSkills(names);
-            })
-            .catch(() => setStepSkills([]));
-    }, []);
-
     const reloadSteps = useCallback(async () => {
         if (!interviewId) return;
         try {
@@ -150,21 +76,14 @@ export default function Interview({ selectedJobAdId }) {
 
             const idx = Math.min(selectedStepIndex, Math.max(0, safe.length - 1));
             setSelectedStepIndex(idx);
-            const currentId = safe[idx]?.id ?? null;
-            if (currentId != null) fetchStepSkills(currentId);
-            else setStepSkills([]);
         } catch { /* ignore */ }
-    }, [interviewId, selectedStepIndex, fetchStepSkills]);
+    }, [interviewId, selectedStepIndex]);
 
     useEffect(() => { if (interviewId != null) reloadSteps(); }, [interviewId, reloadSteps]);
 
-    const handleSelectStep = useCallback((index, stepIdFromChild) => {
-        const idx = index ?? 0;
-        setSelectedStepIndex(idx);
-        const stepId = stepIdFromChild ?? steps[idx]?.id ?? null;
-        if (stepId != null) fetchStepSkills(stepId);
-        else setStepSkills([]);
-    }, [steps, fetchStepSkills]);
+    const handleSelectStep = useCallback((index) => {
+        setSelectedStepIndex(index ?? 0);
+    }, []);
 
     const getCurrentStepId = () => steps[selectedStepIndex]?.id ?? null;
     const getCurrentStepTitle = () => steps[selectedStepIndex]?.title || "";
@@ -228,9 +147,6 @@ export default function Interview({ selectedJobAdId }) {
 
         setSteps(nextSteps);
         setSelectedStepIndex(newIndex);
-        const nextSelectedId = nextSteps[newIndex]?.id ?? null;
-        if (nextSelectedId != null) fetchStepSkills(nextSelectedId);
-        else setStepSkills([]);
 
         try {
             const res = await fetch(`${API}/api/v1/step/${stepId}`, { method: "DELETE", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
@@ -240,9 +156,6 @@ export default function Interview({ selectedJobAdId }) {
         } catch {
             setSteps(prevSteps);
             setSelectedStepIndex(currentIndex);
-            const rollbackId = prevSteps[currentIndex]?.id ?? null;
-            if (rollbackId != null) fetchStepSkills(rollbackId);
-            else setStepSkills([]);
             setConfirmOpen(false);
             toast("Delete failed", "error");
         } finally {
@@ -250,88 +163,88 @@ export default function Interview({ selectedJobAdId }) {
         }
     };
 
-    if (!selectedJobAdId) return <p style={{ padding: "1rem" }}>Select a Job Ad to view the Interview.</p>;
-    if (error) return <p style={{ padding: "1rem", color: "red" }}>{error}</p>;
+    if (!selectedJobAdId) return <p className="text-muted" style={{ padding: "1rem" }}>Select a Job Ad to view the Interview.</p>;
+    if (error) return <p className="text-danger" style={{ padding: "1rem" }}>{error}</p>;
 
-    const actionBtnStyle = { minWidth: 104, height: 34, padding: "4px 10px", fontSize: 13.5 };
+    const currentTitle = getCurrentStepTitle();
 
     return (
         <>
-            <Row className="g-3 iv-root-row">
-                {/* LEFT: Steps */}
-                <Col md="4" className="iv-col">
-                    <label className="description-labels" style={{ paddingLeft: 10, marginBottom: 14 }}>
-                        Interview Steps
-                    </label>
-
-                    <div className="boxStyle iv-card" style={{ overflow: "hidden" }}>
-                        <InterviewSteps
-                            interviewsteps={steps}
-                            onSelect={handleSelectStep}
-                            selectedIndex={selectedStepIndex}
-                            interviewId={interviewId}
-                            reloadSteps={async () => { await reloadSteps(); toast("Steps updated", "info"); }}
-                            onLocalReorder={onLocalReorder}
-                            canEdit={canEdit}
-                            reserve={80}
-                        />
-
-                        {canEdit && (
-                            <div className="boxFooter iv-footer" style={{ padding: "8px 10px", display: "flex", justifyContent: "center", gap: 15 }}>
-                                <Button color="secondary" style={actionBtnStyle}
-                                    onClick={() => setShowAddStep(true)}>
-                                    Create New
+            <div className="iv-page">
+                {/* ---------- Interview steps ---------- */}
+                <section className="iv-section">
+                    <div className="iv-section-head">
+                        <div>
+                            <h5 className="iv-section-title">Interview Steps</h5>
+                            <p className="iv-section-sub">
+                                {canEdit
+                                    ? "The stages candidates go through. Click a step to edit its description, drag ⠿ to reorder. Add the skills and questions of each step in the Questions tab."
+                                    : "The stages candidates go through. Skills and questions per step are in the Questions tab."}
+                            </p>
+                        </div>
+                        {canEdit ? (
+                            <div className="iv-actions">
+                                <Button color="primary" onClick={() => setShowAddStep(true)} disabled={!interviewId}>
+                                    <i className="nc-icon nc-simple-add mr-1" style={{ verticalAlign: "middle" }} /> Add Step
                                 </Button>
-                                <Button color="danger" style={actionBtnStyle}
-                                    onClick={openDeleteConfirm} disabled={!getCurrentStepId()}>
-                                    Delete
+                                <Button
+                                    color="danger"
+                                    outline
+                                    onClick={openDeleteConfirm}
+                                    disabled={!getCurrentStepId()}
+                                    title={currentTitle ? `Delete “${currentTitle}”` : "Select a step to delete"}
+                                >
+                                    <i className="nc-icon nc-simple-remove mr-1" style={{ verticalAlign: "middle" }} /> Delete Step
                                 </Button>
                             </div>
+                        ) : (
+                            <span className="iv-readonly-note">
+                                <i className="nc-icon nc-lock-circle-open" /> Read-only once the job ad is published
+                            </span>
                         )}
                     </div>
-                </Col>
 
-                {/* RIGHT: Description + Skills */}
-                <Col md="8" className="iv-col">
-                    <Row className="g-3 iv-fill">
-                        {/* Interview Description */}
-                        <Col md="6" className="iv-col">
-                            <div className="iv-right-fill" ref={rightDescWrapRef}>
-                                <JobDescription
-                                    name="Interview Description"
-                                    description={description}
-                                    onDescriptionChange={setDescription}
-                                    readOnly={!canEdit}
-                                    disabled={!canEdit}
-                                />
-                            </div>
-                        </Col>
+                    <InterviewSteps
+                        interviewsteps={steps}
+                        onSelect={handleSelectStep}
+                        selectedIndex={selectedStepIndex}
+                        interviewId={interviewId}
+                        reloadSteps={async () => { await reloadSteps(); toast("Steps updated", "info"); }}
+                        onLocalReorder={onLocalReorder}
+                        canEdit={canEdit}
+                    />
+                </section>
 
-                        {/* Skills — wider column, fills full height for more room */}
-                        <Col md="6" className="iv-col" ref={skillsColRef}>
-                            <div className="iv-right-fill" style={{ minHeight: 0 }}>
-                                <SkillSelectorReadOnly
-                                    label="Required Step Skills"
-                                    requiredskills={stepSkills}
-                                />
-                            </div>
+                {/* ---------- Interview description (centred) ---------- */}
+                <section className="iv-section iv-section--center">
+                    <div className="iv-section-head">
+                        <div>
+                            <h5 className="iv-section-title">Interview Description</h5>
+                            <p className="iv-section-sub">General information about the interview process shared with candidates.</p>
+                        </div>
+                    </div>
 
-                            {canEdit && (
-                                <div ref={updateBtnRef} className="d-flex justify-content-center" style={{ marginTop: 12, flex: "0 0 auto" }}>
-                                    <Button
-                                        color="secondary"
-                                        className="delete-btn-req"
-                                        onClick={handleUpdate}
-                                        disabled={saving || !interviewId}
-                                    >
-                                        {saving ? "Saving..." : "Update"}
-                                    </Button>
-                                </div>
-                            )}
-                        </Col>
-                    </Row>
-                </Col>
-            </Row>
+                    <Input
+                        type="textarea"
+                        rows={7}
+                        className="iv-textarea"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Describe the interview process, e.g. format, duration, who takes part…"
+                        readOnly={!canEdit}
+                        disabled={!canEdit}
+                        aria-label="Interview description"
+                    />
+
+                    {canEdit && (
+                        <div className="d-flex justify-content-center mt-3">
+                            <Button color="primary" className="m-0" onClick={handleUpdate} disabled={saving || !interviewId}>
+                                {saving ? "Saving…" : "Save Description"}
+                            </Button>
+                        </div>
+                    )}
+                </section>
+            </div>
 
             <ConfirmModal
                 isOpen={confirmOpen}

@@ -1,218 +1,180 @@
-/* ========== Flex helpers (μην τα πειράξεις) ========== */
-.q-col-flex {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    /* κρίσιμο για nested scrolls */
-}
+/* ==========================================================================
+   Questions tab — shares the section / step-card look of the Interview tab
+   (../Interview/interview.css, "iv-" classes); question- and skill-specific
+   bits live here with the "q-" prefix.
+   ========================================================================== */
 
-.q-fill {
-    flex: 1;
-    min-height: 0;
-    /* κρίσιμο για nested scrolls */
-}
-
-.q-no-x {
-    overflow-x: hidden;
-}
-
-/* ========== Κάρτα Steps (χωρίς δικό της scroll) ========== */
-.q-steps-card {
-    background: #E5E7EB;
-    border: 1px solid #bbb;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    /* το παιδί κάνει scroll */
-    overflow: hidden;
-    /* κόβει εσωτερικές μπάρες */
-    padding-top: 8px;
-}
-
-/* ✅ ΜΟΝΑΔΙΚΟΣ scroller στη λίστα (ύψος δίνεται από JS) */
-.q-steps-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-gutter: stable;
-    -webkit-overflow-scrolling: touch;
-    padding: 8px 12px;
-}
-
-/* Κουμπιά κάτω από τη λίστα (εκτός scroller) */
-.q-actions {
-    margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-}
-
-/* ========== Step & Question cosmetics ========== */
-.q-step-header {
-    cursor: pointer;
-    background: #fff;
-    border: 1px solid #dcdcdc;
-    border-radius: 10px;
-    padding: 10px 12px;
+.q-step-count {
+    flex: 0 0 auto;
+    font-size: 11.5px;
     font-weight: 600;
-    width: 100%;
-    box-sizing: border-box;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #f1f1f1;
+    color: #66615b;
+    white-space: nowrap;
 }
 
-.q-droppable {
-    padding: 8px 12px;
-    border-left: 2px solid #aaa;
-    margin-top: 6px;
+.iv-step.is-open .q-step-count {
+    background: rgba(81, 203, 206, .15);
+    color: #3aa9ac;
 }
 
-.q-draggable {
-    background: #f9f9f9;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
-    user-select: none;
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 34px;
+/* ---------- Questions inside a step ---------- */
+.q-questions {
+    padding: 2px 14px 14px 58px;
+    min-height: 12px;
 }
 
-.q-draggable.is-selected {
-    background: #8f9092;
-    border-color: #8f9092;
-}
-
-.q-draggable.is-dragging {
-    background: #ccd1d6;
-}
-
-.q-draggable-row {
+.q-question {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    padding: 9px 12px;
+    margin-top: 6px;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-left: 3px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13.5px;
+    color: #252422;
+    transition: background .15s ease, border-color .15s ease;
 }
 
-.q-drag-handle {
-    width: 16px;
-    height: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: grab;
-    opacity: .7;
-    user-select: none;
+.q-question:hover {
+    background: #f7fdfd;
+    border-color: #cfeff0;
+}
+
+.q-question.is-selected {
+    background: rgba(81, 203, 206, .12);
+    border-color: #51cbce;
+    border-left-color: #51cbce;
+    font-weight: 600;
+}
+
+.q-question.is-dragging {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+}
+
+.q-question-icon {
+    color: #51cbce;
+    font-size: 13px;
 }
 
 .q-question-text {
     flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: black;
-    font-size: 14px;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
-
-.q-empty {
-    font-size: 12px;
-    opacity: .6;
-    padding-left: 4px;
+.q-no-questions {
+    font-size: 12.5px;
+    color: #9a9a9a;
+    padding: 8px 2px 0;
 }
 
-/* ========== Δεξιά στήλη (skills) ========== */
-/* Σε μερικές οθόνες έχεις ήδη overflow από parent. Κρατάμε και αυτή την κλάση
-   γιατί τη χρησιμοποιείς και σε άλλα tabs. */
-.q-right-scroll {
-    flex: 1;
-    min-height: 0;
+/* ---------- Skills editor ---------- */
+.q-skill-search {
+    position: relative;
+}
+
+.q-skill-search .form-control {
+    border-radius: 6px !important;
+    max-height: none !important;
+    height: auto;
+}
+
+/* Shown inline (not floating) so the tab's scroll area never cuts it off */
+.q-skill-suggestions {
+    position: static;
+    margin-top: 4px;
+    max-height: 260px;
     overflow-y: auto;
-    overflow-x: hidden;
+    background: #fff;
+    border: 1px solid #e3e3e3;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
 }
 
-/* ΝΕΟ: wrapper της κάρτας Skills.
-   Παίρνει fixed height από JS & αφήνει το πραγματικό scroll στη λίστα. */
-.q-skill-wrap {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    /* το scroll είναι στο .selected-skills-container */
+.q-skill-suggestion {
+    padding: 7px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    overflow-wrap: anywhere;
 }
 
-.q-mt-16 {
-    margin-top: 16px;
+.q-skill-suggestion:hover,
+.q-skill-suggestion.is-active {
+    background: rgba(81, 203, 206, .12);
 }
 
+.q-skill-suggestion.is-muted {
+    color: #9a9a9a;
+    cursor: default;
+    font-style: italic;
+}
 
-
-/* safety ώστε να δουλέψει σωστά το εσωτερικό overflow */
-/* Το card-body της δεξιάς στήλης να ΜΗ scrollάρει.
-   Είναι flex ώστε να φιλοξενεί σωστά το q-right-card. */
-.q-col-flex {
+.q-skill-chips {
     display: flex;
-    flex-direction: column;
-    min-height: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
 }
 
-.q-fill {
-    flex: 1;
-    min-height: 0;
+.q-skill-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 5px 6px 5px 12px;
+    border-radius: 999px;
+    background: rgba(81, 203, 206, .15);
+    color: #1f7f82;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.3;
 }
 
-.q-no-x {
-    overflow-x: hidden;
+.q-skill-chip span {
+    overflow-wrap: anywhere;
 }
 
-/* Left card */
-.q-steps-card {
-    background: #E5E7EB;
-    border: 1px solid #bbb;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, .15);
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    padding-top: 8px;
+.q-skill-chip button {
+    border: none;
+    background: transparent;
+    color: #1f7f82;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    line-height: 1;
+    font-size: 15px;
+    padding: 0;
+    cursor: pointer;
 }
 
-.q-steps-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-    padding: 8px 12px;
+.q-skill-chip button:hover {
+    background: rgba(31, 127, 130, .15);
 }
 
-.q-actions {
+.q-skill-empty {
+    font-size: 12.5px;
+    color: #9a9a9a;
     margin-top: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
 }
 
-/* Right column – ΚΑΘΟΛΟΥ height calc */
-.q-right-card {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    padding-bottom: 12px;
+@media (max-width: 576px) {
+    .q-questions {
+        padding-left: 14px;
+    }
 }
 
-.q-skill-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
+/* Content stays left-aligned even if a parent centres text */
+.iv-page {
+    text-align: left;
 }
 
-.q-right-footer {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    padding: 8px 0 0;
+.q-skill-suggestion {
+    text-align: left;
 }

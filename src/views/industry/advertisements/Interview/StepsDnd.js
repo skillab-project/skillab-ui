@@ -9,7 +9,7 @@ export default function StepsDnd({
     onReorder,
     onApplyServerReorder,
 
-    // αν είναι undefined, δεν καλούμε update
+    // when undefined, descriptions can't be saved
     onUpdateDescription,
 
     // flags
@@ -51,18 +51,24 @@ export default function StepsDnd({
         }
     };
 
-    const startEdit = (stepId, initial) => {
+    const startEdit = (stepId, value) => {
         if (readOnlyDescription) return;
-        setDraft((d) => ({ ...d, [stepId]: initial ?? "" }));
+        setDraft((d) => ({ ...d, [stepId]: value ?? "" }));
     };
 
     const commitEdit = async (stepId) => {
         if (readOnlyDescription || !onUpdateDescription) return;
+        if (!(stepId in draft)) return; // nothing changed
         const text = draft[stepId] ?? "";
         if (savingId === stepId) return;
         setSavingId(stepId);
         try {
             await onUpdateDescription(stepId, text);
+            setDraft((d) => {
+                const next = { ...d };
+                delete next[stepId];
+                return next;
+            });
         } catch (e) {
             console.error(e);
         } finally {
@@ -70,20 +76,26 @@ export default function StepsDnd({
         }
     };
 
+    if (steps.length === 0) {
+        return (
+            <div className="iv-empty">
+                <i className="nc-icon nc-bullet-list-67" />
+                No interview steps yet.
+                {!dndDisabled && <> Use <b>Add Step</b> to create the first one (e.g. Technical, HR Round).</>}
+            </div>
+        );
+    }
+
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="steps-accordion">
                 {(provided) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps}>
-                        {steps.length === 0 && (
-                            <div style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.5, padding: "10px 12px" }}>
-                                No interview steps yet. Use <b>“Create New”</b> below to add your first step
-                                (e.g. Technical, HR Round). Drag the handle to reorder.
-                            </div>
-                        )}
+                    <div ref={provided.innerRef} {...provided.droppableProps} className="iv-steps">
                         {steps.map((s, idx) => {
                             const isSelected = idx === selectedIndex;
                             const isOpen = idx === openIndex;
+                            const value = draft[s.id] ?? s.description ?? "";
+                            const dirty = s.id in draft && draft[s.id] !== (s.description ?? "");
 
                             return (
                                 <Draggable
@@ -96,85 +108,70 @@ export default function StepsDnd({
                                         <div
                                             ref={dragProvided.innerRef}
                                             {...dragProvided.draggableProps}
-                                            style={{
-                                                border: "1px solid #e0e0e0",
-                                                borderRadius: 12,
-                                                background: snapshot.isDragging ? "#eef3ff" : "#f7f7f7",
-                                                marginBottom: 10,
-                                                ...dragProvided.draggableProps.style,
-                                            }}
+                                            className={[
+                                                "iv-step",
+                                                isSelected ? "is-selected" : "",
+                                                isOpen ? "is-open" : "",
+                                                snapshot.isDragging ? "is-dragging" : "",
+                                            ].join(" ")}
+                                            style={dragProvided.draggableProps.style}
                                         >
-                                            {/* HEADER */}
                                             <div
-                                                className="step-row-header"
+                                                className="iv-step-header"
                                                 onClick={() => toggleOpen(idx)}
-                                                style={{
-                                                    display: "grid",
-                                                    gridTemplateColumns: "1fr 1fr",
-                                                    alignItems: "center",
-                                                    gap: 12,
-                                                    padding: "10px 12px",
-                                                    cursor: "pointer",
-                                                }}
+                                                role="button"
+                                                aria-expanded={isOpen}
                                             >
-                                                <div style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 24, paddingLeft: 12 }}>
-                                                    {!dndDisabled && (
-                                                        <span
-                                                            {...dragProvided.dragHandleProps}
-                                                            title="Drag to reorder"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            style={{ userSelect: "none", cursor: "grab", fontSize: 14, opacity: 0.7 }}
-                                                        >
-                                                            ⠿
+                                                {!dndDisabled && (
+                                                    <span
+                                                        {...dragProvided.dragHandleProps}
+                                                        className="iv-drag"
+                                                        title="Drag to reorder"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        ⠿
+                                                    </span>
+                                                )}
+                                                <span className="iv-step-num">{idx + 1}</span>
+                                                <span className="iv-step-text">
+                                                    <span className="iv-step-title" title={s.title}>{s.title || "Untitled step"}</span>
+                                                    {!isOpen && (
+                                                        <span className="iv-step-desc">
+                                                            {s.description ? s.description : "No description yet"}
                                                         </span>
                                                     )}
-                                                    <span style={{ fontSize: 14, fontWeight: isSelected ? 600 : 500, color: "#2b2b2b" }}>
-                                                        {`Step ${idx + 1}`}
-                                                    </span>
-                                                </div>
-
-                                                <div
-                                                    style={{
-                                                        fontSize: 14,
-                                                        color: "#2b2b2b",
-                                                        textAlign: "left",
-                                                        paddingLeft: 25,
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis",
-                                                        whiteSpace: "nowrap",
-                                                    }}
-                                                >
-                                                    {s.title || "—"}
-                                                </div>
+                                                </span>
+                                                <i className="nc-icon nc-minimal-down iv-chevron" />
                                             </div>
 
                                             {isOpen && (
-                                                <div style={{ padding: "0 12px 12px" }}>
-                                                    <label style={{ fontSize: 12, opacity: 0.7, marginBottom: 6, display: "block" }}>
-                                                        Step Description
+                                                <div className="iv-step-body">
+                                                    <label className="iv-field-label" htmlFor={`iv-step-desc-${s.id}`}>
+                                                        Step description
                                                     </label>
                                                     <Input
+                                                        id={`iv-step-desc-${s.id}`}
                                                         type="textarea"
                                                         rows={3}
-                                                        value={draft[s.id] ?? s.description ?? ""}
+                                                        className="iv-textarea"
+                                                        value={value}
                                                         onChange={(e) => startEdit(s.id, e.target.value)}
                                                         onBlur={() => commitEdit(s.id)}
-                                                        placeholder="Write a short description for this step…"
+                                                        placeholder="What happens in this step and what should be assessed?"
                                                         readOnly={readOnlyDescription}
                                                         disabled={readOnlyDescription}
-                                                        style={{ resize: "none", overflowWrap: "anywhere", boxSizing: "border-box" }}
                                                     />
 
                                                     {showSaveButton && onUpdateDescription && (
-                                                        <div className="d-flex justify-content-end" style={{ gap: 8, marginTop: 8 }}>
+                                                        <div className="d-flex justify-content-end mt-2">
                                                             <Button
                                                                 size="sm"
-                                                                color="secondary"
-                                                                outline
+                                                                color="primary"
+                                                                className="m-0"
                                                                 onClick={() => commitEdit(s.id)}
-                                                                disabled={savingId === s.id}
+                                                                disabled={savingId === s.id || !dirty}
                                                             >
-                                                                {savingId === s.id ? "Saving…" : "Save"}
+                                                                {savingId === s.id ? "Saving…" : "Save step"}
                                                             </Button>
                                                         </div>
                                                     )}

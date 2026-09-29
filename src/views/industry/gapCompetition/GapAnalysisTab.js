@@ -35,6 +35,7 @@ import {
   getGapAuthHeaders,
   indexedSectionToArray,
   sectionItemType,
+  getGapSections,
   formatPercent,
   GAP_COLORS,
 } from "./gapCompetitionUtils";
@@ -255,14 +256,12 @@ function GapAnalysisTab({ departments, loadingDepartments }) {
     }
   };
 
-  const common = result?.analysis_results?.common;
-  const onlyInAd = result?.analysis_results?.only_in_ad;
-  const onlyInSector = result?.analysis_results?.only_in_sector;
+  const { common, onlyInAd, onlyInSector } = getGapSections(result?.analysis_results);
 
   const commonRows = useMemo(() => indexedSectionToArray(common), [common]);
   const onlyInAdRows = useMemo(() => indexedSectionToArray(onlyInAd), [onlyInAd]);
   const onlyInSectorRows = useMemo(() => indexedSectionToArray(onlyInSector), [onlyInSector]);
-  const itemType = sectionItemType(common) || (analysisType === "occupation" ? "Occupation" : "Skill");
+  const itemType = sectionItemType(common, onlyInAd, onlyInSector) || (analysisType === "job" ? "Occupation" : "Skill");
 
   return (
     <Row>
@@ -308,7 +307,7 @@ function GapAnalysisTab({ departments, loadingDepartments }) {
                       onChange={(e) => setAnalysisType(e.target.value)}
                     >
                       <option value="skill">Skills</option>
-                      <option value="occupation">Occupations</option>
+                      <option value="job">Jobs</option>
                     </Input>
                   </FormGroup>
                 </Col>

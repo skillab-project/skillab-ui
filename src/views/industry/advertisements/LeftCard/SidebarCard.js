@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback, useLayoutEffect, useRef } from "react";
-import { Card, CardBody, Col, Row, Button } from "reactstrap";
+import { Card, CardHeader, CardBody, CardTitle, Button } from "reactstrap";
 import OccupationSelector from "./OccupationSelector";
 import CreateJobAd from "./CreateJobAd";
+import { STATUSES, countByStatus } from "./OccupationDropDown";
 import "./sidebar.css";
+import "../../../../assets/css/loader.css";
 
 
 // ομοιόμορφη κανονικοποίηση strings
@@ -64,6 +66,7 @@ const SidebarCard = ({
 
     const [departments, setDepartments] = useState([]);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const toggleCreate = () => setIsCreateOpen(v => !v);
 
@@ -99,6 +102,7 @@ const SidebarCard = ({
 
     /* -------------------- fetch & group -------------------- */
     const loadDepartments = useCallback(async () => {
+        setLoading(true);
         try {
             const jobsRes = await fetch(`${baseUrl}/api/v1/jobAds`, { cache: "no-store", headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`} });
             if (!jobsRes.ok) throw new Error("Failed to fetch job ads");
@@ -163,6 +167,8 @@ const SidebarCard = ({
             console.error(err);
             setDepartments([]);
             setError(err);
+        } finally {
+            setLoading(false);
         }
     }, [baseUrl]);
 
@@ -241,46 +247,63 @@ const SidebarCard = ({
         return () => window.removeEventListener("resize", fit);
     }, [bottomReserve]);
 
+    const allJobs = departments.flatMap((d) => (d.occupations || []).flatMap((o) => o.jobTitles || []));
+    const statusCounts = countByStatus(allJobs);
+
     return (
-            <Card>
-                <CardBody >
-                    <Row >
-                        {error ? (
-                            <div className="text-center" style={{ width: "100%" }}>
-                                <p>Failed to load.</p>
-                                <Button size="sm" color="secondary" onClick={loadDepartments}>
-                                    Retry
-                                </Button>
-                            </div>
+        <Card>
+            <CardHeader className="d-flex align-items-start justify-content-between flex-wrap" style={{ gap: 10 }}>
+                <div>
+                    <CardTitle tag="h4" className="mb-0">Job Ads</CardTitle>
+                    <p className="card-category mb-0 ja-header-summary">
+                        {allJobs.length ? (
+                            <>
+                                {allJobs.length} job ad{allJobs.length === 1 ? "" : "s"}
+                                {STATUSES.map((st) => (
+                                    <span key={st.key} className="ja-summary-item">
+                                        <span className={`ja-job-dot ja-status--${st.key}`} />
+                                        {statusCounts[st.key] || 0} {st.label}
+                                    </span>
+                                ))}
+                            </>
                         ) : (
-                            <OccupationSelector
-                                Name="Departments"
-                                departments={departments}
-                                onJobAdSelect={handleSelectJobAd}
-                                selectedJobAdId={selectedJobAdId}
-                                onDepartmentSelect={onDepartmentSelect}
-                                selectedDepartmentId={selectedDepartmentId}
-                                onOccupationSelect={handleOccupationSelect}
-                                selectedOccupationId={selectedOccupationId}
-                            />
+                            "Organised by department and occupation"
                         )}
-                    </Row>
-
-                    <Row className="mt-3">
-                        <Col className="text-center">
-                            <Button color="secondary" onClick={toggleCreate}>
-                                Create New
-                            </Button>
-                        </Col>
-                    </Row>
-
-                    <CreateJobAd
-                        isOpen={isCreateOpen}
-                        toggle={toggleCreate}
-                        onCreated={handleCreated}
+                    </p>
+                </div>
+                <Button color="primary" className="m-0" onClick={toggleCreate}>
+                    <i className="nc-icon nc-simple-add mr-1" style={{ verticalAlign: "middle" }} /> Create Job Ad
+                </Button>
+            </CardHeader>
+            <CardBody>
+                {error ? (
+                    <div className="ja-empty">
+                        <i className="nc-icon nc-alert-circle-i" />
+                        <p className="mb-2">Failed to load the job ads.</p>
+                        <Button size="sm" color="info" onClick={loadDepartments}>
+                            Retry
+                        </Button>
+                    </div>
+                ) : (
+                    <OccupationSelector
+                        departments={departments}
+                        loading={loading}
+                        onJobAdSelect={handleSelectJobAd}
+                        selectedJobAdId={selectedJobAdId}
+                        onDepartmentSelect={onDepartmentSelect}
+                        selectedDepartmentId={selectedDepartmentId}
+                        onOccupationSelect={handleOccupationSelect}
+                        selectedOccupationId={selectedOccupationId}
                     />
-                </CardBody>
-            </Card>
+                )}
+
+                <CreateJobAd
+                    isOpen={isCreateOpen}
+                    toggle={toggleCreate}
+                    onCreated={handleCreated}
+                />
+            </CardBody>
+        </Card>
     );
 };
 

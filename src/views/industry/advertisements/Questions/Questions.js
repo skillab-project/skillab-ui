@@ -1,10 +1,10 @@
 import React from 'react';
-import { Col, Row, Button } from 'reactstrap';
+import { Button, Input, Row, Col } from 'reactstrap';
 import StepsTree from './StepsTree';
-import Description from '../Description/Description';
-import SkillSelector from '../Description/SkillSelector';
+import QuestionSkillsEditor from './QuestionSkillsEditor';
 import AddQuestionModal from './AddQuestionModal';
 import ConfirmModal from '../Hire/ConfirmModal';
+import '../Interview/interview.css';
 import './questions.css';
 
 
@@ -14,9 +14,6 @@ const isEditableStatus = (raw) => {
     const n = normalizeStatus(raw);
     return n === 'pending' || n === 'pedding' || n === 'draft';
 };
-
-const RESERVE_LEFT = 80;
-const GAP_ABOVE_UPDATE = 12;
 
 // safe toast helper
 const toast = (msg, type = 'success', ttl = 2500) => {
@@ -28,6 +25,8 @@ export default function Questions({ selectedJobAdId }) {
     const [allSkills, setAllSkills] = React.useState([]);
     const [requiredSkills, setRequiredSkills] = React.useState([]);
     const [questionDesc, setQuestionDesc] = React.useState('');
+    const [saving, setSaving] = React.useState(false);
+    const editorRef = React.useRef(null);
     const [selectedQuestionId, setSelectedQuestionId] = React.useState(null);
 
     const [status, setStatus] = React.useState(null);
@@ -70,6 +69,14 @@ export default function Questions({ selectedJobAdId }) {
             });
     }, [selectedQuestionId]);
 
+    // Bring the editor into view when a question is picked
+    const selectQuestion = React.useCallback((id) => {
+        setSelectedQuestionId(id);
+        if (id) {
+            setTimeout(() => editorRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }), 50);
+        }
+    }, []);
+
     /* ===== Κατάσταση Job Ad ===== */
     React.useEffect(() => {
         if (!selectedJobAdId) {
@@ -85,6 +92,7 @@ export default function Questions({ selectedJobAdId }) {
     /* ===== Αποθήκευση ===== */
     const handleSave = async () => {
         if (!selectedQuestionId) return;
+        setSaving(true);
         try {
             const resp = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/question/${selectedQuestionId}`, {
                 method: 'PUT',
@@ -98,6 +106,8 @@ export default function Questions({ selectedJobAdId }) {
             toast('Question updated', 'success');
         } catch {
             toast('Update failed', 'error');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -138,82 +148,8 @@ export default function Questions({ selectedJobAdId }) {
         }
     };
 
-    /* ========= ΜΟΝΑΔΙΚΟΣ SCROLLER ΣΤΗ ΜΕΣΑΙΑ ΣΤΗΛΗ ========= */
-    const stepsScrollRef = React.useRef(null);
-    React.useLayoutEffect(() => {
-        const fit = () => {
-            const el = stepsScrollRef.current;
-            if (!el) return;
-            const actions = el.parentElement?.parentElement?.querySelector('.q-actions');
-            const actionsH = actions ? actions.getBoundingClientRect().height : 0;
-            const top = el.getBoundingClientRect().top;
-            const h = window.innerHeight - top - Math.max(RESERVE_LEFT, actionsH);
-            el.style.height = `${Math.max(160, h)}px`;
-            el.style.overflowY = 'auto';
-            el.style.overflowX = 'hidden';
-        };
-
-        fit();
-        window.addEventListener('resize', fit);
-        return () => window.removeEventListener('resize', fit);
-    }, [selectedJobAdId, canEdit]);
-
-    /* ========= ΚΑΘΑΡΟ ΥΨΟΣ ΓΙΑ ΤΟ ΔΕΞΙ SKILLS PANEL ========= */
-    const rightDescWrapRef = React.useRef(null);
-    const rightSkillsColRef = React.useRef(null);
-    const updateBtnRef = React.useRef(null);
-    const [skillsPanelHeight, setSkillsPanelHeight] = React.useState(null);
-
-    const recalcHeights = React.useCallback(() => {
-        const col = rightSkillsColRef.current;
-        if (!col) return;
-
-        const colH = col.clientHeight;
-
-        let buttonsTotal = 0;
-        if (updateBtnRef.current) {
-            const cs = getComputedStyle(updateBtnRef.current);
-            buttonsTotal =
-                (updateBtnRef.current.offsetHeight || 0) +
-                parseFloat(cs.marginTop || '0') +
-                parseFloat(cs.marginBottom || '0');
-        }
-
-        const SKILLS_HEADER_H = 28;
-        const buffer = 8;
-
-        let available = Math.max(
-            140,
-            colH - buttonsTotal - SKILLS_HEADER_H - buffer - GAP_ABOVE_UPDATE
-        );
-
-        if (rightDescWrapRef.current) {
-            const leftH = rightDescWrapRef.current.clientHeight;
-            if (leftH > 0) available = Math.min(available, leftH);
-        }
-
-        setSkillsPanelHeight(available);
-    }, []);
-
-    const kickRecalc = React.useCallback(() => {
-        recalcHeights();
-        requestAnimationFrame(() => recalcHeights());
-        setTimeout(recalcHeights, 0);
-        setTimeout(recalcHeights, 120);
-        if (document?.fonts?.ready) document.fonts.ready.then(() => recalcHeights());
-    }, [recalcHeights]);
-
-    React.useLayoutEffect(() => { kickRecalc(); }, [kickRecalc]);
-    React.useEffect(() => {
-        let raf = 0;
-        const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(kickRecalc); };
-        window.addEventListener('resize', onResize);
-        const t = setTimeout(kickRecalc, 0);
-        return () => { window.removeEventListener('resize', onResize); cancelAnimationFrame(raf); clearTimeout(t); };
-    }, [kickRecalc, requiredSkills.length]);
-
     if (!selectedJobAdId) {
-        return <p style={{ padding: '1rem' }}>Select a Job Ad to view Questions.</p>;
+        return <p className="text-muted" style={{ padding: '1rem' }}>Select a Job Ad to view Questions.</p>;
     }
 
     const handleCreated = ({ stepId, question }) => {
@@ -223,85 +159,99 @@ export default function Questions({ selectedJobAdId }) {
 
     return (
         <>
-            <Row className="g-3 q-fill" style={{ height: '100%' }}>
-                {/* LEFT: Steps/Questions list */}
-                <Col md="4" className="q-col-flex">
-                    <Row className="mb-2">
-                        <Col>
-                            <label className="description-labels">Choose a Step...</label>
-                        </Col>
-                    </Row>
+            <div className="iv-page">
+                {/* ---------- Steps & their questions ---------- */}
+                <section className="iv-section iv-section--head-center">
+                    <div className="iv-section-head">
+                        <div>
+                            <h5 className="iv-section-title">Questions by Step</h5>
+                            <p className="iv-section-sub">
+                                {canEdit
+                                    ? 'Open a step to see its questions, click a question to edit it below, drag ⠿ to reorder.'
+                                    : 'Open a step to see its questions, click a question to view its details below.'}
+                            </p>
+                        </div>
+                        {canEdit ? (
+                            <div className="iv-actions">
+                                <Button color="primary" onClick={openCreateModal} disabled={steps.length === 0}>
+                                    <i className="nc-icon nc-simple-add mr-1" style={{ verticalAlign: 'middle' }} /> Add Question
+                                </Button>
+                                <Button color="danger" outline disabled={!selectedQuestionId} onClick={askDelete}
+                                    title={selectedQuestionId ? 'Delete the selected question' : 'Select a question to delete'}>
+                                    <i className="nc-icon nc-simple-remove mr-1" style={{ verticalAlign: 'middle' }} /> Delete Question
+                                </Button>
+                            </div>
+                        ) : (
+                            <span className="iv-readonly-note">
+                                <i className="nc-icon nc-lock-circle-open" /> Read-only once the job ad is published
+                            </span>
+                        )}
+                    </div>
 
-                    <div className="q-steps-card">
-                        <div ref={stepsScrollRef} className="q-steps-scroll q-no-x">
-                            <StepsTree
-                                selectedJobAdId={selectedJobAdId}
-                                canEdit={canEdit}
-                                selectedQuestionId={selectedQuestionId}
-                                onSelectQuestion={setSelectedQuestionId}
-                                onStepsChange={setSteps}
-                                onSelectStep={setActiveStepId}
-                            />
+                    <StepsTree
+                        selectedJobAdId={selectedJobAdId}
+                        canEdit={canEdit}
+                        selectedQuestionId={selectedQuestionId}
+                        onSelectQuestion={selectQuestion}
+                        onStepsChange={setSteps}
+                        onSelectStep={setActiveStepId}
+                    />
+                </section>
+
+                {/* ---------- Selected question ---------- */}
+                <section className="iv-section iv-section--head-center" ref={editorRef}>
+                    <div className="iv-section-head">
+                        <div>
+                            <h5 className="iv-section-title">Question Details</h5>
+                            <p className="iv-section-sub">The description of the selected question and the skills it assesses.</p>
                         </div>
                     </div>
 
-                    {canEdit && (
-                        <div className="q-actions">
-                            <Button color="secondary" style={{ minWidth: 110, height: 36 }} onClick={openCreateModal}>
-                                Create New
-                            </Button>
-                            <Button color="danger" style={{ minWidth: 110, height: 36 }} disabled={!selectedQuestionId} onClick={askDelete}>
-                                Delete
-                            </Button>
+                    {!selectedQuestionId ? (
+                        <div className="iv-empty">
+                            <i className="nc-icon nc-tap-01" />
+                            Select a question above to see its description and skills.
                         </div>
-                    )}
-                </Col>
-
-                {/* RIGHT: Description + Skills */}
-                <Col md="8" className="q-col-flex">
-                    <Row className="g-3 q-fill">
-                        {/* Question Description */}
-                        <Col md="6" className="q-col-flex">
-                            <div className="q-fill" ref={rightDescWrapRef}>
-                                <Description
-                                    name="Question Description"
-                                    description={questionDesc}
-                                    onDescriptionChange={setQuestionDesc}
-                                    readOnly={!canEdit}
-                                />
-                            </div>
-                        </Col>
-
-                        {/* Skills — wider column, fills full height for more room */}
-                        <Col md="6" className="q-col-flex" ref={rightSkillsColRef}>
-                            <div className="q-fill" style={{ minHeight: 0 }}>
-                                <SkillSelector
-                                    allskills={allSkills}
-                                    requiredskills={requiredSkills}
-                                    setRequiredskills={setRequiredSkills}
-                                />
-                            </div>
+                    ) : (
+                        <>
+                            {/* Side by side on very wide screens, stacked otherwise */}
+                            <Row>
+                                <Col xl="6" className="mb-4">
+                                    <label className="iv-field-label" htmlFor="q-description">Question description</label>
+                                    <Input
+                                        id="q-description"
+                                        type="textarea"
+                                        rows={7}
+                                        className="iv-textarea"
+                                        value={questionDesc}
+                                        onChange={(e) => setQuestionDesc(e.target.value)}
+                                        placeholder="What a good answer should cover, how to score it…"
+                                        readOnly={!canEdit}
+                                        disabled={!canEdit}
+                                    />
+                                </Col>
+                                <Col xl="6" className="mb-4">
+                                    <label className="iv-field-label">Skills assessed</label>
+                                    <QuestionSkillsEditor
+                                        allSkills={allSkills}
+                                        skills={requiredSkills}
+                                        onChange={setRequiredSkills}
+                                        disabled={!canEdit}
+                                    />
+                                </Col>
+                            </Row>
 
                             {canEdit && (
-                                <div
-                                    ref={updateBtnRef}
-                                    className="q-skills-update"
-                                    style={{ marginTop: 12, marginBottom: 4, flex: '0 0 auto', display: 'flex', justifyContent: 'center', width: '100%' }}
-                                >
-                                    <Button
-                                        color="secondary"
-                                        className="q-update-btn"
-                                        onClick={handleSave}
-                                        disabled={!selectedQuestionId}
-                                    >
-                                        Update
+                                <div className="d-flex justify-content-end">
+                                    <Button color="primary" className="m-0" onClick={handleSave} disabled={saving}>
+                                        {saving ? 'Saving…' : 'Save Question'}
                                     </Button>
                                 </div>
                             )}
-                        </Col>
-                    </Row>
-                </Col>
-            </Row>
+                        </>
+                    )}
+                </section>
+            </div>
 
             {/* Modal δημιουργίας */}
             <AddQuestionModal

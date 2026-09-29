@@ -13,7 +13,7 @@ const Kpi = ({ title, value, sub }) => (
 );
 
 const fmt1 = (n) => (Number.isFinite(+n) ? (+n).toFixed(1) : '—');
-const SEG_COLORS = { ap: '#3b82f6', rj: '#ef4444', hr: '#16a34a', pd: '#6b7280' };
+const SEG_COLORS = { ap: '#6bd098', rj: '#ef8157', hr: '#51bcda', pd: '#fbc658' };
 
 function SegmentedBar({ approved = 0, rejected = 0, hired = 0, showHired = true }) {
     let ap = Math.max(0, Math.min(100, +approved || 0));
@@ -56,10 +56,10 @@ function SegmentedBar({ approved = 0, rejected = 0, hired = 0, showHired = true 
             </div>
 
             <div style={{ height: 18, background: '#e9ecef', borderRadius: 10, overflow: 'hidden', marginTop: 6, whiteSpace: 'nowrap' }}>
-                <div style={{ width: `${ap}%`, height: '100%', background: '#3b82f6', display: 'inline-block' }} />
-                <div style={{ width: `${rj}%`, height: '100%', background: '#ef4444', display: 'inline-block' }} />
-                {showHired && <div style={{ width: `${hr}%`, height: '100%', background: '#16a34a', display: 'inline-block' }} />}
-                <div style={{ width: `${pending}%`, height: '100%', background: '#6b7280', display: 'inline-block' }} />
+                <div style={{ width: `${ap}%`, height: '100%', background: SEG_COLORS.ap, display: 'inline-block' }} />
+                <div style={{ width: `${rj}%`, height: '100%', background: SEG_COLORS.rj, display: 'inline-block' }} />
+                {showHired && <div style={{ width: `${hr}%`, height: '100%', background: SEG_COLORS.hr, display: 'inline-block' }} />}
+                <div style={{ width: `${pending}%`, height: '100%', background: SEG_COLORS.pd, display: 'inline-block' }} />
             </div>
         </div>
     );
@@ -80,17 +80,17 @@ function Histogram({ buckets }) {
             <div style={{ fontSize: 11, color: '#6c757d', marginBottom: 6 }}>
                 Each bar = candidates in that score range
             </div>
-            <div className="d-flex align-items-end" style={{ gap: 10, height: 150, padding: '8px 6px', border: '1px solid #eee', borderRadius: 8, background: '#fff' }}>
+            <div className="d-flex align-items-end" style={{ gap: 4, height: 164, padding: '8px 6px', overflow: 'hidden', minWidth: 0, border: '1px solid #eee', borderRadius: 8, background: '#fff' }}>
                 {mapped.map((b, i) => {
                     const hPx = (b.value / max) * 120;
                     const pct = total > 0 ? `${((b.value / total) * 100).toFixed(1)}%` : '0%';
                     return (
-                        <div key={i} style={{ textAlign: 'center', flex: 1 }}>
+                        <div key={i} style={{ textAlign: 'center', flex: '1 1 0', minWidth: 0 }}>
                             <div style={{ height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                <div style={{ fontSize: 10, opacity: 0.85, marginBottom: 4 }}>{pct}</div>
-                                <div style={{ height: `${hPx}px`, background: '#e5e7eb', borderRadius: 6, width: '100%' }} title={`${b.label}: ${b.value} (${pct})`} />
+                                <div style={{ fontSize: 9, opacity: 0.85, marginBottom: 4, whiteSpace: 'nowrap' }}>{pct}</div>
+                                <div style={{ height: `${hPx}px`, background: '#51cbce', borderRadius: 6, width: '100%' }} title={`${b.label}: ${b.value} (${pct})`} />
                             </div>
-                            <div style={{ fontSize: 10, opacity: 0.7, marginTop: 4 }}>{b.label.replace('–', '-')}</div>
+                            <div style={{ fontSize: 9, opacity: 0.7, marginTop: 4, whiteSpace: 'nowrap', letterSpacing: '-0.02em' }}>{b.label.replace('–', '-')}</div>
                         </div>
                     );
                 })}
@@ -138,7 +138,7 @@ export default function OrganizationOverview({ orgId = 3 }) {
                     {!loading && !err && stats && (
                         <>
                             <Row className="g-3">
-                                <Col md="6">
+                                <Col md="12">
                                     <Card className="shadow-sm h-100">
                                         <CardBody>
                                             <SegmentedBar
@@ -150,13 +150,13 @@ export default function OrganizationOverview({ orgId = 3 }) {
                                     </Card>
                                 </Col>
 
-                                <Col md="2">
+                                <Col md="4">
                                     <Kpi title="Hires" value={stats.hireCount ?? stats.hires ?? '—'} />
                                 </Col>
-                                <Col md="2">
+                                <Col md="4">
                                     <Kpi title="Candidates" value={stats.totalCandidates ?? stats.total ?? '—'} />
                                 </Col>
-                                <Col md="2">
+                                <Col md="4">
                                     <Kpi
                                         title="Avg Candidates / Job Ad"
                                         value={

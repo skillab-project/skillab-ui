@@ -1,8 +1,10 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
-import { Row, Col, Card, CardBody } from "reactstrap";
+import { Row, Col, Button, Spinner } from "reactstrap";
 import CandidateListPanel from "./CandidateListPanel";
 import StepsDropDown from "./StepsDropDown";
 import StepSkills from "./StepSkills";
+import { statusClass } from "./candidateUi";
+import "../Interview/interview.css";
 import "./Candidates.css";
 import CandidateComments from "./CandidateComments";
 import ConfirmModal from "../Hire/ConfirmModal";
@@ -13,21 +15,6 @@ const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 const toast = (msg, type = "info", ttl = 2500) => {
     try { window.hfToast && window.hfToast(msg, type, ttl); } catch { }
 };
-
-/* ----------  Ενιαίο banner όταν ο υποψήφιος είναι κλειδωμένος ---------- */
-function LockBanner({ status }) {
-    const up = String(status || "").toUpperCase();
-    return (
-        <div className="lock-banner mt-6" role="note" aria-live="polite">
-            <div className="lock-banner__title">
-                <span style={{ fontSize: 13 }} aria-hidden>🔒</span>
-                <span>Candidate Status</span>
-            </div>
-            <div className="lock-banner__status">{up || "LOCKED"}</div>
-            <div className="lock-banner__desc">Scores are locked and cannot be edited.</div>
-        </div>
-    );
-}
 
 export default function Candidates({ jobAdId }) {
     // selections
@@ -45,7 +32,6 @@ export default function Candidates({ jobAdId }) {
     const [errCandidates, setErrCandidates] = useState(null);
     const [loadingSteps, setLoadingSteps] = useState(false);
     const [errSteps, setErrSteps] = useState(null);
-    const [loadingAssess, setLoadingAssess] = useState(false);
 
     // modal
     const [showConfirm, setShowConfirm] = useState(false);
@@ -54,18 +40,6 @@ export default function Candidates({ jobAdId }) {
 
     // comments
     const [candComment, setCandComment] = useState("");
-
-    // ► Σταθερό ύψος περιοχής σχολίων (αν το χρειαστείς)
-    const [commentsHeight, setCommentsHeight] = useState(null);
-    const handleCommentsMeasure = useCallback((h) => {
-        setCommentsHeight((prev) => (prev == null ? h : Math.max(prev, h)));
-    }, []);
-
-    // Μία φορά παγωμένο ύψος
-    const [frozenCommentsHeight, setFrozenCommentsHeight] = useState(null);
-    const handleCommentsMeasureOnce = useCallback((h) => {
-        setFrozenCommentsHeight((prev) => prev ?? h);
-    }, []);
 
     // status
     const statusUp = (selectedCandidate?.status || "").toUpperCase();
@@ -84,7 +58,6 @@ export default function Candidates({ jobAdId }) {
         setCandidates([]);
         setSteps([]);
         setInterviewId(null);
-        setCommentsHeight(null);
     }, [jobAdId]);
 
     useEffect(() => {
@@ -403,131 +376,131 @@ export default function Candidates({ jobAdId }) {
         }
     }
 
-    if (!jobAdId) return <p style={{ padding: "1rem" }}>Select a Job Ad to view its candidates.</p>;
+    if (!jobAdId) return <p className="text-muted" style={{ padding: "1rem" }}>Select a Job Ad to view its candidates.</p>;
 
     return (
-        <div className="vh-shell">
-            <Row style={{ flex: 1, display: "flex", minHeight: 0 }}>
-                <CandidateListPanel
-                    jobAdId={jobAdId}
-                    loadingCandidates={loadingCandidates}
-                    errCandidates={errCandidates}
-                    candidates={candidates}
-                    setSelectedCandidate={setSelectedCandidate}
-                    openConfirm={openConfirm}
-                    selectedCandidate={selectedCandidate}
-                    isLocked={isLocked}
-                    onCreated={(newCand) => {
-                        const mapped = {
-                            id: newCand.id,
-                            name: `${newCand.firstName} ${newCand.lastName}`.trim(),
-                            email: newCand.email,
-                            status: newCand.status ?? "Pending",
-                            cv: newCand.cvPath,
-                            cvName: newCand.cvOriginalName,
-                            interviewReportId: newCand?.interviewReport?.id ?? null,
-                        };
+        <div className="iv-page">
+            {/* ---------- 1. Candidates ---------- */}
+            <CandidateListPanel
+                jobAdId={jobAdId}
+                loadingCandidates={loadingCandidates}
+                errCandidates={errCandidates}
+                candidates={candidates}
+                setSelectedCandidate={setSelectedCandidate}
+                selectedCandidate={selectedCandidate}
+                onCreated={(newCand) => {
+                    const mapped = {
+                        id: newCand.id,
+                        name: `${newCand.firstName} ${newCand.lastName}`.trim(),
+                        email: newCand.email,
+                        status: newCand.status ?? "Pending",
+                        cv: newCand.cvPath,
+                        cvName: newCand.cvOriginalName,
+                        interviewReportId: newCand?.interviewReport?.id ?? null,
+                    };
+                    // add to the list without duplicates; the current selection stays as is
+                    setCandidates(prev => {
+                        const exists = prev.some(c => c.id === mapped.id);
+                        return exists ? prev.map(c => (c.id === mapped.id ? mapped : c)) : [...prev, mapped];
+                    });
+                    toast("Candidate added", "success");
+                }}
+            />
 
-                        // ενημέρωση λίστας χωρίς διπλά
-                        setCandidates(prev => {
-                            const exists = prev.some(c => c.id === mapped.id);
-                            return exists ? prev.map(c => (c.id === mapped.id ? mapped : c)) : [...prev, mapped];
-                        });
-
-                        // ΔΕΝ αλλάζουμε selectedCandidate -> μένει ο παλιός με τις βαθμολογίες του
-                        toast("Candidate added", "success");
-                    }}
-                />
-
-                {/* RIGHT: Steps + Skills + Comments */}
-                <Col md="8" className="d-flex flex-column" style={{ minHeight: "100%", height: "100%" }}>
-                    <div style={{ flexGrow: 1, minHeight: 0 }}>
-                        <Row style={{ height: "100%", minHeight: 0 }}>
-                            {/* Steps */}
-                            <Col md="6" className="d-flex flex-column" style={{ height: "100%", minHeight: 0 }}>
-                                <label className="description-labels">Interview Steps:</label>
-                                <Card className="panel panel--flex">
-                                    <CardBody>
-                                        {loadingSteps ? (
-                                            <div>Loading steps…</div>
-                                        ) : errSteps ? (
-                                            <div style={{ color: "crimson" }}>Error: {errSteps}</div>
-                                        ) : selectedCandidate ? (
-                                            <StepsDropDown
-                                                steps={steps}
-                                                ratings={{}}
-                                                onSelect={handleSelectQ}
-                                                showScore={true}
-                                                candidateId={selectedCandidate?.id}
-                                                interviewReportId={selectedCandidate?.interviewReportId}
-                                            />
-                                        ) : (
-                                            <div className="text-muted">Select a candidate to see steps…</div>
-                                        )}
-                                        {loadingAssess && selectedCandidate && (
-                                            <div className="mt-8" style={{ fontSize: 11, opacity: 0.7 }}>Loading ratings…</div>
-                                        )}
-                                    </CardBody>
-                                </Card>
-                            </Col>
-
-                            {/* Skills */}
-                            <Col md="6" className="d-flex flex-column" style={{ height: "100%", minHeight: 0 }}>
-                                <label className="description-labels">Skills for this question:</label>
-                                <Card className="panel panel--flex">
-                                    <CardBody>
-                                        {selectedCandidate ? (
-                                            <>
-                                                <StepSkills
-                                                    step={rightPaneStepObj}
-                                                    mode={canEdit ? "edit" : "view"}
-                                                    onAfterSave={({ stepId, questionId, totalSkills }) =>
-                                                        refreshMetrics({
-                                                            stepId,
-                                                            questionId,
-                                                            totalSkills: Number.isFinite(totalSkills)
-                                                                ? totalSkills
-                                                                : rightPaneStepObj?.skills?.length ?? 0,
-                                                        })
-                                                    }
-                                                />
-                                                {isLocked && <LockBanner status={selectedCandidate.status} />}
-                                            </>
-                                        ) : (
-                                            <div className="text-muted">Select a candidate to see skills…</div>
-                                        )}
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                        </Row>
+            {/* ---------- 2. Evaluation ---------- */}
+            <section className="iv-section iv-section--head-center">
+                <div className="iv-section-head">
+                    <div>
+                        <h5 className="iv-section-title">
+                            Evaluation{selectedCandidate ? ` — ${selectedCandidate.name}` : ""}
+                        </h5>
+                        <p className="iv-section-sub">
+                            {selectedCandidate
+                                ? isLocked
+                                    ? "The decision has been made, so the scores are read-only."
+                                    : "Open a step, pick a question and score each of its skills. Then approve or reject the candidate."
+                                : "Select a candidate above to evaluate them."}
+                        </p>
                     </div>
-
-                    {/* Comments */}
-                    <Row className="mt-8">
-                        <Col md="12">
-                            <label className="description-labels">Comments about the candidate:</label>
-                            <div
-                                className="fixed-comments-container"
-                                style={{
-                                    height: frozenCommentsHeight ?? 0,
-                                    overflow: "hidden",
-                                    visibility: frozenCommentsHeight ? "visible" : "hidden",
-                                }}
-                            >
-                                <CandidateComments
-                                    selectedCandidate={selectedCandidate}
-                                    candComment={candComment}
-                                    setCandComment={setCandComment}
-                                    isCommentLocked={isCommentLocked}
-                                    saveCandidateComment={saveCandidateComment}
-                                    onMeasureOnce={handleCommentsMeasureOnce}
-                                    frozenHeight={frozenCommentsHeight}
-                                />
+                    {selectedCandidate && (
+                        isLocked ? (
+                            <span className={`cand-status ${statusClass(selectedCandidate.status)}`} style={{ fontSize: 12, padding: "4px 14px" }}>
+                                <i className="nc-icon nc-lock-circle-open mr-1" />
+                                {selectedCandidate.status}
+                            </span>
+                        ) : (
+                            <div className="iv-actions">
+                                <Button color="success" onClick={() => openConfirm("APPROVED")}>
+                                    <i className="nc-icon nc-check-2 mr-1" style={{ verticalAlign: "middle" }} /> Approve
+                                </Button>
+                                <Button color="danger" outline onClick={() => openConfirm("REJECTED")}>
+                                    <i className="nc-icon nc-simple-remove mr-1" style={{ verticalAlign: "middle" }} /> Reject
+                                </Button>
                             </div>
+                        )
+                    )}
+                </div>
+
+                {!selectedCandidate ? (
+                    <div className="iv-empty">
+                        <i className="nc-icon nc-tap-01" />
+                        Select a candidate to see the interview steps and score their skills.
+                    </div>
+                ) : (
+                    <Row>
+                        <Col xl="5" className="mb-4">
+                            <div className="cand-panel-title">Interview steps</div>
+                            {loadingSteps ? (
+                                <div className="iv-empty"><Spinner size="sm" className="mr-2" /> Loading steps…</div>
+                            ) : errSteps ? (
+                                <div className="iv-empty text-danger">Could not load the steps ({errSteps}).</div>
+                            ) : (
+                                <StepsDropDown
+                                    steps={steps}
+                                    ratings={{}}
+                                    onSelect={handleSelectQ}
+                                    showScore={true}
+                                    candidateId={selectedCandidate?.id}
+                                    interviewReportId={selectedCandidate?.interviewReportId}
+                                />
+                            )}
+                        </Col>
+                        <Col xl="7" className="mb-4">
+                            <div className="cand-panel-title">Skills of the selected question</div>
+                            <StepSkills
+                                step={rightPaneStepObj}
+                                mode={canEdit ? "edit" : "view"}
+                                onAfterSave={({ stepId, questionId, totalSkills }) =>
+                                    refreshMetrics({
+                                        stepId,
+                                        questionId,
+                                        totalSkills: Number.isFinite(totalSkills)
+                                            ? totalSkills
+                                            : rightPaneStepObj?.skills?.length ?? 0,
+                                    })
+                                }
+                            />
                         </Col>
                     </Row>
-                </Col>
-            </Row>
+                )}
+            </section>
+
+            {/* ---------- 3. Comments ---------- */}
+            <section className="iv-section iv-section--head-center">
+                <div className="iv-section-head">
+                    <div>
+                        <h5 className="iv-section-title">Comments</h5>
+                        <p className="iv-section-sub">Notes about the candidate, shared with the hiring team.</p>
+                    </div>
+                </div>
+                <CandidateComments
+                    selectedCandidate={selectedCandidate}
+                    candComment={candComment}
+                    setCandComment={setCandComment}
+                    isCommentLocked={isCommentLocked}
+                    saveCandidateComment={saveCandidateComment}
+                />
+            </section>
 
             {/* Modal επιβεβαίωσης έξω από τα panels */}
             <ConfirmModal

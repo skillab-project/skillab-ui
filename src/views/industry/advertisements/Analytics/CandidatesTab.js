@@ -275,13 +275,13 @@ export default function CandidatesTab({
                                         <Button
                                             key={c.id}
                                             onClick={() => setSelectedCandId(c.id)}
-                                            className={`w-100 text-start ${active ? 'btn-secondary' : 'btn-light'} mb-6`}
+                                            className={`an-item w-100 text-start ${active ? 'is-active' : ''} mb-6`}
                                         >
                                             <div className="d-flex align-items-center justify-content-between">
                                                 <span>{buildDisplayName(c)}</span>
                                                 <div className="d-flex align-items-center" style={{ gap: 6 }}>
-                                                    <span className="badge bg-dark-subtle text-dark">{fmt(scoreVal, 1)}</span>
-                                                    {c.status && <span className="badge bg-light text-dark">{c.status}</span>}
+                                                    <span className="an-pill an-pill--score">{fmt(scoreVal, 1)}</span>
+                                                    {c.status && <span className={`an-pill an-pill--${String(c.status).toLowerCase()}`}>{c.status}</span>}
                                                 </div>
                                             </div>
                                         </Button>

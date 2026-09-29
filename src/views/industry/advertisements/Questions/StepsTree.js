@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Row, Col } from 'reactstrap';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import '../Interview/interview.css';
 import './questions.css';
 
 
@@ -42,8 +42,9 @@ export default function StepsTree({
                     setOpenStepId(safe[0].id);
                     // NEW: ενημέρωσε τον γονέα για το ενεργό step
                     onSelectStep?.(safe[0].id);
-                    await loadQuestions(safe[0].id);
                 }
+                // load every step's questions so the counts are shown up front
+                await Promise.all(safe.map((st) => loadQuestions(st.id)));
             } catch {
                 setSteps([]);
                 onStepsChange?.([]);
@@ -176,36 +177,51 @@ export default function StepsTree({
         } catch { /* noop */ }
     };
 
+    if (steps.length === 0) {
+        return (
+            <div className="iv-empty">
+                <i className="nc-icon nc-bullet-list-67" />
+                No interview steps for this Job Ad yet. Create them in the <b>Interview</b> tab first —
+                questions are organised under each step.
+            </div>
+        );
+    }
+
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <Row className="g-2">
-                {steps.length === 0 && (
-                    <Col xs="12">
-                        <div style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.5, padding: "6px 4px" }}>
-                            No interview steps for this Job Ad yet. Create them in the <b>Interview</b> tab first —
-                            questions are organised under each step.
-                        </div>
-                    </Col>
-                )}
-                {steps.map(step => {
+            <div className="iv-steps">
+                {steps.map((step, stepIdx) => {
                     const list = questionsByStep[step.id] || [];
+                    const loaded = step.id in questionsByStep;
+                    const isOpen = openStepId === step.id;
                     return (
-                        <Col xs="12" key={step.id}>
+                        <div key={step.id} className={`iv-step ${isOpen ? 'is-open is-selected' : ''}`}>
                             <div
-                                className="q-step-header"
+                                className="iv-step-header"
                                 onClick={() => toggleStep(step.id)}
+                                role="button"
+                                aria-expanded={isOpen}
                                 title={step.title}
                             >
-                                {step.title || '(Untitled step)'}
+                                <span className="iv-step-num">{stepIdx + 1}</span>
+                                <span className="iv-step-text">
+                                    <span className="iv-step-title">{step.title || 'Untitled step'}</span>
+                                </span>
+                                {loaded && (
+                                    <span className="q-step-count">
+                                        {list.length} question{list.length === 1 ? '' : 's'}
+                                    </span>
+                                )}
+                                <i className="nc-icon nc-minimal-down iv-chevron" />
                             </div>
 
-                            {openStepId === step.id && (
+                            {isOpen && (
                                 <Droppable droppableId={`step-${step.id}`}>
                                     {(dropProvided) => (
                                         <div
                                             ref={dropProvided.innerRef}
                                             {...dropProvided.droppableProps}
-                                            className="q-droppable"
+                                            className="q-questions"
                                         >
                                             {list.map((q, idx) => {
                                                 const label = q.name ?? q.title ?? '(untitled)';
@@ -223,39 +239,48 @@ export default function StepsTree({
                                                                 {...dragProvided.draggableProps}
                                                                 onClick={() => onSelectQuestion?.(q.id)}
                                                                 className={
-                                                                    'q-draggable' +
+                                                                    'q-question' +
                                                                     (isSel ? ' is-selected' : '') +
                                                                     (snapshot.isDragging ? ' is-dragging' : '')
                                                                 }
                                                                 title={label}
                                                                 style={dragProvided.draggableProps.style}
                                                             >
-                                                                <div className="q-draggable-row">
+                                                                {canEdit ? (
                                                                     <span
                                                                         {...dragProvided.dragHandleProps}
-                                                                        className="q-drag-handle"
+                                                                        className="iv-drag"
                                                                         onClick={(e) => e.stopPropagation()}
-                                                                        title={canEdit ? 'Drag to reorder' : ''}
+                                                                        title="Drag to reorder or move to another step"
                                                                     >
                                                                         ⠿
                                                                     </span>
-                                                                    <span className="q-question-text">{label}</span>
-                                                                </div>
+                                                                ) : (
+                                                                    <span {...dragProvided.dragHandleProps} className="q-question-icon">
+                                                                        <i className="nc-icon nc-chat-33" />
+                                                                    </span>
+                                                                )}
+                                                                <span className="q-question-text">{label}</span>
                                                             </div>
                                                         )}
                                                     </Draggable>
                                                 );
                                             })}
                                             {dropProvided.placeholder}
-                                            {list.length === 0 && <div className="q-empty">No questions</div>}
+                                            {list.length === 0 && (
+                                                <div className="q-no-questions">
+                                                    No questions in this step yet.
+                                                    {canEdit && <> Use <b>Add Question</b> to create one.</>}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </Droppable>
                             )}
-                        </Col>
+                        </div>
                     );
                 })}
-            </Row>
+            </div>
         </DragDropContext>
     );
 }

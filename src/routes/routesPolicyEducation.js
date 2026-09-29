@@ -11,6 +11,7 @@ import FutureTechnologyTrends from "views/policies/FutureTechnologyTrends";
 import ProgramAndNeeds from "views/policies/ProgramAndNeeds";
 import GenerateReport from "views/policies/GenerateReport";
 import EducationManagement from "views/education/EducationManagement";
+import { ProjectorAnalytics } from "views/supply/projector/ProjectorAnalytics";
 
 var routes = [
   {
@@ -78,6 +79,13 @@ var routes = [
         name: "Forecasting",
         icon: "nc-icon nc-chart-pie-36",
         component: <DemandForecasting />,
+        layout: "/policy-education",
+      },
+      {
+        path: "/projector-analytics",
+        name: "Projector",
+        icon: "nc-icon nc-map-big",
+        component: <ProjectorAnalytics />,
         layout: "/policy-education",
       },
     ],

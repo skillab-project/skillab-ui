@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Collapse, Button } from "reactstrap";
 import { FaDownload } from "react-icons/fa";
+import { initials, statusClass } from "./candidateUi";
+import "./Candidates.css";
 
 const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 
-/** Μικρό toast χωρίς libs */
+/** Small toast without libs */
 function TinyToast({ show, text, type = "info", onHide }) {
     React.useEffect(() => {
         if (!show) return;
@@ -13,43 +15,36 @@ function TinyToast({ show, text, type = "info", onHide }) {
     }, [show, onHide]);
 
     if (!show) return null;
-    const cls =
-        type === "success"
-            ? "tiny-toast tiny-toast--success"
-            : type === "warning"
-                ? "tiny-toast tiny-toast--warning"
-                : type === "error"
-                    ? "tiny-toast tiny-toast--error"
-                    : "tiny-toast tiny-toast--info";
-
     return (
-        <div className={cls} role="status" aria-live="polite">
+        <div className={`tiny-toast tiny-toast--${type}`} role="status" aria-live="polite">
             {text}
         </div>
     );
 }
 
-/**
- * Props:
- * - candidates: [{ id, name, email, status, cv }, ...]
- * - onSelect:  (candidate|null) => void
- * - renderLeft?: (candidate, index) => ReactNode
- * - selectedId?: number | null   <-- όταν ΔΟΘΕΙ, το component είναι controlled
- */
-function CandidateDropdown({
-    candidates = [],
-    onSelect,
-    renderLeft,
-    selectedId, // <<-- ΔΕΝ έχει default πλέον
-}) {
-    // Uncontrolled fallback: κρατάμε index μόνο αν ΔΕΝ μας δίνουν selectedId
-    const [openIndex, setOpenIndex] = useState(null);
+function getCvName(cvPath, fallback = "CV") {
+    if (!cvPath) return fallback;
+    let s = String(cvPath);
+    if (s.startsWith("classpath:")) s = s.slice("classpath:".length);
+    return s.split(/[\\/]/).pop() || fallback;
+}
 
-    // <<-- ΕΛΑΧΙΣΤΗ αλλαγή: θεωρούμε controlled αν το prop υπάρχει, ακόμα κι αν είναι null
+/**
+ * Candidate list: one card per candidate (initials, name, email, status);
+ * clicking selects it and shows email + CV download.
+ *
+ * Props:
+ * - candidates: [{ id, name, email, status, cv, cvName }, ...]
+ * - onSelect:  (candidate|null) => void
+ * - renderLeft?: (candidate, index) => ReactNode   extra info shown before the status (e.g. score)
+ * - selectedId?: number | null   when given, the component is controlled
+ * - emptyText?: string
+ */
+function CandidateDropdown({ candidates = [], onSelect, renderLeft, selectedId, emptyText = "No candidates yet." }) {
+    const [openIndex, setOpenIndex] = useState(null);
     const isControlled = selectedId !== undefined;
 
     const [toast, setToast] = useState({ show: false, text: "", type: "success" });
-    const showToast = (text, type = "success") => setToast({ show: true, text, type });
     const hideToast = () => setToast((t) => ({ ...t, show: false }));
 
     const handleToggle = (index, cand) => {
@@ -65,80 +60,59 @@ function CandidateDropdown({
 
     const handleDownload = (cand) => {
         if (!cand?.id) return;
-        const fileUrl = `${API_BASE}/api/v1/candidates/${cand.id}/cv`;
-        window.open(fileUrl, "_blank", "noopener,noreferrer");
-        showToast("CV download started!", "success");
+        window.open(`${API_BASE}/api/v1/candidates/${cand.id}/cv`, "_blank", "noopener,noreferrer");
+        setToast({ show: true, text: "CV download started!", type: "success" });
     };
 
-    function getCvName(cvPath, fallback = "SampleCV.pdf") {
-        if (!cvPath) return fallback;
-        let s = String(cvPath);
-        if (s.startsWith("classpath:")) s = s.slice("classpath:".length);
-        const last = s.split(/[\\/]/).pop();
-        return last || fallback;
-    }
-
-    // <<-- ΕΛΑΧΙΣΤΗ αλλαγή: όταν είναι controlled, το openId προκύπτει μόνο από selectedId (ακόμα κι αν είναι null)
-    const openId = isControlled
-        ? selectedId
-        : openIndex !== null
-            ? candidates[openIndex]?.id ?? null
-            : null;
+    const openId = isControlled ? selectedId : openIndex !== null ? candidates[openIndex]?.id ?? null : null;
 
     if (!candidates.length) {
         return (
-            <div className="candidate-container">
-                <div className="text-muted" style={{ padding: 8 }}>
-                    No candidates yet.
-                </div>
-                <TinyToast show={toast.show} text={toast.text} type={toast.type} onHide={hideToast} />
+            <div className="iv-empty">
+                <i className="nc-icon nc-single-02" />
+                {emptyText}
             </div>
         );
     }
 
     return (
-        <div className="candidate-container">
-            {candidates.map((candidate, index) => {
-                const isOpen = openId === candidate.id;
+        <div className="cand-list">
+            {candidates.map((c, index) => {
+                const isOpen = openId === c.id;
                 return (
-                    <div key={candidate.id ?? index}>
-                        <Button
-                            onClick={() => handleToggle(index, candidate)}
-                            className={`candidate-btn ${isOpen ? "active" : ""} w-100`}
+                    <div key={c.id ?? index} className={`cand-item ${isOpen ? "is-selected" : ""}`}>
+                        <button
+                            type="button"
+                            className="cand-row"
+                            onClick={() => handleToggle(index, c)}
+                            aria-expanded={isOpen}
                         >
-                            <div className="candidate-header">
-                                <span className="candidate-index">
-                                    {renderLeft ? renderLeft(candidate, index) : index + 1}
-                                </span>
-                                <span className="candidate-name">{candidate.name}</span>
-                                <span className={`candidate-status ${candidate.status?.toLowerCase?.() || "unknown"}`}>
-                                    {candidate.status}
-                                </span>
-                            </div>
-                        </Button>
+                            <span className="cand-avatar">{initials(c.name)}</span>
+                            <span className="cand-main">
+                                <span className="cand-name" title={c.name}>{c.name || "Unnamed candidate"}</span>
+                                {c.email && <span className="cand-sub">{c.email}</span>}
+                            </span>
+                            {renderLeft && renderLeft(c, index)}
+                            {c.status && <span className={`cand-status ${statusClass(c.status)}`}>{c.status}</span>}
+                            <i className="nc-icon nc-minimal-down cand-chevron" />
+                        </button>
 
                         <Collapse isOpen={isOpen}>
-                            <div className="candidate-details">
-                                <p>
-                                    <strong>Name:</strong> {candidate.name}
-                                </p>
-                                <p>
-                                    <strong>Email:</strong> {candidate.email}
-                                </p>
-                                <p>
-                                    <strong>CV:</strong>{" "}
-                                    <span style={{ marginRight: 8 }}>
-                                        {candidate.cvName || getCvName(candidate.cv, "SampleCV.pdf")}
-                                    </span>
+                            <div className="cand-details">
+                                <span><b>Email:</b>{c.email || "—"}</span>
+                                <span>
+                                    <b>CV:</b>
+                                    {c.cvName || getCvName(c.cv || c.cvPath, "—")}
                                     <Button
-                                        color="link"
-                                        style={{ padding: "0 5px" }}
-                                        onClick={() => handleDownload(candidate)}
+                                        size="sm"
+                                        color="info"
+                                        outline
+                                        onClick={() => handleDownload(c)}
                                         title="Download CV"
                                     >
-                                        <FaDownload size={16} />
+                                        <FaDownload size={11} className="mr-1" /> Download
                                     </Button>
-                                </p>
+                                </span>
                             </div>
                         </Collapse>
                     </div>

@@ -198,25 +198,27 @@ export default function Analytics({
     }, [activeTab, selectedStepId, selectedQuestionId, level, jobAdId, deptId, occId, orgId]);
 
     return (
-        <>
+        <div className="an-root">
             <AnalyticsTabsHeader activeTab={activeTab} setActiveTab={setActiveTab} />
 
             {activeTab === 'overview' && (
                 <div className="analytics-scope-bar">
                     <div className="analytics-scope-label">
-                        <span>Scope: {scopeLabel}</span>
-                        {breadcrumb && (
-                            <span className="analytics-scope-breadcrumb">({breadcrumb})</span>
-                        )}
+                        <span className="analytics-scope-title">Scope</span>
+                        <span className="analytics-scope-chip">
+                            <i className="nc-icon nc-map-big" />
+                            {scopeLabel}
+                            {breadcrumb && <span className="analytics-scope-breadcrumb">{breadcrumb}</span>}
+                        </span>
                         <span id="org-scope-reset" className="d-inline-flex">
                             <button
                                 type="button"
                                 onClick={gotoOrganization}
                                 disabled={level === 'organization'}
                                 aria-label="Return to Organization scope"
-                                className={`btn btn-outline-secondary btn-sm btn-circle-sm ${level === 'organization' ? 'is-disabled' : ''}`}
+                                className={`btn btn-link btn-sm analytics-scope-reset ${level === 'organization' ? 'is-disabled' : ''}`}
                             >
-                                ×
+                                <i className="nc-icon nc-simple-remove" /> Organization
                             </button>
                         </span>
                         <UncontrolledTooltip placement="top" target="org-scope-reset">
@@ -236,7 +238,7 @@ export default function Analytics({
                 <TabPane tabId="candidates">
                     {level === 'jobAd'
                         ? <CandidatesTab jobAd={jobAdData} jobAdId={jobAdId} />
-                        : <div className="text-muted">Pick a Job Ad to view candidates analytics.</div>}
+                        : <div className="an-empty">Pick a Job Ad to view candidates analytics.</div>}
                 </TabPane>
 
                 <TabPane tabId="steps">
@@ -247,7 +249,7 @@ export default function Analytics({
                             onSelectStep={handleSelectStep}
                         />
                     ) : (
-                        <div className="text-muted">Select a Job Ad to view steps and step analytics.</div>
+                        <div className="an-empty">Select a Job Ad to view steps and step analytics.</div>
                     )}
                 </TabPane>
 
@@ -261,10 +263,10 @@ export default function Analytics({
                                 onSelectQuestion={handleSelectQuestion}
                             />
                         ) : (
-                            <div className="text-muted">Pick a step to see its questions.</div>
+                            <div className="an-empty">Pick a step to see its questions.</div>
                         )
                     ) : (
-                        <div className="text-muted">Select a Job Ad to view questions.</div>
+                        <div className="an-empty">Select a Job Ad to view questions.</div>
                     )}
                 </TabPane>
 
@@ -276,14 +278,14 @@ export default function Analytics({
                                 questionId={toInt(selectedQuestionId)}
                             />
                         ) : (
-                            <div className="text-muted">Pick a question to see its skills.</div>
+                            <div className="an-empty">Pick a question to see its skills.</div>
                         )
                     ) : (
-                        <div className="text-muted">Select a Job Ad to view skills.</div>
+                        <div className="an-empty">Select a Job Ad to view skills.</div>
                     )}
                 </TabPane>
 
             </TabContent>
-        </>
+        </div>
     );
 }

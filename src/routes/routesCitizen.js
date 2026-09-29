@@ -5,6 +5,7 @@ import DemandAnalytics from "views/demand/analytics/DemandAnalytics"
 import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
+import { ProjectorAnalytics } from "views/supply/projector/ProjectorAnalytics"
 
 var routes = [
   {
@@ -30,6 +31,13 @@ var routes = [
         name: "Forecasting",
         icon: "nc-icon nc-chart-pie-36",
         component: <DemandForecasting />,
+        layout: "/citizen",
+      },
+      {
+        path: "/projector-analytics",
+        name: "Projector",
+        icon: "nc-icon nc-map-big",
+        component: <ProjectorAnalytics />,
         layout: "/citizen",
       },
     ],

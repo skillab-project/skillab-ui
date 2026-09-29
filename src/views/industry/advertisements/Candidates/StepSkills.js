@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Button, Input } from "reactstrap";
+import { scoreColor } from "./candidateUi";
 import './Candidates.css';
 
 const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
@@ -29,49 +30,15 @@ function TinyToast({ show, text, type = "info", onHide }) {
     );
 }
 
-/* ---------- helper: color from score ---------- */
-function scoreColor(value) {
-    if (!Number.isFinite(value)) return "#a8a8a8ff"; // gray N/A
-    if (value < 25) return "#dc2626"; // red
-    if (value < 50) return "#f97316"; // orange
-    if (value < 75) return "#eab308"; // yellow
-    return "#16a34a"; // green
-}
-
-/* Color swatch (keeps tiny inline styles only for dynamic parts)
-   shape: 'dot' | 'square' | 'bar' | 'vbar'
-*/
-function ColorSwatch({ value, shape = "dot", title }) {
-    const bg = scoreColor(
-        value === "" || value === null || typeof value === "undefined"
-            ? NaN
-            : Number(value)
+/* Horizontal score bar coloured by value (0–100) */
+function ScoreBar({ value }) {
+    const v = value === "" || value === null || value === undefined ? NaN : Number(value);
+    const pct = Number.isFinite(v) ? Math.max(0, Math.min(100, v)) : 0;
+    return (
+        <div className="cand-scorebar" aria-hidden>
+            <span style={{ width: `${pct}%`, background: scoreColor(v) }} />
+        </div>
     );
-
-    const base = { display: "inline-block", background: bg };
-
-    const style =
-        shape === "bar"
-            ? { ...base, width: 40, height: 8, borderRadius: 4 }
-            : shape === "vbar"
-                ? { ...base, width: 8, height: 30, borderRadius: 4 }
-                : shape === "square"
-                    ? {
-                        ...base,
-                        width: 12,
-                        height: 12,
-                        borderRadius: 2,
-                        border: "1px solid rgba(0,0,0,0.08)",
-                    }
-                    : {
-                        ...base,
-                        width: 10,
-                        height: 10,
-                        borderRadius: "50%",
-                        border: "1px solid rgba(0,0,0,0.08)",
-                    };
-
-    return <span aria-hidden title={title} style={style} />;
 }
 
 export default function StepSkills({ step, mode = "edit", onAfterSave }) {
@@ -254,116 +221,93 @@ export default function StepSkills({ step, mode = "edit", onAfterSave }) {
         } catch { }
     };
 
-    // ====== Placeholder when no skills ======
-    const showPlaceholder = skills.length === 0;
-    const placeholderText = readOnly
-        ? "Select a question to see skills evaluation…"
-        : "Select a skill to make an evaluation…";
-
-    if (showPlaceholder) {
+    // ====== Placeholder when nothing is selected / no skills ======
+    if (!step) {
         return (
-            <div className="placeholder-wrap">
-                {step?.name && <div className="description-labels">{step.name}</div>}
-
-                <div className="box box__content-min50">{placeholderText}</div>
-
-                <TinyToast show={toast.show} text={toast.text} type={toast.type} onHide={hideToast} />
+            <div className="iv-empty">
+                <i className="nc-icon nc-tap-01" />
+                Open a step and pick a question to {readOnly ? "see" : "score"} its skills.
             </div>
+        );
+    }
+
+    if (skills.length === 0) {
+        return (
+            <>
+                {step?.name && <div className="cand-skills-context">{step.name}</div>}
+                <div className="iv-empty">This question has no skills to evaluate.</div>
+                <TinyToast show={toast.show} text={toast.text} type={toast.type} onHide={hideToast} />
+            </>
         );
     }
 
     // ====== Main UI ======
     return (
-        <div className="step-skills">
-            {step?.name && <div className="description-labels step-skills__title">{step.name}</div>}
+        <div>
+            {step?.name && <div className="cand-skills-context">{step.name}</div>}
 
-            <div className="candidate-container mt-6">
-                {skills.map((s) => {
-                    const row =
-                        rows[s.id] || { score: "", comment: "", dirty: false, exists: false };
+            {skills.map((s) => {
+                const row = rows[s.id] || { score: "", comment: "", dirty: false, exists: false };
 
-                    // ===== VIEW =====
-                    if (readOnly) {
-                        return (
-                            <div key={s.id} className="box step-skills__card">
-                                <div className="step-skills__item" style={{ fontWeight: 700 }}>{s.name}</div>
-
-                                {/* Score line: value + colored vertical bar */}
-                                <div className="ss-view-grid">
-                                    <span className="text-muted" style={{ minWidth: 52 }}>Score:</span>
-                                    <span className="ss-chip">
-                                        {row.score === "" ? "—" : `${row.score}/100`}
-                                    </span>
-                                    <div className="vbar-center">
-                                        <ColorSwatch value={row.score} shape="vbar" title="Score color" />
-                                    </div>
-                                </div>
-
-                                <div className="text-muted mt-6">Comment:</div>
-                                <div className="ss-comment">
-                                    {row.comment?.trim() ? (
-                                        row.comment
-                                    ) : (
-                                        <span className="text-muted">No comments.</span>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    }
-
-                    // ===== EDIT =====
+                if (readOnly) {
                     return (
-                        <div key={s.id} className="box step-skills__card">
-                            <div className="step-skills__item" style={{ fontWeight: 700 }}>{s.name}</div>
-
-                            {/* Score input + colored vertical bar */}
-                            <div className="ss-edit-grid">
-                                <div>Score:</div>
-                                <Input
-                                    type="number"
-                                    min={0}
-                                    max={100}
-                                    step={10}
-                                    placeholder="0–100"
-                                    disabled={loading}
-                                    value={row.score}
-                                    onChange={(e) => handleChangeScore(s.id, e.target.value)}
-                                    className="input-sm"
-                                    style={{ height: 32 }}
-                                />
-                                <div className="vbar-center">
-                                    <ColorSwatch
-                                        value={row.score === "" ? NaN : Number(row.score)}
-                                        shape="vbar"
-                                        title="score color"
-                                    />
-                                </div>
+                        <div key={s.id} className="cand-skill">
+                            <div className="cand-skill-name">{s.name}</div>
+                            <div className="cand-skill-scoreline">
+                                <strong style={{ minWidth: 64 }}>{row.score === "" ? "—" : `${row.score}/100`}</strong>
+                                <ScoreBar value={row.score} />
                             </div>
+                            <div className={`cand-skill-comment-text ${row.comment?.trim() ? "" : "text-muted"}`}>
+                                {row.comment?.trim() ? row.comment : "No comment."}
+                            </div>
+                        </div>
+                    );
+                }
 
-                            <div className="mt-6">Comment:</div>
+                return (
+                    <div key={s.id} className="cand-skill">
+                        <div className="cand-skill-name">{s.name}</div>
+                        <div className="cand-skill-scoreline">
+                            <Input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={10}
+                                placeholder="0–100"
+                                aria-label={`Score for ${s.name}`}
+                                disabled={loading}
+                                value={row.score}
+                                onChange={(e) => handleChangeScore(s.id, e.target.value)}
+                            />
+                            <ScoreBar value={row.score} />
+                        </div>
+                        <div className="cand-skill-comment">
                             <Input
                                 type="textarea"
-                                rows={3}
+                                rows={2}
                                 disabled={loading}
                                 value={row.comment}
                                 onChange={(e) => handleChangeComment(s.id, e.target.value)}
-                                placeholder="Write your comments..."
-                                className="textarea-sm step-skills__comments"
+                                placeholder="Comment (optional)…"
+                                aria-label={`Comment for ${s.name}`}
                             />
                         </div>
-                    );
-                })}
-            </div>
+                    </div>
+                );
+            })}
 
-            {!readOnly && skills.length > 0 && (
-                <div className="btn-row bottom-controls">
+            {!readOnly && (
+                <div className="d-flex justify-content-end align-items-center" style={{ gap: 10 }}>
+                    {hasSomethingToSave && !allDirtyValid && (
+                        <small className="text-muted">Every changed skill needs a score (0–100).</small>
+                    )}
                     <Button
-                        color="success"
+                        color="primary"
+                        className="m-0"
                         onClick={handleSave}
                         disabled={!hasSomethingToSave || !allDirtyValid || loading}
-                        className="btn-sm-fixed"
                     >
-                        {loading ? "Saving..." : "Save"}
+                        {loading ? "Saving…" : "Save Scores"}
                     </Button>
                 </div>
             )}

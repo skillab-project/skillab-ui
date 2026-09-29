@@ -1,0 +1,220 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Row, Col, Card, CardHeader, CardBody, CardTitle, FormGroup, Label, Input, Button, Alert, Spinner, Badge } from "reactstrap";
+import AnalysisSection from "./AnalysisSection";
+import AnalysisProgress from "./AnalysisProgress";
+import useOrgNeedsAnalysis from "./useOrgNeedsAnalysis";
+import {
+  ANALYSIS_KINDS,
+  fmtDate,
+  isUri,
+  resolveTrackerLabels,
+  shortLabelFromUri,
+} from "./futureNeedsUtils";
+
+const DEFAULT_TOP_N = 5;
+
+/**
+ * One tab of the Future Needs view: short-term analysis of either skills or
+ * occupations for the logged-in user's organization and its sector(s).
+ *
+ * The backend computes the analysis in the background (status "started", then
+ * "in_progress"); useOrgNeedsAnalysis keeps checking until the result is
+ * ready. The first request is made the first time the tab becomes active.
+ */
+function FutureNeedsTab({ kind, organization, loadingOrganization, active }) {
+  const kindInfo = ANALYSIS_KINDS[kind];
+
+  const [topN, setTopN] = useState(DEFAULT_TOP_N);
+  const [resolvedLabels, setResolvedLabels] = useState({});
+  const [selectedSector, setSelectedSector] = useState("");
+
+  const { phase, serverStatus, data, message, waitingSince, nextCheckAt, run, checkNow } = useOrgNeedsAnalysis({
+    path: `shorttermanalysis/${kind}`,
+    organization,
+    topN,
+    active,
+    errorMessage: `Could not load the ${kindInfo.singular.toLowerCase()} needs analysis. Please try again later.`,
+  });
+
+  // Sectors
+  const sectorResults = useMemo(() => data?.sector_analysis?.results_by_sector || {}, [data]);
+  const sectorNames = useMemo(() => Object.keys(sectorResults), [sectorResults]);
+  useEffect(() => {
+    if (sectorNames.length && !sectorNames.includes(selectedSector)) setSelectedSector(sectorNames[0]);
+  }, [sectorNames, selectedSector]);
+
+  // Resolve ESCO URIs used as labels (currently the sector occupations).
+  useEffect(() => {
+    if (!data) return;
+    const uris = [];
+    const collect = (list) => (list || []).forEach((e) => isUri(e.label) && uris.push(e.label.trim()));
+    collect(data.organization_analysis?.[kindInfo.entitiesKey]);
+    Object.values(data.sector_analysis?.results_by_sector || {}).forEach((s) => collect(s?.[kindInfo.entitiesKey]));
+    if (!uris.length) return;
+    let alive = true;
+    resolveTrackerLabels(uris, kind).then((map) => alive && setResolvedLabels((prev) => ({ ...prev, ...map })));
+    return () => {
+      alive = false;
+    };
+  }, [data, kind, kindInfo]);
+
+  const getLabel = useCallback(
+    (e) => {
+      const raw = (e?.label || e?.uri || "").trim();
+      if (!isUri(raw)) return raw || "—";
+      return resolvedLabels[raw] || shortLabelFromUri(raw);
+    },
+    [resolvedLabels]
+  );
+
+  const profile = data?.organization_profile;
+  const orgAnalysis = data?.organization_analysis;
+  const sectorAnalysis = data?.sector_analysis;
+  const busy = phase === "loading" || phase === "pending";
+
+  const sectorBlock = useMemo(() => sectorResults[selectedSector], [sectorResults, selectedSector]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const n = Math.max(1, Math.min(50, Number(topN) || DEFAULT_TOP_N));
+    setTopN(n);
+    run(n);
+  };
+
+  return (
+    <Row>
+      <Col md="12">
+        <Card>
+          <CardHeader>
+            <CardTitle tag="h4" className="mb-0">
+              Future {kindInfo.singular} Needs
+            </CardTitle>
+            <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
+              Short-term forecast of the {kindInfo.plural.toLowerCase()} your organization is likely to need, based on your
+              own job ads and on demand across your sector, with hiring, training and retention recommendations.
+            </p>
+          </CardHeader>
+          <CardBody>
+            <form onSubmit={handleSubmit}>
+              <Row className="align-items-end">
+                <Col md="4" className="mb-3">
+                  <FormGroup className="mb-0">
+                    <Label>Organization</Label>
+                    <Input type="text" value={loadingOrganization ? "Loading…" : organization || "—"} disabled />
+                  </FormGroup>
+                </Col>
+                <Col md="2" className="mb-3">
+                  <FormGroup className="mb-0">
+                    <Label for={`fn-topn-${kind}`}>Top {kindInfo.plural}</Label>
+                    <Input
+                      id={`fn-topn-${kind}`}
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={topN}
+                      onChange={(e) => setTopN(e.target.value)}
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md="3" className="mb-3">
+                  <Button color="info" type="submit" block disabled={busy || !organization} className="mb-0">
+                    {busy ? <Spinner size="sm" /> : data ? "Refresh Analysis" : "Run Analysis"}
+                  </Button>
+                </Col>
+              </Row>
+            </form>
+
+            {!loadingOrganization && !organization && (
+              <Alert color="warning" className="mb-0">
+                Your account is not linked to an organization, so no analysis can be run.
+              </Alert>
+            )}
+
+            <AnalysisProgress
+              phase={phase}
+              serverStatus={serverStatus}
+              message={message}
+              waitingSince={waitingSince}
+              nextCheckAt={nextCheckAt}
+              onCheckNow={checkNow}
+              hasPreviousResult={!!data}
+            />
+
+            {phase === "error" && (
+              <div style={{ textAlign: "center", padding: "20px" }}>
+                <h6 className="text-info">{message}</h6>
+                <Button color="link" size="sm" className="p-0" onClick={checkNow}>
+                  Check again
+                </Button>
+              </div>
+            )}
+
+            {profile && (
+              <div style={{ fontSize: "0.85rem" }} className="text-muted mt-2">
+                <strong style={{ color: "#333" }}>{profile.name}</strong>
+                {profile.location ? ` · ${profile.location}` : ""}
+                {(profile.sectors || []).map((s) => (
+                  <Badge key={s} color="info" pill className="ml-2">
+                    {s}
+                  </Badge>
+                ))}
+                {data?.metadata?.analysis_date ? (
+                  <span className="ml-2">· Requested {fmtDate(data.metadata.analysis_date)}</span>
+                ) : null}
+              </div>
+            )}
+          </CardBody>
+        </Card>
+      </Col>
+
+      {data && (
+        <>
+          <Col md="12">
+            <AnalysisSection
+              analysis={orgAnalysis}
+              kindInfo={kindInfo}
+              getLabel={getLabel}
+              title={`Your Organization — ${kindInfo.plural}`}
+              subtitle={`${kindInfo.plural} requested in your own job ads and interviews, with their expected demand.`}
+            />
+          </Col>
+
+          <Col md="12">
+            {sectorAnalysis && String(sectorAnalysis.status || "ok").toLowerCase() !== "ok" && !sectorNames.length ? (
+              <Alert color="warning">{sectorAnalysis.message || "The sector analysis is not available."}</Alert>
+            ) : sectorNames.length > 0 ? (
+              <>
+                {sectorNames.length > 1 && (
+                  <FormGroup style={{ maxWidth: 420 }}>
+                    <Label for={`fn-sector-${kind}`}>Sector</Label>
+                    <Input
+                      type="select"
+                      id={`fn-sector-${kind}`}
+                      value={selectedSector}
+                      onChange={(e) => setSelectedSector(e.target.value)}
+                    >
+                      {sectorNames.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </Input>
+                  </FormGroup>
+                )}
+                <AnalysisSection
+                  analysis={sectorBlock}
+                  kindInfo={kindInfo}
+                  getLabel={getLabel}
+                  title={`Sector Benchmark — ${selectedSector}`}
+                  subtitle={`${kindInfo.plural} most in demand across job postings in this sector.`}
+                />
+              </>
+            ) : null}
+          </Col>
+        </>
+      )}
+    </Row>
+  );
+}
+
+export default FutureNeedsTab;

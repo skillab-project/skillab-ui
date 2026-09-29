@@ -22,6 +22,7 @@ import Select from 'react-select';
 import axios from 'axios';
 import { getOrganization } from "../../utils/Tokens";
 import EmployeeReviewsModal from "./organizationInfo/EmployeeReviewsModal";
+import SectorSelect from "../../components/SectorSelect";
 
 function OrganizationInformation() {
     const [organizationId, setOrganizationId] = useState(null);
@@ -513,23 +514,23 @@ function OrganizationInformation() {
                                 Sectors
                             </h5>
 
-                            <InputGroup className="mb-3">
-                                <Input
-                                    placeholder="New sector name…"
+                            <div className="d-flex align-items-center mb-3" style={{ gap: 8 }}>
+                                <SectorSelect
+                                    inputId="orgNewSector"
                                     value={newSector}
-                                    onChange={(e) => setNewSector(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleAddSector()}
+                                    onChange={setNewSector}
+                                    exclude={sectors}
+                                    placeholder="Select a sector to add…"
                                 />
-                                <InputGroupAddon addonType="append">
-                                    <Button
-                                        color="primary"
-                                        onClick={handleAddSector}
-                                        disabled={!newSector.trim() || addingSector}
-                                    >
-                                        {addingSector ? "Adding…" : "Add"}
-                                    </Button>
-                                </InputGroupAddon>
-                            </InputGroup>
+                                <Button
+                                    color="primary"
+                                    className="m-0"
+                                    onClick={handleAddSector}
+                                    disabled={!newSector.trim() || addingSector}
+                                >
+                                    {addingSector ? "Adding…" : "Add"}
+                                </Button>
+                            </div>
 
                             {sectors.length === 0 ? (
                                 <p className="text-muted text-center small mt-3">No sectors added yet.</p>

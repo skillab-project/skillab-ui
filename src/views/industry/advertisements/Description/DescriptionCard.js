@@ -167,7 +167,7 @@ export default function DescriptionCard({
         setDeleting(true);
         setError("");
         try {
-            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/jobAds/${selectedJobAdId}`, {
+            const r = await fetch(`${process.env.REACT_APP_API_URL_HIRING_MANAGEMENT}/api/v1/jobAds/${selectedJobAdId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
             });

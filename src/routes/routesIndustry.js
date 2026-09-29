@@ -8,8 +8,11 @@ import DemandForecasting from "views/demand/forecasting/DemandForecasting"
 import SupplyAnalytics from "views/supply/analytics/SupplyAnalytics"
 import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import GapCompetition from "views/industry/GapCompetition";
+import FutureNeeds from "views/industry/FutureNeeds";
+import InsightsFuture from "views/industry/InsightsFuture";
 import EmployeeSkills from "views/industry/EmployeeSkills";
 import OrganizationInformation from "views/industry/OrganizationInformation";
+import { ProjectorAnalytics } from "views/supply/projector/ProjectorAnalytics";
 
 var routes = [
   {
@@ -24,6 +27,20 @@ var routes = [
     name: "Gap With Competition",
     icon: "nc-icon nc-single-02",
     component: <GapCompetition />,
+    layout: "/industry",
+  },
+  {
+    path: "/account/future-needs",
+    name: "Future Needs",
+    icon: "nc-icon nc-single-02",
+    component: <FutureNeeds />,
+    layout: "/industry",
+  },
+  {
+    path: "/account/insights-future",
+    name: "Insights on Future",
+    icon: "nc-icon nc-single-02",
+    component: <InsightsFuture />,
     layout: "/industry",
   },
   {
@@ -70,6 +87,13 @@ var routes = [
         name: "Forecasting",
         icon: "nc-icon nc-chart-pie-36",
         component: <DemandForecasting />,
+        layout: "/industry",
+      },
+      {
+        path: "/projector-analytics",
+        name: "Projector",
+        icon: "nc-icon nc-map-big",
+        component: <ProjectorAnalytics />,
         layout: "/industry",
       },
     ],

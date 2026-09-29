@@ -9,6 +9,7 @@ import SupplyForecasting from "views/supply/forecasting/SupplyForecasting"
 import TaxonomyManagement from "views/taxonomies/TaxonomyManagement";
 import Recommendations from "views/education/Recommendations";
 import GenerateReport from "views/education/GenerateReport";
+import { ProjectorAnalytics } from "views/supply/projector/ProjectorAnalytics";
 
 var routes = [
   {
@@ -62,6 +63,13 @@ var routes = [
         name: "Forecasting",
         icon: "nc-icon nc-chart-pie-36",
         component: <DemandForecasting />,
+        layout: "/education",
+      },
+      {
+        path: "/projector-analytics",
+        name: "Projector",
+        icon: "nc-icon nc-map-big",
+        component: <ProjectorAnalytics />,
         layout: "/education",
       },
     ],

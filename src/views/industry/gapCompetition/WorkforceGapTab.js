@@ -27,31 +27,19 @@ function SkillChips({ skills, color }) {
   if (!skills || skills.length === 0) return <span className="text-muted">None</span>;
   return (
     <div>
-      {skills.map((s) => (
-        <Badge key={s.id || s.label} color={color} pill className="mr-1 mb-1" style={{ fontWeight: 400 }}>
-          {s.label}
-        </Badge>
-      ))}
+      {skills.map((s, i) => {
+        // The API returns skills as plain strings in most sections (objective,
+        // market insights, employee matched/missing skills) but as {id, label}
+        // objects elsewhere — support both rather than assuming one shape.
+        const label = typeof s === "string" ? s : s?.label || s?.id || String(s);
+        const key = typeof s === "string" ? s : s?.id || s?.label || i;
+        return (
+          <Badge key={key} color={color} pill className="mr-1 mb-1" style={{ fontWeight: 400 }}>
+            {label}
+          </Badge>
+        );
+      })}
     </div>
-  );
-}
-
-function ObjectivesList({ title, items }) {
-  return (
-    <Col md="6" className="mb-3">
-      <h6 className="text-muted text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.04em" }}>
-        {title}
-      </h6>
-      {items && items.length > 0 ? (
-        <ul style={{ paddingLeft: "1.1rem", marginBottom: 0 }}>
-          {items.map((obj, i) => (
-            <li key={i}>{obj}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-muted mb-0">None set.</p>
-      )}
-    </Col>
   );
 }
 
@@ -70,29 +58,65 @@ function StatTile({ label, value }) {
 
 function EmployeeScoreCard({ employee, threshold }) {
   if (!employee) return null;
-  const scorePct = Math.round((employee.embedding_score_avg || 0) * 100);
+  const readinessPct = Math.round((employee.readiness_score || 0) * 100);
+  const overlapPct = Math.round((employee.overlap_ratio || 0) * 100);
+  const similarityPct = Math.round((employee.role_similarity || 0) * 100);
   const thresholdPct = Math.round((threshold || 0) * 100);
+  const meetsThreshold = readinessPct >= thresholdPct;
   return (
     <Card className="mb-0" style={{ border: "1px solid #eee" }}>
       <CardBody>
-        <div className="d-flex justify-content-between align-items-center mb-2">
+        <div className="d-flex justify-content-between align-items-center mb-3">
           <div>
             <strong>{employee.name}</strong>
             <div className="text-muted" style={{ fontSize: "0.8rem" }}>
-              ID: {employee.employee_id}
+              {employee.current_role}{employee.current_role ? " · " : ""}ID: {employee.employee_id}
             </div>
           </div>
-          <Badge color={employee.embedding_threshold_pass ? "success" : "danger"} pill>
-            {employee.embedding_threshold_pass ? "Meets Threshold" : "Below Threshold"}
+          <Badge color={meetsThreshold ? "success" : "warning"} pill>
+            Readiness {readinessPct}% <span style={{ fontWeight: 400 }}>(threshold {thresholdPct}%)</span>
           </Badge>
         </div>
-        <div className="d-flex justify-content-between" style={{ fontSize: "0.8rem" }}>
-          <span>Embedding Match</span>
-          <span>
-            {scorePct}% <span className="text-muted">(threshold {thresholdPct}%)</span>
-          </span>
+
+        <div className="mb-3">
+          <div className="d-flex justify-content-between" style={{ fontSize: "0.8rem" }}>
+            <span>Readiness Score</span>
+            <span>{readinessPct}%</span>
+          </div>
+          <Progress value={readinessPct} color={meetsThreshold ? "success" : "warning"} />
         </div>
-        <Progress value={scorePct} color={employee.embedding_threshold_pass ? "success" : "danger"} />
+
+        <Row>
+          <Col md="6" className="mb-3">
+            <div className="d-flex justify-content-between" style={{ fontSize: "0.8rem" }}>
+              <span>Skill Overlap</span>
+              <span>{overlapPct}%</span>
+            </div>
+            <Progress value={overlapPct} color="info" />
+          </Col>
+          <Col md="6" className="mb-3">
+            <div className="d-flex justify-content-between" style={{ fontSize: "0.8rem" }}>
+              <span>Role Similarity</span>
+              <span>{similarityPct}%</span>
+            </div>
+            <Progress value={similarityPct} color="secondary" />
+          </Col>
+        </Row>
+
+        <Row>
+          <Col md="6" className="mb-2">
+            <h6 className="text-muted text-uppercase" style={{ fontSize: "0.7rem", letterSpacing: "0.04em" }}>
+              Matched Skills
+            </h6>
+            <SkillChips skills={employee.matched_skills} color="success" />
+          </Col>
+          <Col md="6" className="mb-2">
+            <h6 className="text-muted text-uppercase" style={{ fontSize: "0.7rem", letterSpacing: "0.04em" }}>
+              Missing Skills
+            </h6>
+            <SkillChips skills={employee.missing_skills} color="danger" />
+          </Col>
+        </Row>
       </CardBody>
     </Card>
   );
@@ -144,7 +168,6 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
         `${GAP_BASE_URL}/workforce-gap-recommendation`,
         {
           department_id: Number(departmentId),
-          test: "true",
           market_page_size: Number(marketPageSize),
           top_market_skills: Number(topMarketSkills),
           reskill_threshold: Number(reskillThreshold),
@@ -272,10 +295,10 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
               </CardHeader>
               <CardBody>
                 <p className="mb-3">{result.recommendation?.reason}</p>
-                <Row>
-                  <ObjectivesList title="Company Objectives" items={result.objective?.company_objectives} />
-                  <ObjectivesList title="Department Objectives" items={result.objective?.department_objectives} />
-                </Row>
+                <h6 className="text-muted text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.04em" }}>
+                  Target Skills
+                </h6>
+                <SkillChips skills={result.objective?.skills} color="info" />
               </CardBody>
             </Card>
           </Col>
@@ -289,6 +312,7 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
               />
               <StatTile label="Top Market Skills" value={result.market_insights?.top_market_skills?.length ?? 0} />
               <StatTile label="Gap Skills" value={result.market_insights?.gap_skills?.length ?? 0} />
+              <StatTile label="Company Employees" value={result.company_snapshot?.employee_count ?? "—"} />
             </Row>
           </Col>
 
@@ -298,20 +322,31 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
                 <CardTitle tag="h5" className="mb-0">
                   Market Insights
                 </CardTitle>
+                {result.market_insights?.query_keywords?.length > 0 && (
+                  <p className="text-muted mb-0" style={{ fontSize: "0.8rem" }}>
+                    Searched for: {result.market_insights.query_keywords.join(", ")}
+                  </p>
+                )}
               </CardHeader>
               <CardBody>
                 <Row>
-                  <Col md="6" className="mb-3">
+                  <Col md="4" className="mb-3">
                     <h6 className="text-muted text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.04em" }}>
                       Top Market Skills
                     </h6>
                     <SkillChips skills={result.market_insights?.top_market_skills} color="info" />
                   </Col>
-                  <Col md="6" className="mb-3">
+                  <Col md="4" className="mb-3">
                     <h6 className="text-muted text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.04em" }}>
                       Gap Skills (not covered internally)
                     </h6>
                     <SkillChips skills={result.market_insights?.gap_skills} color="danger" />
+                  </Col>
+                  <Col md="4" className="mb-3">
+                    <h6 className="text-muted text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.04em" }}>
+                      Company Covered Skills
+                    </h6>
+                    <SkillChips skills={result.company_snapshot?.covered_skills} color="secondary" />
                   </Col>
                 </Row>
               </CardBody>
@@ -330,6 +365,64 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
                   employee={result.recommendation?.recommended_employee}
                   threshold={reskillThreshold}
                 />
+              </CardBody>
+            </Card>
+          </Col>
+
+          <Col md="12">
+            <Card>
+              <CardHeader>
+                <CardTitle tag="h5" className="mb-0">
+                  Employees Considered
+                </CardTitle>
+              </CardHeader>
+              <CardBody>
+                <div style={{ maxHeight: "360px", overflowY: "auto" }}>
+                  <Table hover responsive size="sm">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Current Role</th>
+                        <th className="text-right">Skill Overlap</th>
+                        <th className="text-right">Role Similarity</th>
+                        <th className="text-right">Readiness</th>
+                        <th>Matched Skills</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(result.employees || []).map((emp) => {
+                        const isRecommended =
+                          result.recommendation?.recommended_employee?.employee_id === emp.employee_id;
+                        return (
+                          <tr key={emp.employee_id} style={isRecommended ? { background: "#f4fff8" } : undefined}>
+                            <td>
+                              {emp.name}
+                              {isRecommended && (
+                                <Badge color="success" pill className="ml-2" style={{ fontSize: "0.65rem" }}>
+                                  Recommended
+                                </Badge>
+                              )}
+                            </td>
+                            <td>{emp.current_role}</td>
+                            <td className="text-right">{formatRatio(emp.overlap_ratio)}</td>
+                            <td className="text-right">{formatRatio(emp.role_similarity)}</td>
+                            <td className="text-right">{formatRatio(emp.readiness_score)}</td>
+                            <td>
+                              <SkillChips skills={emp.matched_skills} color="secondary" />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {(!result.employees || result.employees.length === 0) && (
+                        <tr>
+                          <td colSpan="6" className="text-center text-muted">
+                            No employees were evaluated.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
               </CardBody>
             </Card>
           </Col>

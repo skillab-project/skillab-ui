@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Row, Col, Card, CardBody, Button, Input } from "reactstrap";
+import { Row, Col, Button } from "reactstrap";
 import StepsDropDown from "../Candidates/StepsDropDown";
 import StepSkills from "../Candidates/StepSkills";
 import ConfirmModal from "./ConfirmModal";
 import CandidateDropdown from "../Candidates/CandidateDropDown";
+import { scoreVariant, statusClass } from "../Candidates/candidateUi";
+import "../Interview/interview.css";
+import "../Candidates/Candidates.css";
 import "./Hire.css";
 
 const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
@@ -204,150 +207,142 @@ export default function Hire({ jobAdId }) {
         }
     };
 
-    if (!jobAdId) return <p style={{ padding: "1rem" }}>Select a Job Ad to view its candidates.</p>;
+    if (!jobAdId) return <p className="text-muted" style={{ padding: "1rem" }}>Select a Job Ad to view its candidates.</p>;
+
+    const selectCandidate = async (cand) => {
+        if (!cand) {
+            setSelectedCandidate(null);
+            setSelectedStep(null);
+            setSelectedQuestion(null);
+            setRightPane(null);
+            setCandComment("");
+            return;
+        }
+        try {
+            const r = await fetch(`${API_BASE}/api/v1/candidates/${cand.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
+            const d = r.ok ? await r.json() : null;
+            // keep cvPath + cvName (original name or basename)
+            const enriched = {
+                ...cand,
+                email: d?.email ?? "",
+                cvPath: d?.cvPath ?? "",
+                cvName: d?.cvOriginalName ?? fileNameFromPath(d?.cvPath) ?? "",
+                interviewReportId:
+                    d?.interviewReport?.id ?? d?.interviewReportId ?? cand?.interviewReportId ?? null,
+            };
+            setSelectedCandidate(enriched);
+            setCandidates((prev) =>
+                prev.map((x) =>
+                    x.id === cand.id
+                        ? { ...x, email: enriched.email, cvPath: enriched.cvPath, cvName: enriched.cvName }
+                        : x
+                )
+            );
+        } catch {
+            setSelectedCandidate(cand);
+        }
+        setSelectedStep(null);
+        setSelectedQuestion(null);
+        setRightPane(null);
+    };
+
+    const isHired = String(selectedCandidate?.status || "").toLowerCase() === "hired";
 
     return (
-        <div className="vh-shell hire-shell">
-            {/* TOP ROW */}
-            <Row className="g-3" style={{ flex: "1 1 auto", minHeight: 0 }}>
-                {/* Approved candidates */}
-                <Col md="4" className="d-flex flex-column" style={{ minHeight: 0, height: "100%" }}>
-                    <div style={{ flex: "1 1 auto", minHeight: 0, display: "flex", flexDirection: "column" }}>
-                        <label className="description-labels">Approved Candidates:</label>
-
-                        <Card className="panel panel--flex" style={{ flex: "1 1 0%", minHeight: 0, display: "flex" }}>
-                            <CardBody
-                                style={{
-                                    minHeight: 0,
-                                    height: "100%",
-                                    display: "grid",
-                                    gridTemplateRows: "auto 1fr",
-                                    gap: 8,
-                                }}
-                            >
-                                <Row className="panel__header-row">
-                                    <Col md="4">
-                                        <label className="active-label">Score:</label>
-                                    </Col>
-                                    <Col md="4">
-                                        <label className="active-label">Name:</label>
-                                    </Col>
-                                    <Col md="4">
-                                        <label className="active-label">Status:</label>
-                                    </Col>
-                                </Row>
-
-                                <div className="clp-scroll">
-                                    <CandidateDropdown
-                                        candidates={candidates}
-                                        selectedId={selectedCandidate?.id ?? null}
-                                        renderLeft={(c) => (Number.isFinite(c.avgScore) ? c.avgScore : "—")}
-                                        onSelect={async (cand) => {
-                                            if (!cand) {
-                                                setSelectedCandidate(null);
-                                                setSelectedStep(null);
-                                                setSelectedQuestion(null);
-                                                setRightPane(null);
-                                                setCandComment("");
-                                                return;
-                                            }
-                                            try {
-                                                const r = await fetch(`${API_BASE}/api/v1/candidates/${cand.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` } });
-                                                const d = r.ok ? await r.json() : null;
-
-                                                // === ΜΟΝΕΣ ουσιαστικές αλλαγές: κρατάμε cvPath + cvName (originalName ή basename) ===
-                                                const enriched = {
-                                                    ...cand,
-                                                    email: d?.email ?? "",
-                                                    cvPath: d?.cvPath ?? "",
-                                                    cvName: d?.cvOriginalName ?? fileNameFromPath(d?.cvPath) ?? "",
-                                                    interviewReportId:
-                                                        d?.interviewReport?.id ?? d?.interviewReportId ?? cand?.interviewReportId ?? null,
-                                                };
-
-                                                setSelectedCandidate(enriched);
-                                                setCandidates((prev) =>
-                                                    prev.map((x) =>
-                                                        x.id === cand.id
-                                                            ? { ...x, email: enriched.email, cvPath: enriched.cvPath, cvName: enriched.cvName }
-                                                            : x
-                                                    )
-                                                );
-                                            } catch {
-                                                setSelectedCandidate(cand);
-                                            }
-                                            setSelectedStep(null);
-                                            setSelectedQuestion(null);
-                                            setRightPane(null);
-                                        }}
-                                    />
-                                </div>
-                            </CardBody>
-                        </Card>
+        <div className="iv-page">
+            {/* ---------- 1. Approved candidates ---------- */}
+            <section className="iv-section iv-section--head-center">
+                <div className="iv-section-head">
+                    <div>
+                        <h5 className="iv-section-title">Approved Candidates</h5>
+                        <p className="iv-section-sub">
+                            Candidates that passed the evaluation, with their final score. Select one to review and hire.
+                        </p>
                     </div>
-                </Col>
+                    {selectedCandidate && (
+                        isHired ? (
+                            <span className={`cand-status ${statusClass("hired")}`} style={{ fontSize: 12, padding: "4px 14px" }}>
+                                <i className="nc-icon nc-check-2 mr-1" /> Hired
+                            </span>
+                        ) : (
+                            <div className="iv-actions">
+                                <Button color="success" onClick={openHireModal}>
+                                    <i className="nc-icon nc-check-2 mr-1" style={{ verticalAlign: "middle" }} /> Hire {selectedCandidate.name}
+                                </Button>
+                            </div>
+                        )
+                    )}
+                </div>
 
-                {/* Steps */}
-                <Col md="4" className="d-flex flex-column" style={{ minHeight: 0, height: "100%" }}>
-                    <label className="description-labels">Interview Steps:</label>
-                    <Card className="panel panel--flex">
-                        <CardBody className="panel__scroll">
-                            {selectedCandidate ? (
-                                <StepsDropDown
-                                    steps={steps}
-                                    ratings={{}}
-                                    onSelect={handleSelectQ}
-                                    showScore={true}
-                                    candidateId={selectedCandidate?.id}
-                                    interviewReportId={selectedCandidate?.interviewReportId}
-                                />
-                            ) : (
-                                <div className="muted">Select a candidate to see steps…</div>
-                            )}
-                        </CardBody>
-                    </Card>
-                </Col>
+                <CandidateDropdown
+                    candidates={candidates}
+                    selectedId={selectedCandidate?.id ?? null}
+                    emptyText="No approved candidates yet. Approve candidates in the Candidates tab first."
+                    renderLeft={(c) => (
+                        <span className={`cand-score cand-score--${scoreVariant(c.avgScore)}`} title="Final score">
+                            {Number.isFinite(c.avgScore) ? `Score ${c.avgScore}` : "No score"}
+                        </span>
+                    )}
+                    onSelect={selectCandidate}
+                />
+            </section>
 
-                {/* Skills (read-only) */}
-                <Col md="4" className="d-flex flex-column" style={{ minHeight: 0, height: "100%" }}>
-                    <label className="description-labels">Skills for this question:</label>
-                    <Card className="panel panel--flex">
-                        <CardBody className="panel__scroll">
-                            {selectedCandidate ? (
-                                <StepSkills step={rightPaneStepObj} mode="view" />
-                            ) : (
-                                <div className="muted">Select a candidate to see skills…</div>
-                            )}
-                        </CardBody>
-                    </Card>
-                </Col>
-            </Row>
+            {/* ---------- 2. Evaluation (read-only) ---------- */}
+            <section className="iv-section iv-section--head-center">
+                <div className="iv-section-head">
+                    <div>
+                        <h5 className="iv-section-title">
+                            Evaluation{selectedCandidate ? ` — ${selectedCandidate.name}` : ""}
+                        </h5>
+                        <p className="iv-section-sub">The scores the candidate received in each step (read-only).</p>
+                    </div>
+                </div>
 
-            {/* BOTTOM ROW */}
-            <Row className="g-3 mt-8" style={{ flex: "0 0 auto" }}>
-                <Col md="8">
-                    <Card className="shadow-sm hire-comments-card">
-                        <CardBody>
-                            {!selectedCandidate ? (
-                                <div className="muted">Select a candidate to see comments…</div>
-                            ) : (
-                                <Input type="textarea" rows={2} value={candComment} readOnly className="hire-readonly-input" />
-                            )}
-                        </CardBody>
-                    </Card>
-                </Col>
+                {!selectedCandidate ? (
+                    <div className="iv-empty">
+                        <i className="nc-icon nc-tap-01" />
+                        Select a candidate to see their evaluation.
+                    </div>
+                ) : (
+                    <Row>
+                        <Col xl="5" className="mb-4">
+                            <div className="cand-panel-title">Interview steps</div>
+                            <StepsDropDown
+                                steps={steps}
+                                ratings={{}}
+                                onSelect={handleSelectQ}
+                                showScore={true}
+                                candidateId={selectedCandidate?.id}
+                                interviewReportId={selectedCandidate?.interviewReportId}
+                            />
+                        </Col>
+                        <Col xl="7" className="mb-4">
+                            <div className="cand-panel-title">Skills of the selected question</div>
+                            <StepSkills step={rightPaneStepObj} mode="view" />
+                        </Col>
+                    </Row>
+                )}
+            </section>
 
-                <Col md="4" className="d-flex justify-content-center">
-                    <Button
-                        color="success"
-                        onClick={openHireModal}
-                        disabled={!selectedCandidate || String(selectedCandidate.status || "").toLowerCase() === "hired"}
-                        className="hire-btn"
-                    >
-                        HIRE
-                    </Button>
-                </Col>
-            </Row>
+            {/* ---------- 3. Comments (read-only) ---------- */}
+            <section className="iv-section iv-section--head-center">
+                <div className="iv-section-head">
+                    <div>
+                        <h5 className="iv-section-title">Comments</h5>
+                        <p className="iv-section-sub">Notes the hiring team wrote about the candidate.</p>
+                    </div>
+                </div>
+                {!selectedCandidate ? (
+                    <div className="iv-empty">
+                        <i className="nc-icon nc-chat-33" />
+                        Select a candidate to see the comments.
+                    </div>
+                ) : (
+                    <div className={`cand-readonly-text ${candComment?.trim() ? "" : "is-empty"}`}>
+                        {candComment?.trim() ? candComment : "No comments."}
+                    </div>
+                )}
+            </section>
 
             <ConfirmModal
                 isOpen={showConfirm}

@@ -125,8 +125,10 @@ export default function StepsTab({
                     <div
                         className="d-flex align-items-end"
                         style={{
-                            gap: 10,
-                            height: 150,
+                            gap: 4,
+                    overflow: 'hidden',
+                    minWidth: 0,
+                            height: 164,
                             padding: '8px 6px',
                             border: '1px solid #eee',
                             borderRadius: 8,
@@ -141,12 +143,12 @@ export default function StepsTab({
                             const title = `${label} : ${count} (${pct})`;
 
                             return (
-                                <div key={(b.from ?? i) + '-' + (b.to ?? i)} style={{ textAlign: 'center', flex: 1 }}>
+                                <div key={(b.from ?? i) + '-' + (b.to ?? i)} style={{ textAlign: 'center', flex: '1 1 0', minWidth: 0 }}>
                                     <div style={{ height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                        <div style={{ fontSize: 10, opacity: 0.85, marginBottom: 4 }}>{pct}</div>
-                                        <div title={title} style={{ height: `${hPx}px`, background: '#e9ecef', borderRadius: 6, width: '100%' }} />
+                                        <div style={{ fontSize: 9, opacity: 0.85, marginBottom: 4, whiteSpace: 'nowrap' }}>{pct}</div>
+                                        <div title={title} style={{ height: `${hPx}px`, background: '#51cbce', borderRadius: 6, width: '100%' }} />
                                     </div>
-                                    <div style={{ fontSize: 10, opacity: 0.7, marginTop: 4 }} title={title}>
+                                    <div style={{ fontSize: 9, opacity: 0.7, marginTop: 4, whiteSpace: 'nowrap', letterSpacing: '-0.02em' }} title={title}>
                                         {label}
                                     </div>
                                 </div>
@@ -233,7 +235,7 @@ export default function StepsTab({
                                         <Button
                                             key={s.id}
                                             onClick={() => { setSelectedStepId(s.id); onSelectStep?.(s.id); }}
-                                            className={`w-100 text-start ${active ? 'btn-secondary' : 'btn-light'}`}
+                                            className={`an-item w-100 text-start ${active ? 'is-active' : ''}`}
                                             style={{ marginBottom: 6, borderRadius: 8 }}
                                         >
                                             <div className="d-flex align-items-center justify-content-between">

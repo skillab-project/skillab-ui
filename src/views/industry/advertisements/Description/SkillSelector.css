@@ -212,3 +212,20 @@ input[type="text"].form-control {
 .skills-scroll {
     overflow-x: hidden;
 }
+
+/* --- Required skills (read-only list): long names wrap onto more lines
+       instead of being cut off with "…" --- */
+.skill-badge.skill-badge--wrap {
+    white-space: normal !important;
+    text-align: left;
+    border-radius: 10px !important;
+    padding: 6px 10px;
+    line-height: 1.35 !important;
+}
+
+.skill-badge.skill-badge--wrap .skill-badge-text {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+}

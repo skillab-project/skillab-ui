@@ -1,48 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Badge, Collapse } from 'reactstrap';
+import { Collapse } from 'reactstrap';
+import { scoreVariant } from './candidateUi';
+import '../Interview/interview.css';
 import './Candidates.css';
 
 const API_BASE = process.env.REACT_APP_API_URL_HIRING_MANAGEMENT;
 
-/* --------- helpers για το χρώμα & το μικρό “swatch” ---------- */
-function scoreColor(value) {
-    if (!Number.isFinite(value)) return '#6b7280'; // gray for N/A
-    if (value < 25) return '#dc2626';              // red
-    if (value < 50) return '#f97316';              // orange
-    if (value < 75) return '#eab308';              // yellow
-    return '#16a34a';                               // green
-}
-
-function ColorSwatch({ value, shape = 'vbar', size = 24, title }) {
-    const v =
-        value === '' || value === null || typeof value === 'undefined'
-            ? NaN
-            : Number(value);
-    const bg = scoreColor(v);
-    const base = { display: 'inline-block', background: bg };
-
-    const style =
-        shape === 'vbar'
-            ? { ...base, width: 8, height: size, borderRadius: 4 }
-            : shape === 'bar'
-                ? { ...base, width: size, height: 8, borderRadius: 4 }
-                : shape === 'square'
-                    ? {
-                        ...base,
-                        width: 12,
-                        height: 12,
-                        borderRadius: 2,
-                        border: '1px solid rgba(0,0,0,0.08)',
-                    }
-                    : {
-                        ...base,
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        border: '1px solid rgba(0,0,0,0.08)',
-                    };
-
-    return <span aria-hidden title={title} style={style} />;
+/* Score pill coloured by value (0–100) */
+function ScorePill({ value }) {
+    const v = Number(value);
+    const has = value !== null && value !== undefined && value !== '' && Number.isFinite(v);
+    return (
+        <span className={`cand-score cand-score--${scoreVariant(value)}`} title="Average score">
+            {has ? `${v}%` : '—'}
+        </span>
+    );
 }
 
 export default function StepsDropDown({
@@ -54,6 +26,10 @@ export default function StepsDropDown({
     candidateId,
 }) {
     const [openIndex, setOpenIndex] = useState(null);
+    const [selectedKey, setSelectedKey] = useState(null);
+
+    // a different candidate → nothing selected
+    useEffect(() => { setSelectedKey(null); }, [candidateId]);
 
     /** ---------- Backend metrics cache ---------- */
     const [metricsByQ, setMetricsByQ] = useState({});
@@ -246,155 +222,84 @@ export default function StepsDropDown({
 
     /* -------------------------------- UI -------------------------------- */
 
+    if (!steps.length) {
+        return (
+            <div className="iv-empty">
+                <i className="nc-icon nc-bullet-list-67" />
+                This job ad has no interview steps yet.
+            </div>
+        );
+    }
+
     return (
-        <div className="candidate-container">
+        <div className="iv-steps cand-steps">
             {steps.map((step, idx) => {
                 const isOpen = openIndex === idx;
                 const stepStats = getStepMetrics(step);
-
                 const totalQ = stepStats.totalQuestions ?? 0;
                 const ratedQ = stepStats.ratedQuestions ?? 0;
-                const pct = totalQ ? Math.round((ratedQ / totalQ) * 100) : 0;
 
                 return (
-                    <div key={step.id ?? step.name ?? idx} className="question-box">
-                        <Button
+                    <div key={step.id ?? step.name ?? idx} className={`iv-step ${isOpen ? 'is-open is-selected' : ''}`}>
+                        <div
+                            className="iv-step-header"
+                            role="button"
+                            aria-expanded={isOpen}
                             onClick={() => setOpenIndex(isOpen ? null : idx)}
-                            className={`question-btn ${isOpen ? 'active' : ''}`}
-                            block
-                            style={{ textAlign: 'left' }}
                         >
-                            <div className="question-header">
-                                <span className="question-text">{step.name ?? step.title}</span>
+                            <span className="iv-step-num">{idx + 1}</span>
+                            <span className="iv-step-text">
+                                <span className="iv-step-title" title={step.name ?? step.title}>{step.name ?? step.title}</span>
+                                <span className="cand-step-meta">
+                                    {totalQ} question{totalQ === 1 ? '' : 's'}
+                                    {showScore && ` · ${ratedQ}/${totalQ} fully rated`}
+                                </span>
+                            </span>
+                            {showScore && <ScorePill value={stepStats.avg} />}
+                            <i className="nc-icon nc-minimal-down iv-chevron" />
+                        </div>
 
-                                {/* BADGES ΚΑΘΕΤΑ: #questions, rated/total, score% (+ swatch) */}
-                                <div
-                                    className="badge-group"
-                                    style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'flex-end',
-                                        gap: 4,
-                                    }}
-                                >
-                                    <Badge pill className="steps-badge">
-                                        {totalQ} questions
-                                    </Badge>
-                                    {showScore && (
-                                        <>
-                                            <Badge pill className="rated-badge">
-                                                {ratedQ}/{totalQ} rated
-                                            </Badge>
+                        <Collapse isOpen={isOpen}>
+                            <div className="cand-questions">
+                                {(step.questions ?? []).length === 0 && (
+                                    <div className="cand-step-meta" style={{ paddingTop: 8 }}>No questions in this step.</div>
+                                )}
+                                {(step.questions ?? []).map((q, i) => {
+                                    const qStats = showScore ? getQuestionMetrics(q, step) : null;
+                                    const skillsCountFromMetrics =
+                                        (q?.id && metricsByQ[q.id]?.totalSkills) ?? q?.__metrics?.totalSkills;
+                                    const skillsCount = Number.isFinite(skillsCountFromMetrics)
+                                        ? skillsCountFromMetrics
+                                        : q?.skills?.length ?? 0;
+                                    const denom = qStats?.total && qStats.total > 0 ? qStats.total : skillsCount;
+                                    const key = `${step.id ?? idx}:${q.id ?? i}`;
+                                    const isSel = selectedKey === key;
 
-                                            {/* score badge + κάθετη μπάρα δίπλα */}
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: 6,
-                                                }}
-                                            >
-                                                <Badge pill className="score-badge">
-                                                    {stepStats.avg != null ? `${stepStats.avg}%` : '—%'}
-                                                </Badge>
-                                                <ColorSwatch
-                                                    value={stepStats.avg}
-                                                    shape="vbar"
-                                                    size={24}
-                                                    title="Step score color"
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            <Collapse isOpen={isOpen}>
-
-                                <div className="steps-wrapper">
-                                    {(step.questions ?? []).map((q, i) => {
-                                        const qStats = showScore ? getQuestionMetrics(q, step) : null;
-
-                                        // προτεραιότητα στο backend για totalSkills, αλλιώς local __metrics
-                                        const skillsCountFromMetrics =
-                                            (q?.id && metricsByQ[q.id]?.totalSkills) ??
-                                            q?.__metrics?.totalSkills;
-
-                                        const skillsCount = Number.isFinite(skillsCountFromMetrics)
-                                            ? skillsCountFromMetrics
-                                            : q?.skills?.length ?? 0;
-
-                                        // αν qStats.total = 0, χρησιμοποίησε skillsCount σαν παρονομαστή
-                                        const denom =
-                                            qStats?.total && qStats.total > 0
-                                                ? qStats.total
-                                                : skillsCount;
-
-                                        return (
-                                            <button
-                                                key={q.id ?? `${step.name}::${i}`}
-                                                type="button"
-                                                className="step-btn"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onSelect?.(step, q);
-                                                }}
-                                                title={q.question}
-                                            >
-                                                <span
-                                                    style={{
-                                                        paddingRight: 8,
-                                                        minWidth: 0,
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                    }}
-                                                >
-                                                    {q.question}
-                                                </span>
-
-                                                {/* BADGES ΚΑΘΕΤΑ: #skills, rated/total, score% (+ swatch) */}
-                                                {showScore && (
-                                                    <span
-                                                        style={{
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            alignItems: 'flex-end',
-                                                            gap: 4,
-                                                        }}
-                                                    >
-                                                        <span className="badge steps-badge" style={{ margin: 0 }}>
-                                                            {skillsCount} skills
-                                                        </span>
-                                                        <span className="badge rated-badge" style={{ margin: 0 }}>
-                                                            {(qStats?.ratedCount ?? 0)}/{denom} rated
-                                                        </span>
-
-                                                        {/* score badge + κάθετη μπάρα δίπλα */}
-                                                        <span
-                                                            style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: 6,
-                                                            }}
-                                                        >
-                                                            <span className="badge score-badge" style={{ margin: 0 }}>
-                                                                {qStats?.avg != null ? `${qStats.avg}%` : '—%'}
-                                                            </span>
-                                                            <ColorSwatch
-                                                                value={qStats?.avg}
-                                                                shape="vbar"
-                                                                size={24}
-                                                                title="Question score color"
-                                                            />
-                                                        </span>
+                                    return (
+                                        <button
+                                            key={q.id ?? `${step.name}::${i}`}
+                                            type="button"
+                                            className={`cand-question ${isSel ? 'is-selected' : ''}`}
+                                            onClick={() => {
+                                                setSelectedKey(key);
+                                                onSelect?.(step, q);
+                                            }}
+                                            title={q.question}
+                                        >
+                                            <span className="cand-question-text">{q.question}</span>
+                                            {showScore && (
+                                                <>
+                                                    <span className="cand-question-meta">
+                                                        {qStats?.ratedCount ?? 0}/{denom} skills rated
                                                     </span>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </Collapse>
-                        </Button>
+                                                    <ScorePill value={qStats?.avg} />
+                                                </>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </Collapse>
                     </div>
                 );
             })}

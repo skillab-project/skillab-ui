@@ -37,7 +37,8 @@ function IndustryAccount() {
             icon={LuTrendingUpDown}
             color="#fbc658"
             title="Future Needs"
-            description="Anticipate upcoming skill needs. (Coming soon)"
+            description="Anticipate upcoming skill and occupation needs."
+            onClick={go("/industry/account/future-needs")}
           />
         </Col>
         <Col lg="3" md="6" className="mb-4">
@@ -45,7 +46,8 @@ function IndustryAccount() {
             icon={TbZoomInArea}
             color="#51bcda"
             title="Insights on Future"
-            description="Forward-looking EU market insights. (Coming soon)"
+            description="Long-term emerging skills and occupations."
+            onClick={go("/industry/account/insights-future")}
           />
         </Col>
       </Row>

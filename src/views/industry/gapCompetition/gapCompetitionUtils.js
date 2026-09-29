@@ -60,15 +60,28 @@ export const formatRatio = (value, digits = 0) =>
     : `${(Number(value) * 100).toFixed(digits)}%`;
 
 //  gap-analysis response shaping 
-// analysis_results.common / only_in_ad / only_in_sector all share the same
-// shape: a set of parallel dictionaries keyed by a stringified index, e.g.
-// { skill: {"0": "Java", ...}, my_ad_prob: {"0": 0.03, ...}, ... }
-// (the label dictionary is called "skill" for a skill-level analysis and
-// "job" for an occupation-level one). This flattens one of those sections
-// into a plain array of row objects, keeping every numeric field it finds.
+// analysis_results.common / only_in_* all share the same shape: a set of
+// parallel dictionaries keyed by a stringified index. The two analysis types
+// use different names, though:
+//   skill: { skill: {"0": "Java"}, my_ad_prob: {...}, sector_prob: {...}, difference }
+//          sections: common / only_in_ad / only_in_sector
+//   job:   { occupation: {"0": "marketing manager"}, company_count: {...},
+//            competition_count: {...}, difference }
+//          sections: common / only_in_company / only_in_competition
+// Everything is normalised to the skill naming (label, my_ad_prob,
+// sector_prob, difference) so the tab can render both the same way.
+const LABEL_KEYS = ["skill", "occupation", "job"];
+const FIELD_ALIASES = {
+  company_count: "my_ad_prob",
+  company_prob: "my_ad_prob",
+  competition_count: "sector_prob",
+  competition_prob: "sector_prob",
+};
+
+const sectionLabelKey = (section) => (section ? LABEL_KEYS.find((k) => section[k]) || null : null);
+
 export const indexedSectionToArray = (section) => {
-  if (!section) return [];
-  const labelKey = section.skill ? "skill" : section.job ? "job" : null;
+  const labelKey = sectionLabelKey(section);
   if (!labelKey) return [];
 
   const labels = section[labelKey] || {};
@@ -77,16 +90,30 @@ export const indexedSectionToArray = (section) => {
   return Object.keys(labels).map((idx) => {
     const row = { key: idx, label: labels[idx] };
     fieldKeys.forEach((field) => {
-      row[field] = section[field] ? section[field][idx] : undefined;
+      const target = FIELD_ALIASES[field] || field;
+      row[target] = section[field] ? section[field][idx] : undefined;
     });
     return row;
   });
 };
 
-export const sectionItemType = (section) => {
-  if (!section) return "Item";
-  if (section.job) return "Occupation";
-  return "Skill";
+// Picks the three sections regardless of which naming the response uses.
+export const getGapSections = (analysisResults) => {
+  const r = analysisResults || {};
+  return {
+    common: r.common,
+    onlyInAd: r.only_in_ad || r.only_in_company,
+    onlyInSector: r.only_in_sector || r.only_in_competition,
+  };
+};
+
+export const sectionItemType = (...sections) => {
+  for (const section of sections) {
+    const key = sectionLabelKey(section);
+    if (key === "skill") return "Skill";
+    if (key === "occupation" || key === "job") return "Occupation";
+  }
+  return null;
 };
 
 //  Colors (reused from the app's own brand palette for consistency) 
