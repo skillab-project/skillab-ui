@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Row, Col, Card, CardHeader, CardBody, CardTitle, FormGroup, Label, Input, Button, Alert, Spinner, Badge } from "reactstrap";
 import EmergenceSection from "./EmergenceSection";
 import useOrgNeedsAnalysis from "../futureNeeds/useOrgNeedsAnalysis";
+import ConfirmModal from "../advertisements/Hire/ConfirmModal";
 import AnalysisProgress from "../futureNeeds/AnalysisProgress";
 import {
   ANALYSIS_KINDS,
@@ -24,7 +25,7 @@ function InsightsFutureTab({ kind, organization, loadingOrganization, active }) 
   const [resolvedLabels, setResolvedLabels] = useState({});
   const [selectedSector, setSelectedSector] = useState("");
 
-  const { phase, serverStatus, data, message, waitingSince, nextCheckAt, run, checkNow } = useOrgNeedsAnalysis({
+  const { phase, serverStatus, data, message, waitingSince, nextCheckAt, lastTopN, run, rerun, checkNow } = useOrgNeedsAnalysis({
     path: `longtermanalysis/${kind}`,
     organization,
     topN,
@@ -63,6 +64,7 @@ function InsightsFutureTab({ kind, organization, loadingOrganization, active }) 
   );
 
   const busy = phase === "loading" || phase === "pending";
+  const [confirmRerun, setConfirmRerun] = useState(false);
   const profile = data?.organization_profile;
   const sectorAnalysis = data?.sector_analysis;
 
@@ -103,9 +105,24 @@ function InsightsFutureTab({ kind, organization, loadingOrganization, active }) 
                 </Col>
                 <Col md="3" className="mb-3">
                   <Button color="info" type="submit" block disabled={busy || !organization} className="mb-0">
-                    {busy ? <Spinner size="sm" /> : data ? "Refresh Analysis" : "Run Analysis"}
+                    {busy ? <Spinner size="sm" /> : data ? "Load Analysis" : "Run Analysis"}
                   </Button>
                 </Col>
+                {data && (
+                  <Col md="3" className="mb-3">
+                    <Button
+                      color="info"
+                      outline
+                      block
+                      className="mb-0"
+                      disabled={busy || !organization || lastTopN == null}
+                      onClick={() => setConfirmRerun(true)}
+                      title={`Compute the analysis again for the top ${lastTopN} ${kindInfo.plural.toLowerCase()} with the latest data`}
+                    >
+                      <i className="nc-icon nc-refresh-69 mr-1" style={{ verticalAlign: "middle" }} /> Rerun Analysis
+                    </Button>
+                  </Col>
+                )}
               </Row>
             </form>
 
@@ -191,6 +208,26 @@ function InsightsFutureTab({ kind, organization, loadingOrganization, active }) 
           </Col>
         </>
       )}
+
+      <ConfirmModal
+        isOpen={confirmRerun}
+        title="Rerun Analysis"
+        message={
+          <>
+            Compute the analysis again for <b>{organization}</b> (top <b>{lastTopN}</b>{" "}
+            {kindInfo.plural.toLowerCase()}) with the latest job data? This can take several minutes; the current
+            results stay visible until the new ones are ready.
+          </>
+        }
+        confirmText="Rerun"
+        cancelText="Cancel"
+        confirmColor="info"
+        onConfirm={() => {
+          setConfirmRerun(false);
+          rerun();
+        }}
+        onCancel={() => setConfirmRerun(false)}
+      />
     </Row>
   );
 }

@@ -19,7 +19,9 @@ import { MAX_POLL_ATTEMPTS, POLL_INTERVAL_MS, fetchOrgNeedsAnalysis, pendingStat
  *   attempt       number of status checks so far
  *   waitingSince  timestamp (ms) when the current run started waiting
  *   nextCheckAt   timestamp (ms) of the next scheduled status check
- *   run(topN)     start (or restart) a run
+ *   lastTopN      top_n of the last run (the one shown / being computed)
+ *   run(topN)     start (or restart) a run — returns the stored result if there is one
+ *   rerun()       compute the last analysis again (same organization and top_n)
  *   checkNow()    check the status immediately without restarting
  */
 export default function useOrgNeedsAnalysis({ path, organization, topN, active, errorMessage }) {
@@ -30,6 +32,7 @@ export default function useOrgNeedsAnalysis({ path, organization, topN, active, 
   const [attempt, setAttempt] = useState(0);
   const [waitingSince, setWaitingSince] = useState(null);
   const [nextCheckAt, setNextCheckAt] = useState(null);
+  const [lastTopN, setLastTopN] = useState(null);
 
   const timerRef = useRef(null);
   const abortRef = useRef(null);
@@ -52,8 +55,11 @@ export default function useOrgNeedsAnalysis({ path, organization, topN, active, 
   useEffect(() => stop, [stop]);
 
   const run = useCallback(
-    (n) => {
+    (n, { rerun = false } = {}) => {
       if (!organization) return;
+      setLastTopN(n);
+      // send rerun=true only once (the first request of this run)
+      let sendRerun = rerun;
       stop();
       const runId = ++runIdRef.current;
       setPhase("loading");
@@ -76,7 +82,9 @@ export default function useOrgNeedsAnalysis({ path, organization, topN, active, 
         const controller = new AbortController();
         abortRef.current = controller;
         try {
-          const res = await fetchOrgNeedsAnalysis(path, n, controller.signal);
+          const withRerun = sendRerun;
+          sendRerun = false; // later polls just check the status
+          const res = await fetchOrgNeedsAnalysis(path, n, controller.signal, withRerun);
           if (runId !== runIdRef.current) return;
 
           const pending = pendingStatus(res.data);
@@ -138,5 +146,9 @@ export default function useOrgNeedsAnalysis({ path, organization, topN, active, 
     }
   }, [active, organization, run, topN]);
 
-  return { phase, serverStatus, data, message, attempt, waitingSince, nextCheckAt, run, checkNow };
+  const rerun = useCallback(() => {
+    if (lastTopN != null) run(lastTopN, { rerun: true });
+  }, [lastTopN, run]);
+
+  return { phase, serverStatus, data, message, attempt, waitingSince, nextCheckAt, lastTopN, run, rerun, checkNow };
 }

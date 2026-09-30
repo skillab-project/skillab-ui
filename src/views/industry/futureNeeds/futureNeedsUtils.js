@@ -23,9 +23,11 @@ export const getOrgNeedsAuthHeaders = () => ({
 });
 
 // path: e.g. "shorttermanalysis/skills" or "longtermanalysis/occupations"
-export const fetchOrgNeedsAnalysis = (path, topN, signal) =>
+// rerun: true discards the stored result and computes the analysis again
+// (send it only on the first request; poll without it afterwards).
+export const fetchOrgNeedsAnalysis = (path, topN, signal, rerun = false) =>
   axios.get(`${ORG_NEEDS_BASE_URL}/${path}`, {
-    params: { top_n: topN },
+    params: rerun ? { top_n: topN, rerun: true } : { top_n: topN },
     headers: getOrgNeedsAuthHeaders(),
     signal,
   });
