@@ -23,6 +23,7 @@ services:
       # - REACT_APP_API_URL_TRACKER_PASSWORD=${REACT_APP_API_URL_TRACKER_PASSWORD}
       - REACT_APP_API_URL_CURRICULUM_SKILLS=https://portal.skillab-project.eu/user-management/curriculum-skills-backend
       - REACT_APP_API_URL_ORGANIZATION_NEEDS=https://portal.skillab-project.eu/user-management/organization-needs
+      - REACT_APP_API_URL_GAP_WITH_COMPETITION=https://portal.skillab-project.eu/user-management/organizational-skills-recommender
       - REACT_APP_API_URL_SKILLS_DIVERSITY=https://portal.skillab-project.eu/diversity-analysis
       - REACT_APP_API_URL_SKILL_DEMAND_MATRIX=https://portal.skillab-project.eu/hcv
       - REACT_APP_API_URL_SKILL_AGEING=https://portal.skillab-project.eu/skill-ageing
