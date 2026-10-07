@@ -74,6 +74,18 @@ function ManagePolicies() {
     }, [fetchPolicies, fetchKpis, fetchMetrics]);
 
 
+    // Reload everything after a delete/restore: deleting a policy also removes KPIs and maybe
+    // metrics, and deleting a KPI changes the policy's KPI list. No full-page spinner here,
+    // so the tabs keep their state.
+    const refreshAll = useCallback(async () => {
+        await Promise.all([fetchPolicies(), fetchKpis(), fetchMetrics()]);
+    }, [fetchPolicies, fetchKpis, fetchMetrics]);
+
+    const handlePolicyDeleted = async (policy) => {
+        await refreshAll();
+        alert(`Policy "${policy.name}" deleted.`);
+    };
+
     const handleAddPolicy = async (newPolicy) => {
         try {
             await axios.post(POLICY_API_URL, newPolicy, {
@@ -207,15 +219,15 @@ function ManagePolicies() {
 
             <TabContent activeTab={currentActiveTab}>
                 <TabPane tabId="1">
-                    <PoliciesMain policies={policies} onPolicyCreated={handleAddPolicy} />
+                    <PoliciesMain policies={policies} onPolicyCreated={handleAddPolicy} onPolicyDeleted={handlePolicyDeleted} />
                 </TabPane>
 
                 <TabPane tabId="2">
-                    <KPIsMain kpis={kpis} />
+                    <KPIsMain kpis={kpis} onKpisChanged={refreshAll} />
                 </TabPane>
                 
                 <TabPane tabId="3">
-                    <MetricsMain metrics={metrics} onMetricCreated={handleAddMetric} />
+                    <MetricsMain metrics={metrics} onMetricCreated={handleAddMetric} onMetricsChanged={refreshAll} />
                 </TabPane>
                 
                 <TabPane tabId="4">
@@ -234,4 +246,4 @@ function ManagePolicies() {
     );
 }
 
-export default ManagePolicies;
+export default ManagePolicies;

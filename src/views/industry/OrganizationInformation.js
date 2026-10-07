@@ -542,9 +542,15 @@ function OrganizationInformation() {
                                             color="info"
                                             pill
                                             className="d-inline-flex align-items-center px-3 py-2 mr-2 mb-2"
-                                            style={{ fontSize: "0.85rem" }}
+                                            style={{
+                                                fontSize: "0.85rem",
+                                                whiteSpace: "normal",
+                                                maxWidth: "100%",
+                                                textAlign: "left",
+                                                lineHeight: 1.3
+                                            }}
                                         >
-                                            {sector}
+                                            <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{sector}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeleteSector(sector)}
@@ -557,6 +563,7 @@ function OrganizationInformation() {
                                                     marginLeft: "8px",
                                                     padding: "0",
                                                     lineHeight: 1,
+                                                    flexShrink: 0,
                                                     opacity: deletingSector === sector ? 0.5 : 1
                                                 }}
                                                 aria-label={`Remove sector ${sector}`}

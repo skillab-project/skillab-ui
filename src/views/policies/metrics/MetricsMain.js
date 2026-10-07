@@ -17,14 +17,89 @@ import {
 } from "reactstrap";
 import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { DeleteIconButton, SoftHardDeleteModal, TrashCard } from '../common/DeletionUi';
+import { apiErrorMessage, deleteMetric, getDeletedMetrics, getMetricUsage, restoreMetric } from '../common/policyApi';
 
 const REPORT_API_URL = process.env.REACT_APP_API_URL_KPI + '/report/indicator';
 
-function MetricsMain({ metrics, onMetricCreated }) {
+const describeKpis = (kpis) =>
+  kpis.map(k => `${k.name}${k.policyName ? ` (${k.policyName})` : ''}`).join(', ');
+
+function MetricsMain({ metrics, onMetricCreated, onMetricsChanged }) {
   const [newMetric, setNewMetric] = useState({ name: '', symbol: '' });
   const [selectedMetric, setSelectedMetric] = useState(null);
   const [metricData, setMetricData] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [metricToDelete, setMetricToDelete] = useState(null);
+  const [metricUsage, setMetricUsage] = useState(null);   // KPIs using metricToDelete, null while loading
+  const [deletedMetrics, setDeletedMetrics] = useState([]);
+
+  const loadDeletedMetrics = async () => {
+    try {
+      setDeletedMetrics(await getDeletedMetrics());
+    } catch (error) {
+      console.error("Error fetching deleted metrics:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadDeletedMetrics();
+  }, []);
+
+  // Clear the selection if the selected metric is no longer in the list (e.g. it was deleted)
+  useEffect(() => {
+    if (selectedMetric && !metrics.some(m => m.id === selectedMetric.id)) {
+      setSelectedMetric(null);
+      setMetricData([]);
+    }
+  }, [metrics, selectedMetric]);
+
+  const refreshAfterChange = async () => {
+    await Promise.all([loadDeletedMetrics(), onMetricsChanged ? onMetricsChanged() : Promise.resolve()]);
+  };
+
+  const openDeleteDialog = async (metric) => {
+    setMetricToDelete(metric);
+    setMetricUsage(null);
+    try {
+      setMetricUsage(await getMetricUsage(metric.id));
+    } catch (error) {
+      console.error("Error fetching metric usage:", error);
+      setMetricUsage([]); // the backend still enforces the rules on delete
+    }
+  };
+
+  const activeUsers = (metricUsage || []).filter(k => !k.deleted);
+  const deletedUsers = (metricUsage || []).filter(k => k.deleted);
+
+  const handleConfirmDelete = async (hard) => {
+    try {
+      await deleteMetric(metricToDelete.id, hard);
+    } catch (error) {
+      throw new Error(apiErrorMessage(error));
+    }
+    setMetricToDelete(null);
+    await refreshAfterChange();
+  };
+
+  const handleRestore = async (metric) => {
+    try {
+      await restoreMetric(metric.id);
+      await refreshAfterChange();
+    } catch (error) {
+      alert(`Failed to restore metric "${metric.name}": ${apiErrorMessage(error)}`);
+    }
+  };
+
+  const handleHardDeleteFromTrash = async (metric) => {
+    if (!window.confirm(`Permanently delete metric "${metric.name}" and all its values? This cannot be undone.`)) return;
+    try {
+      await deleteMetric(metric.id, true);
+      await refreshAfterChange();
+    } catch (error) {
+      alert(`Failed to delete metric "${metric.name}": ${apiErrorMessage(error)}`);
+    }
+  };
   
   const [newReportValue, setNewReportValue] = useState('');
   const [useCurrentDate, setUseCurrentDate] = useState(true);
@@ -121,16 +196,57 @@ function MetricsMain({ metrics, onMetricCreated }) {
               {metrics.map(metric => (
                 <ListGroupItem
                   key={metric.id}
-                  action tag="button"
+                  action
+                  tag="div"
+                  role="button"
+                  style={{ cursor: 'pointer' }}
+                  className="d-flex justify-content-between align-items-center"
                   active={selectedMetric?.id === metric.id}
                   onClick={() => handleSelectMetric(metric)}
                 >
-                  {metric.name} ({metric.symbol})
+                  <span>{metric.name} ({metric.symbol})</span>
+                  <DeleteIconButton
+                    title={`Delete metric ${metric.name}`}
+                    className={`p-0 ml-2 ${selectedMetric?.id === metric.id ? 'text-white' : 'text-danger'}`}
+                    onClick={() => openDeleteDialog(metric)}
+                  />
                 </ListGroupItem>
               ))}
             </ListGroup>
           </CardBody>
         </Card>
+
+        <TrashCard
+          title="Deleted Metrics"
+          items={deletedMetrics}
+          renderLabel={(metric) => `${metric.name} (${metric.symbol})`}
+          onRestore={handleRestore}
+          onHardDelete={handleHardDeleteFromTrash}
+          emptyText="No deleted metrics."
+        />
+
+        <SoftHardDeleteModal
+          isOpen={!!metricToDelete}
+          toggle={() => setMetricToDelete(null)}
+          entityLabel="Metric"
+          name={metricToDelete ? `${metricToDelete.name} (${metricToDelete.symbol})` : ''}
+          loading={metricUsage === null}
+          details={metricUsage && metricUsage.length > 0 && (
+            <p className="small">
+              Used by: {describeKpis(activeUsers)}
+              {deletedUsers.length > 0 && <>{activeUsers.length > 0 ? '; ' : ''}deleted KPIs: {describeKpis(deletedUsers)}</>}
+            </p>
+          )}
+          softBlockedReason={activeUsers.length > 0
+            ? `Not possible while active KPIs use it: ${describeKpis(activeUsers)}. Delete those KPIs first.`
+            : null}
+          hardBlockedReason={metricUsage && metricUsage.length > 0
+            ? 'Not possible while any KPI (including KPIs in the trash) uses it. Permanently delete those KPIs first.'
+            : null}
+          softDescription="Hidden from lists and no new values can be added. Its history is kept and it can be restored from 'Deleted Metrics'."
+          hardDescription="Removes the metric and all its values. This cannot be undone."
+          onConfirm={handleConfirmDelete}
+        />
       </Col>
 
       <Col md="8">
@@ -215,4 +331,4 @@ function MetricsMain({ metrics, onMetricCreated }) {
   );
 }
 
-export default MetricsMain;
+export default MetricsMain;

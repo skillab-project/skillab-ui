@@ -27,10 +27,12 @@ import {
 import classnames from 'classnames';
 import axios from 'axios';
 import SectorSelect from '../../../components/SectorSelect';
+import { DeleteIconButton } from '../common/DeletionUi';
+import PolicyDeleteModal from './PolicyDeleteModal';
 
 const EVAL_API_URL = process.env.REACT_APP_API_URL_POLICY_SUCCESS_EVALUATOR;
 
-function PoliciesMain({ policies, onPolicyCreated }) {
+function PoliciesMain({ policies, onPolicyCreated, onPolicyDeleted }) {
     const [newPolicy, setNewPolicy] = useState({
         name: '',
         description: '',
@@ -42,6 +44,7 @@ function PoliciesMain({ policies, onPolicyCreated }) {
     const [evaluationResults, setEvaluationResults] = useState(null);
     const [isLoadingEvaluation, setIsLoadingEvaluation] = useState(false);
     const [loadingKpis, setLoadingKpis] = useState({});
+    const [policyToDelete, setPolicyToDelete] = useState(null);
     
     const pollTimeoutsRef = useRef({});
 
@@ -60,21 +63,37 @@ function PoliciesMain({ policies, onPolicyCreated }) {
         setNewPolicy({ name: '', description: '', sector: '', region: '' });
     };
     
-    // Set first policy as selected by default when policies are loaded
+    // Keep the selection in sync with the (re)loaded list: select the first policy by default,
+    // refresh the selected object after a reload, and drop it if it was deleted.
     useEffect(() => {
-        if (!selectedPolicy && policies.length > 0) {
+        if (selectedPolicy) {
+            const fresh = policies.find(p => p.id === selectedPolicy.id);
+            if (!fresh) {
+                setSelectedPolicy(policies.length > 0 ? policies[0] : null);
+            } else if (fresh !== selectedPolicy) {
+                setSelectedPolicy(fresh);
+            }
+        } else if (policies.length > 0) {
             setSelectedPolicy(policies[0]);
         }
     }, [policies, selectedPolicy]);
 
+    const handlePolicyDeleted = async (policy) => {
+        setPolicyToDelete(null);
+        if (onPolicyDeleted) {
+            await onPolicyDeleted(policy);
+        }
+    };
+
     // Reset evaluation results and stop polling when switching policies
+    // (keyed on the id, so refreshing the same policy after a reload keeps its results)
     useEffect(() => {
         setEvaluationResults(null);
         setIsLoadingEvaluation(false);
         setLoadingKpis({});
         Object.values(pollTimeoutsRef.current).forEach(clearTimeout);
         pollTimeoutsRef.current = {};
-    }, [selectedPolicy]);
+    }, [selectedPolicy?.id]);
 
     // Cleanup on component unmount
     useEffect(() => {
@@ -245,16 +264,31 @@ function PoliciesMain({ policies, onPolicyCreated }) {
                                 <ListGroupItem 
                                     key={policy.id}
                                     action
-                                    tag="button"
+                                    tag="div"
+                                    role="button"
+                                    style={{cursor: "pointer"}}
+                                    className="d-flex justify-content-between align-items-center"
                                     active={selectedPolicy && selectedPolicy.id === policy.id}
                                     onClick={() => setSelectedPolicy(policy)}
                                 >
-                                    {policy.name}
+                                    <span className="flex-grow-1 text-center">{policy.name}</span>
+                                    <DeleteIconButton
+                                        title={`Delete policy ${policy.name}`}
+                                        className={`p-0 ml-2 ${selectedPolicy && selectedPolicy.id === policy.id ? 'text-white' : 'text-danger'}`}
+                                        onClick={() => setPolicyToDelete(policy)}
+                                    />
                                 </ListGroupItem>
                             ))}
                         </ListGroup>
                     </CardBody>
                 </Card>
+
+                <PolicyDeleteModal
+                    policy={policyToDelete}
+                    isOpen={!!policyToDelete}
+                    toggle={() => setPolicyToDelete(null)}
+                    onDeleted={handlePolicyDeleted}
+                />
             </Col>
 
             <Col md="12" xl="8">
@@ -366,4 +400,4 @@ function PoliciesMain({ policies, onPolicyCreated }) {
     );
 }
 
-export default PoliciesMain;
+export default PoliciesMain;
