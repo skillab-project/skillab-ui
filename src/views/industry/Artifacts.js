@@ -109,9 +109,19 @@ function Artifacts() {
         }
     };
 
+    // Derive the repo name from the URL the same way the KU-Detection backend does
+    // (last path segment, without ".git"), so names stay consistent with analysis results.
+    const getRepoNameFromUrl = (url) =>
+        (url || '').trim().replace(/\/+$/, '').split('/').pop().replace(/\.git$/, '');
+
     const handleCreate = async () => {
+        if (!formData.url || !formData.url.trim()) {
+            alert('Please provide the repository URL.');
+            return;
+        }
         try {
-            const response = await axios.post(process.env.REACT_APP_API_URL_KU+`/repos`, formData, {
+            const payload = { ...formData, repo_name: getRepoNameFromUrl(formData.url) };
+            const response = await axios.post(process.env.REACT_APP_API_URL_KU+`/repos`, payload, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
                 },
@@ -218,14 +228,6 @@ function Artifacts() {
                             {selectedRepoForEdit!=null ? 'Edit Repository' : 'Create Repository'}
                         </CardHeader>
                         <CardBody className="industry-my-artifact" >
-                            <input
-                                type="text"
-                                name="repo_name"
-                                value={formData.repo_name}
-                                onChange={handleInputChange}
-                                placeholder="Repository Name"
-                                required
-                            />
                             <input
                                 type="text"
                                 name="url"
