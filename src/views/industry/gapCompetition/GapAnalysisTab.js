@@ -15,7 +15,6 @@ import {
   Alert,
   Spinner,
 } from "reactstrap";
-import axios from "axios";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -32,7 +31,7 @@ import {
 } from "recharts";
 import {
   GAP_BASE_URL,
-  getGapAuthHeaders,
+  useBackgroundAnalysis,
   indexedSectionToArray,
   sectionItemType,
   getGapSections,
@@ -220,9 +219,7 @@ function GapAnalysisTab({ departments, loadingDepartments }) {
   const [analysisType, setAnalysisType] = useState("skill");
   const [pageSize, setPageSize] = useState(100);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
+  const { loading, pendingMessage, error, setError, result, run } = useBackgroundAnalysis();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -230,30 +227,16 @@ function GapAnalysisTab({ departments, loadingDepartments }) {
       setError("Please select a department.");
       return;
     }
-    setLoading(true);
-    setError("");
-    setResult(null);
-    try {
-      const res = await axios.post(
-        `${GAP_BASE_URL}/gap-analysis`,
-        {
-          department_id: Number(departmentId),
-          test: false,
-          analysis_type: analysisType,
-          page_size: Number(pageSize),
-        },
-        { headers: getGapAuthHeaders() }
-      );
-      setResult(res.data);
-    } catch (err) {
-      console.error("gap-analysis failed:", err);
-      setError(
-        err.response?.data?.message ||
-          "Failed to run the gap analysis. Please check the parameters and try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+    await run(
+      `${GAP_BASE_URL}/gap-analysis`,
+      {
+        department_id: Number(departmentId),
+        test: false,
+        analysis_type: analysisType,
+        page_size: Number(pageSize),
+      },
+      "Failed to run the gap analysis. Please check the parameters and try again."
+    );
   };
 
   const { common, onlyInAd, onlyInSector } = getGapSections(result?.analysis_results);
@@ -332,6 +315,12 @@ function GapAnalysisTab({ departments, loadingDepartments }) {
               </Row>
             </Form>
 
+            {pendingMessage && (
+              <Alert color="info" className="d-flex align-items-center">
+                <Spinner size="sm" className="mr-2" />
+                <span>{pendingMessage}</span>
+              </Alert>
+            )}
             {error && <Alert color="danger">{error}</Alert>}
           </CardBody>
         </Card>

@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { getOrganization } from "../../../utils/Tokens";
 
@@ -12,6 +13,68 @@ export const EMPLOYEE_MGMT_BASE_URL = process.env.REACT_APP_API_URL_EMPLOYEE_MAN
 export const getGapAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
 });
+
+//  Background analyses
+// /gap-analysis and /workforce-gap-recommendation run in the background on the
+// server: they answer 202 { status: "running", message } while the analysis
+// runs and 200 with the result once it is done. Sending the same request again
+// never starts a second analysis, so we simply repeat it until we get a 200.
+export const GAP_POLL_INTERVAL_MS = 5000;
+export const GAP_POLL_TIMEOUT_MS = 30 * 60 * 1000;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const useBackgroundAnalysis = () => {
+  const [loading, setLoading] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState("");
+  const [error, setError] = useState("");
+  const [result, setResult] = useState(null);
+  // Each run gets an id; a newer run or unmounting cancels the older loop.
+  const runIdRef = useRef(0);
+
+  useEffect(() => () => {
+    runIdRef.current += 1;
+  }, []);
+
+  const run = useCallback(async (url, body, fallbackError) => {
+    const runId = ++runIdRef.current;
+    const isCurrent = () => runId === runIdRef.current;
+    const deadline = Date.now() + GAP_POLL_TIMEOUT_MS;
+
+    setLoading(true);
+    setError("");
+    setPendingMessage("");
+    setResult(null);
+    try {
+      for (;;) {
+        const res = await axios.post(url, body, { headers: getGapAuthHeaders() });
+        if (!isCurrent()) return;
+        if (res.status !== 202) {
+          setResult(res.data);
+          return;
+        }
+        setPendingMessage(res.data?.message || "The analysis is running in the background…");
+        if (Date.now() > deadline) {
+          setError("The analysis is still running. Please try again in a few minutes.");
+          return;
+        }
+        await sleep(GAP_POLL_INTERVAL_MS);
+        if (!isCurrent()) return;
+      }
+    } catch (err) {
+      if (!isCurrent()) return;
+      console.error(`${url} failed:`, err);
+      setError(err.response?.data?.message || fallbackError);
+    } finally {
+      if (isCurrent()) {
+        setLoading(false);
+        setPendingMessage("");
+      }
+    }
+  }, []);
+
+  return { loading, pendingMessage, error, setError, result, run };
+};
 
 // The employee-management endpoints (used here just to resolve departments)
 // expect the organization name explicitly, matching the rest of the app.

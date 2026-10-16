@@ -16,8 +16,7 @@ import {
   Spinner,
   Progress,
 } from "reactstrap";
-import axios from "axios";
-import { GAP_BASE_URL, getGapAuthHeaders, formatRatio } from "./gapCompetitionUtils";
+import { GAP_BASE_URL, formatRatio, useBackgroundAnalysis } from "./gapCompetitionUtils";
 
 function Form({ children, ...props }) {
   return <form {...props}>{children}</form>;
@@ -150,9 +149,7 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
   const [topMarketSkills, setTopMarketSkills] = useState(12);
   const [reskillThreshold, setReskillThreshold] = useState(0.6);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
+  const { loading, pendingMessage, error, setError, result, run } = useBackgroundAnalysis();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -160,30 +157,16 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
       setError("Please select a department.");
       return;
     }
-    setLoading(true);
-    setError("");
-    setResult(null);
-    try {
-      const res = await axios.post(
-        `${GAP_BASE_URL}/workforce-gap-recommendation`,
-        {
-          department_id: Number(departmentId),
-          market_page_size: Number(marketPageSize),
-          top_market_skills: Number(topMarketSkills),
-          reskill_threshold: Number(reskillThreshold),
-        },
-        { headers: getGapAuthHeaders() }
-      );
-      setResult(res.data);
-    } catch (err) {
-      console.error("workforce-gap-recommendation failed:", err);
-      setError(
-        err.response?.data?.message ||
-          "Failed to generate a recommendation. Please check the parameters and try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+    await run(
+      `${GAP_BASE_URL}/workforce-gap-recommendation`,
+      {
+        department_id: Number(departmentId),
+        market_page_size: Number(marketPageSize),
+        top_market_skills: Number(topMarketSkills),
+        reskill_threshold: Number(reskillThreshold),
+      },
+      "Failed to generate a recommendation. Please check the parameters and try again."
+    );
   };
 
   const isExternalHire = result?.recommendation?.action === "external_hire";
@@ -274,6 +257,12 @@ function WorkforceGapTab({ departments, loadingDepartments }) {
               </Row>
             </Form>
 
+            {pendingMessage && (
+              <Alert color="info" className="d-flex align-items-center">
+                <Spinner size="sm" className="mr-2" />
+                <span>{pendingMessage}</span>
+              </Alert>
+            )}
             {error && <Alert color="danger">{error}</Alert>}
           </CardBody>
         </Card>
