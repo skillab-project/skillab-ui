@@ -24,15 +24,21 @@ import {
 } from "recharts";
 import axios from 'axios';
 import { getOrganization } from "../../../utils/Tokens";
-import { KU_NAMES, KU_DESCRIPTIONS, normalizeKuId, getKuLabel, getKuDescription } from "../../../utils/kuInfo";
+import {
+    KU_SOURCE_LIST,
+    getKuLabelFor,
+    getKuDescriptionFor,
+    compareKuIds,
+    getErrorMessage,
+} from "../employeeSkills/ku/kuSources";
 
 
 // Tooltip box for the KU Risk chart: same KU info (id - name + description)
 // that the Knowledge Units heatmap shows on hover.
-const KuRiskTooltip = ({ active, payload, label, valueFormatter }) => {
+const KuRiskTooltip = ({ active, payload, label, valueFormatter, config }) => {
     if (!active || !payload || !payload.length) return null;
 
-    const description = getKuDescription(label);
+    const description = getKuDescriptionFor(config, label);
 
     return (
         <div
@@ -51,7 +57,7 @@ const KuRiskTooltip = ({ active, payload, label, valueFormatter }) => {
             }}
         >
             <div style={{ fontWeight: 700, marginBottom: "6px", color: "#333" }}>
-                {getKuLabel(label)}
+                {getKuLabelFor(config, label)}
             </div>
             {description && (
                 <div style={{ color: "#555", marginBottom: "8px", fontSize: "12px" }}>
@@ -67,8 +73,15 @@ const KuRiskTooltip = ({ active, payload, label, valueFormatter }) => {
     );
 };
 
-function KuAtRisk() {
+const authHeaders = () => ({
+    headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
+});
+
+// Risk tables + chart for ONE detector (Java K1–K28 or Eclipse detector17)
+function KuRiskSection({ config, organization }) {
     const [kuRisk, setkuRisk] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
     const [employeeRisk, setEmployeeRisk] = useState([]);
     const [sortConfig, setSortConfig] = useState({
         key: "absolute_employee_risk",
@@ -76,7 +89,6 @@ function KuAtRisk() {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 27;
-    const [organization, setOrganization] = useState('');
 
 
     const formatPercent = (value) => {
@@ -89,55 +101,43 @@ function KuAtRisk() {
     };
 
 
-    const getKuRisk = async () => {
-        axios
-            .get(process.env.REACT_APP_API_URL_KU + "/ku_risk?organization=" + organization, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
-                },
-            })
-            .then((res) => {
-                // Sort based on the numeric value after the "K"
-                const sortedData = res.data.sort((a, b) => {
-                    const numA = parseInt(a.ku_name.replace(/\D/g, ""), 10);
-                    const numB = parseInt(b.ku_name.replace(/\D/g, ""), 10);
-                    return numA - numB;
-                });
-
-                console.log("Sorted KU Risk data:", sortedData);
-                setkuRisk(sortedData);
-            });
-    };
-
-    const getEmployeeRisk = async () => {
-        axios
-            .get(process.env.REACT_APP_API_URL_KU + "/employee_risk?organization="+ organization, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
-                },
-            })
-            .then((res) => {
-                const sorted = res.data.sort((a, b) => b.absolute_employee_risk - a.absolute_employee_risk);
-                console.log("data sorted:", sorted);
-                setEmployeeRisk(sorted);
-            });
-    };
-
     useEffect(() => {
         if (!organization) return;
-        getKuRisk();
-        getEmployeeRisk();
-    }, [organization]);
+        let cancelled = false;
 
-    useEffect(() => {
-        const fetchOrganization = async () => {
-            const org = await getOrganization();
-            setOrganization(org);
+        const load = async () => {
+            setLoading(true);
+            setErrorMessage("");
+            const [kuRes, empRes] = await Promise.allSettled([
+                axios.get(process.env.REACT_APP_API_URL_KU + config.kuRiskPath(organization), authHeaders()),
+                axios.get(process.env.REACT_APP_API_URL_KU + config.employeeRiskPath(organization), authHeaders()),
+            ]);
+            if (cancelled) return;
+
+            if (kuRes.status === "fulfilled" && Array.isArray(kuRes.value.data)) {
+                setkuRisk([...kuRes.value.data].sort((a, b) => compareKuIds(config)(a.ku_name, b.ku_name)));
+            } else {
+                setkuRisk([]);
+            }
+            if (empRes.status === "fulfilled" && Array.isArray(empRes.value.data)) {
+                setEmployeeRisk([...empRes.value.data].sort((a, b) => b.absolute_employee_risk - a.absolute_employee_risk));
+            } else {
+                setEmployeeRisk([]);
+            }
+
+            const failed = [kuRes, empRes].find((r) => r.status === "rejected");
+            if (failed) {
+                console.error(`Failed to load ${config.title} risk:`, failed.reason);
+                setErrorMessage(getErrorMessage(failed.reason, "Failed to load the risk data."));
+            }
+            setLoading(false);
         };
 
-        fetchOrganization();
-    }, []);
-    
+        load();
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [organization, config.key]);
+
     // Sort handler for Employee Risk table
     const handleSort = (key) => {
         let direction = "asc";
@@ -248,13 +248,55 @@ function KuAtRisk() {
 
 
 
+    const kuRiskChartData = [...kuRisk]
+        .filter(item => item.ku_risk > 0)
+        .sort((a, b) => b.ku_risk - a.ku_risk);
+    const hasData = kuRisk.length > 0 || employeeRisk.length > 0;
+
+    const sectionHeader = (
+        <div className="mb-3 mt-2">
+            <h3 className="mb-0">{config.title}</h3>
+            <small className="text-muted">{config.subtitle}</small>
+        </div>
+    );
+
+    if (loading) {
+        return (
+            <>
+                {sectionHeader}
+                <Card><CardBody><p className="mb-0">Loading risk data...</p></CardBody></Card>
+            </>
+        );
+    }
+
+    if (!hasData) {
+        return (
+            <>
+                {sectionHeader}
+                <Card>
+                    <CardBody>
+                        <p className="mb-0 text-muted">
+                            {errorMessage
+                                ? `Could not load the ${config.title} risk: ${errorMessage}`
+                                : `No ${config.title} risk data yet. Analyze your organization's projects for ${config.title} in the Knowledge Units tab to calculate it.`}
+                        </p>
+                    </CardBody>
+                </Card>
+            </>
+        );
+    }
+
     return (
     <>
+        {sectionHeader}
+        {errorMessage && (
+            <p className="text-danger">Some risk data could not be loaded: {errorMessage}</p>
+        )}
         <Row>
             <Col md="12" xl="6">
                 <Card>
                     <CardHeader>
-                        <CardTitle tag="h6">KU Risk</CardTitle>
+                        <CardTitle tag="h6">KU Risk — {config.title}</CardTitle>
                     </CardHeader>
                     <CardBody>
                         {/* KU Risk Table */}
@@ -269,16 +311,16 @@ function KuAtRisk() {
                             </thead>
                             <tbody>
                                 {kuRisk.map((item, index) => {
-                                    const kuKey = normalizeKuId(item.ku_name);
-                                    const kuTooltipId = `ku-risk-tooltip-${kuKey}-${index}`;
-                                    const kuDescription = KU_DESCRIPTIONS[kuKey];
+                                    const kuTooltipId = `ku-risk-tooltip-${config.key}-${String(item.ku_name).replace(/[^A-Za-z0-9_-]/g, "_")}-${index}`;
+                                    const kuLabel = getKuLabelFor(config, item.ku_name);
+                                    const kuDescription = getKuDescriptionFor(config, item.ku_name);
                                     return (
                                         <tr key={index}>
                                             <td>
                                                 <span id={kuTooltipId} style={{ cursor: "help" }}>
                                                     {item.ku_name}
                                                 </span>
-                                                {(KU_NAMES[kuKey] || kuDescription) && (
+                                                {(kuLabel !== String(item.ku_name) || kuDescription) && (
                                                     <UncontrolledTooltip
                                                         placement="right"
                                                         target={kuTooltipId}
@@ -286,7 +328,7 @@ function KuAtRisk() {
                                                         style={{ maxWidth: "360px", textAlign: "left" }}
                                                     >
                                                         <div style={{ fontWeight: 700, marginBottom: "4px" }}>
-                                                            {getKuLabel(item.ku_name)}
+                                                            {kuLabel}
                                                         </div>
                                                         {kuDescription && (
                                                             <div style={{ fontSize: "12px" }}>{kuDescription}</div>
@@ -308,7 +350,7 @@ function KuAtRisk() {
             <Col md="12" xl="6">
                 <Card>
                     <CardHeader>
-                        <CardTitle tag="h6">Employee Risk</CardTitle>
+                        <CardTitle tag="h6">Employee Risk — {config.title}</CardTitle>
                     </CardHeader>
                     <CardBody>
                         {/* Employee Risk Table */}
@@ -416,16 +458,15 @@ function KuAtRisk() {
             <Col>
                 <Card>
                     <CardHeader>
-                        <CardTitle tag="h6">KU Risk</CardTitle>
+                        <CardTitle tag="h6">KU Risk — {config.title}</CardTitle>
                     </CardHeader>
-                    <CardBody style={{ height: "400px" }}>
+                    <CardBody style={{ height: kuRiskChartData.length > 0 ? "400px" : "auto" }}>
+                        {kuRiskChartData.length === 0 ? (
+                            <p className="mb-0 text-muted">No KU currently has a risk above zero.</p>
+                        ) : (
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                                data={
-                                    [...kuRisk]
-                                        .filter(item => item.ku_risk > 0)
-                                        .sort((a, b) => b.ku_risk - a.ku_risk)
-                                }
+                                data={kuRiskChartData}
                                 margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -444,6 +485,7 @@ function KuAtRisk() {
                                     cursor={{ fill: "rgba(0,0,0,0.04)" }}
                                     content={
                                         <KuRiskTooltip
+                                            config={config}
                                             valueFormatter={(value) => `${value.toExponential(2)}%`}
                                         />
                                     }
@@ -455,11 +497,37 @@ function KuAtRisk() {
                                 />
                             </BarChart>
                         </ResponsiveContainer>
+                        )}
                     </CardBody>
                 </Card>
             </Col>
         </Row>
     </>);
+}
+
+function KuAtRisk() {
+    const [organization, setOrganization] = useState('');
+
+    useEffect(() => {
+        const fetchOrganization = async () => {
+            try {
+                const org = await getOrganization();
+                setOrganization(org);
+            } catch (error) {
+                console.error("Failed to resolve organization:", error);
+            }
+        };
+        fetchOrganization();
+    }, []);
+
+    // Java KUs first, then Eclipse KUs
+    return (
+        <>
+            {KU_SOURCE_LIST.map((config) => (
+                <KuRiskSection key={config.key} config={config} organization={organization} />
+            ))}
+        </>
+    );
 }
 
 export default KuAtRisk;

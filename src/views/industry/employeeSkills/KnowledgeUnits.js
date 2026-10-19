@@ -3,14 +3,22 @@ import {
   Button,
   Card,
   CardBody,
+  CardHeader,
   Row,
   Col } from "reactstrap";
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
 import Heatmap from "./ku/Heatmap";
-import { KU_NAMES, KU_DESCRIPTIONS, normalizeKuId } from "../../../utils/kuInfo";
 import Commits from "./ku/Commits";
 import Form from "./ku/Form";
+import {
+    KU_SOURCES,
+    KU_SOURCE_LIST,
+    getKuLabelFor,
+    getKuDescriptionFor,
+    compareKuIds,
+    getErrorMessage,
+} from "./ku/kuSources";
 import { getOrganization } from "../../../utils/Tokens";
 
 
@@ -33,7 +41,7 @@ const wrapText = (text, maxChars = 60) => {
 
 // Options for the "View Organization Skills" bar chart. The tooltip shows the
 // same KU info (id - name + description) as the Knowledge Units heatmap.
-const organizationSkillsChartOptions = {
+const buildOrganizationSkillsChartOptions = (config) => ({
     responsive: true,
     layout: {
         padding: {
@@ -61,15 +69,11 @@ const organizationSkillsChartOptions = {
             callbacks: {
                 title: (items) => {
                     if (!items.length) return "";
-                    const ku = items[0].label;
-                    const key = normalizeKuId(ku);
-                    const name = KU_NAMES[key];
-                    return name ? `${ku} \u2013 ${name}` : ku;
+                    return getKuLabelFor(config, items[0].label);
                 },
                 afterBody: (items) => {
                     if (!items.length) return [];
-                    const key = normalizeKuId(items[0].label);
-                    const description = KU_DESCRIPTIONS[key];
+                    const description = getKuDescriptionFor(config, items[0].label);
                     return description ? ["", ...wrapText(description)] : [];
                 },
             },
@@ -104,7 +108,7 @@ const organizationSkillsChartOptions = {
             },
         },
     },
-};
+});
 
 function KnowleageUnits() {
     const [repos, setRepos] = useState([]);
@@ -120,15 +124,23 @@ function KnowleageUnits() {
     const [loading, setLoading] = useState(false);
     const [analysisResults, setAnalysisResults] = useState([]);
     const [commitLimit, setCommitLimit] = useState(100);
-    const [chartData, setChartData] = useState(null);
+    // One entry per detector: { key, title, data (chart.js data) } — only detectors with data
+    const [orgSkillsCharts, setOrgSkillsCharts] = useState([]);
+    const [orgSkillsMessage, setOrgSkillsMessage] = useState("");
+    const [loadingOrgSkills, setLoadingOrgSkills] = useState(false);
     const [showChart, setShowChart] = useState(false); 
     const [organization, setOrganization] = useState('');
+    // Which detector ("java" | "eclipse") is currently running for the selected repo.
+    // Both detectors share one progress record in the backend, so only one may run at a time.
+    const [activeAnalysis, setActiveAnalysis] = useState(null);
 
     const handleSelectRepo = (repoName, repoUrl) => {
         setSelectedRepo(repoName);
         setRepoUrl(repoUrl);
         setShowScreen(true);
         setResultsOfAnalysis(false); // Set resultsOfAnalysis to false when selecting a repo
+        setCommits([]);
+        setActiveAnalysis(null);
     };
 
     const handleCloseChart = () => {
@@ -136,61 +148,76 @@ function KnowleageUnits() {
         setShowChart(false)
     };    
 
-    const handleViewOrganizationSkills = async () => {
-        try {
-            const response = await fetch(process.env.REACT_APP_API_URL_KU + '/organizationskills', {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+    const buildOrgSkillsChartData = (config, analysisData) => {
+        const sortedData = [...analysisData].sort((a, b) => compareKuIds(config)(a.ku_name, b.ku_name));
+        return {
+            labels: sortedData.map(item => item.ku_name),
+            datasets: [
+                {
+                    label: 'Number of Files',
+                    data: sortedData.map(item => item.total_files),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y',
                 },
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const analysisData = await response.json();
-
-            // Sort the data by KU
-            const sortedData = analysisData.sort((a, b) => {
-                const numA = parseInt(a.ku_name.slice(1)); // Extracts number from "K1", "K10",
-                const numB = parseInt(b.ku_name.slice(1));
-                return numA - numB;
-            });
-
-            // Map the sorted data directly to chart labels and datasets
-            const labels = sortedData.map(item => item.ku_name);
-            const dataFiles = sortedData.map(item => item.total_files);
-            const dataEmployees = sortedData.map(item => item.total_authors);
-
-            // Set chart data
-            setChartData({
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Number of Files',
-                        data: dataFiles,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        yAxisID: 'y',
-                    },
-                    {
-                        label: 'Number of Authors',
-                        data: dataEmployees,
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1,
-                        yAxisID: 'y1',
-                    },
-                ],
-            });
-            setShowChart(true);
-        }
-        catch (error) {
-            console.error('Failed to load analysis data:', error);
-        }
+                {
+                    label: 'Number of Authors',
+                    data: sortedData.map(item => item.total_authors),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                },
+            ],
+        };
     };
 
-    
+    const handleViewOrganizationSkills = async () => {
+        setLoadingOrgSkills(true);
+        setOrgSkillsMessage("");
+        try {
+            // Fetch both detectors in parallel; one failing must not hide the other
+            const responses = await Promise.allSettled(
+                KU_SOURCE_LIST.map((config) =>
+                    axios.get(process.env.REACT_APP_API_URL_KU + config.orgSkillsPath(), {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}`,
+                        },
+                    })
+                )
+            );
+
+            const charts = [];
+            const failures = [];
+            responses.forEach((res, i) => {
+                const config = KU_SOURCE_LIST[i];
+                if (res.status === "rejected") {
+                    console.error(`Failed to load ${config.title} organization skills:`, res.reason);
+                    failures.push(`${config.title}: ${getErrorMessage(res.reason, "request failed")}`);
+                    return;
+                }
+                const analysisData = Array.isArray(res.value.data) ? res.value.data : [];
+                if (analysisData.length > 0) {
+                    charts.push({ key: config.key, title: config.title, data: buildOrgSkillsChartData(config, analysisData) });
+                }
+            });
+
+            setOrgSkillsCharts(charts);
+            if (charts.length === 0) {
+                setOrgSkillsMessage(
+                    failures.length === KU_SOURCE_LIST.length
+                        ? "Failed to load the organization skills."
+                        : "No analyzed projects yet — run a KU analysis on a project to see the organization skills."
+                );
+            } else if (failures.length > 0) {
+                setOrgSkillsMessage(`Some results could not be loaded (${failures.join("; ")}).`);
+            }
+            setShowChart(true);
+        } finally {
+            setLoadingOrgSkills(false);
+        }
+    };
 
     const getRepos = async () => {
         axios
@@ -205,6 +232,10 @@ function KnowleageUnits() {
                 );
                 console.log("sorted repos:", sortedRepos);
                 setRepos(res.data);
+            })
+            .catch((error) => {
+                console.error("Failed to load repositories:", error);
+                setRepos([]);
             });
     };
 
@@ -258,17 +289,29 @@ function KnowleageUnits() {
                     <Card>
                         <CardBody>
                             <Button 
-                                onClick={handleViewOrganizationSkills} 
+                                onClick={handleViewOrganizationSkills}
                                 color="info"
+                                disabled={loadingOrgSkills}
                             >
                                 View Organization Skills
                             </Button>
-                            {showChart && chartData && (
+                            {showChart && (
                                 <div className="mt-8">
-                                    <Bar data={chartData} options={organizationSkillsChartOptions} />
-                                    <Button 
+                                    {orgSkillsCharts.map((chart) => (
+                                        <div key={chart.key} className="mt-4">
+                                            <h4>{chart.title}</h4>
+                                            <Bar
+                                                data={chart.data}
+                                                options={buildOrganizationSkillsChartOptions(KU_SOURCES[chart.key])}
+                                            />
+                                        </div>
+                                    ))}
+                                    {orgSkillsMessage && (
+                                        <p className="mt-4 text-muted">{orgSkillsMessage}</p>
+                                    )}
+                                    <Button
                                         color="info"
-                                        onClick={handleCloseChart} 
+                                        onClick={handleCloseChart}
                                         className="mt-4 px-4 py-2 bg-[#c72424] text-white rounded"
                                     >
                                         Close Chart
@@ -278,28 +321,53 @@ function KnowleageUnits() {
                         </CardBody>
                     </Card>
                 </Col>
-                {showScreen &&
-                    <Col md="12">
-                        <Card>
-                            <CardBody>
-                                <Form
-                                    commits={commits}
-                                    setCommits={setCommits}
-                                    setProgress={setProgress}
-                                    setTotalFiles={setTotalFiles}
-                                    loading={loading}
-                                    setLoading={setLoading}
-                                    setAnalysisResults={setAnalysisResults}
-                                    initialRepoUrl={repoUrl}
-                                    setResultsOfAnalysis={setResultsOfAnalysis} // Pass the setter function
-                                />
-                                {resultsOfAnalysis && ( // Render only if resultsOfAnalysis is true
-                                    <Commits commits={commits} loading={loading} />
-                                )}
-                            </CardBody>
-                        </Card>
-                    </Col>
-                }
+                {showScreen && (
+                    <>
+                        <Col md="12">
+                            <Card>
+                                <CardHeader>
+                                    <h3 className="mb-0">{KU_SOURCES.java.title}</h3>
+                                    <small className="text-muted">{KU_SOURCES.java.subtitle}</small>
+                                </CardHeader>
+                                <CardBody>
+                                    <Form
+                                        source="java"
+                                        activeAnalysis={activeAnalysis}
+                                        setActiveAnalysis={setActiveAnalysis}
+                                        commits={commits}
+                                        setCommits={setCommits}
+                                        setProgress={setProgress}
+                                        setTotalFiles={setTotalFiles}
+                                        loading={loading}
+                                        setLoading={setLoading}
+                                        setAnalysisResults={setAnalysisResults}
+                                        initialRepoUrl={repoUrl}
+                                        setResultsOfAnalysis={setResultsOfAnalysis} // Pass the setter function
+                                    />
+                                    {resultsOfAnalysis && ( // Render only if resultsOfAnalysis is true
+                                        <Commits commits={commits} loading={loading} />
+                                    )}
+                                </CardBody>
+                            </Card>
+                        </Col>
+                        <Col md="12">
+                            <Card>
+                                <CardHeader>
+                                    <h3 className="mb-0">{KU_SOURCES.eclipse.title}</h3>
+                                    <small className="text-muted">{KU_SOURCES.eclipse.subtitle}</small>
+                                </CardHeader>
+                                <CardBody>
+                                    <Form
+                                        source="eclipse"
+                                        activeAnalysis={activeAnalysis}
+                                        setActiveAnalysis={setActiveAnalysis}
+                                        initialRepoUrl={repoUrl}
+                                    />
+                                </CardBody>
+                            </Card>
+                        </Col>
+                    </>
+                )}
             </Row>
         </>
     );

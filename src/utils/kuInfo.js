@@ -81,3 +81,68 @@ export const getKuLabel = (rawId) => {
 
 // Helper: description text for a KU id, or "" when unknown
 export const getKuDescription = (rawId) => KU_DESCRIPTIONS[normalizeKuId(rawId)] || "";
+
+// ─────────────────────────────────────────────────────────────────────────
+// Eclipse / IoT taxonomy (KU-Detection "detector17" model, 17 KUs).
+// These ids are textual (e.g. "MQTT", "IEC_61499") so they must NOT go through
+// normalizeKuId, which would turn "IEC_61499" into "K61499".
+// ─────────────────────────────────────────────────────────────────────────
+export const ECLIPSE_KU_IDS = [
+    "MQTT",
+    "REST_APIs",
+    "Concurrency",
+    "WebSockets",
+    "Messaging_APIs",
+    "OPC_UA",
+    "Telemetry_Data",
+    "Edge_Computing",
+    "OTA_Updates",
+    "IoT_Security",
+    "EMF",
+    "Xtext",
+    "Eclipse_RCP",
+    "Embedded_RTOS",
+    "Matter_Thread",
+    "IEC_61499",
+    "CMake",
+];
+
+export const ECLIPSE_KU_NAMES = {
+    "MQTT":           "MQTT",
+    "REST_APIs":      "REST APIs",
+    "Concurrency":    "Concurrency",
+    "WebSockets":     "WebSockets",
+    "Messaging_APIs": "Messaging APIs",
+    "OPC_UA":         "OPC UA",
+    "Telemetry_Data": "Telemetry Data",
+    "Edge_Computing": "Edge Computing",
+    "OTA_Updates":    "OTA Updates",
+    "IoT_Security":   "IoT Security",
+    "EMF":            "Eclipse Modeling Framework (EMF)",
+    "Xtext":          "Xtext",
+    "Eclipse_RCP":    "Eclipse Rich Client Platform (RCP)",
+    "Embedded_RTOS":  "Embedded RTOS",
+    "Matter_Thread":  "Matter / Thread",
+    "IEC_61499":      "IEC 61499",
+    "CMake":          "CMake",
+};
+
+export const ECLIPSE_KU_DESCRIPTIONS = {
+    "MQTT":           "Publish/subscribe messaging with MQTT brokers and clients (e.g., Eclipse Paho, Mosquitto): connections, topics, QoS levels, retained messages and last-will handling.",
+    "REST_APIs":      "Design and consume RESTful HTTP APIs: resources, HTTP methods and status codes, request/response serialization and client/server frameworks.",
+    "Concurrency":    "Multi-threaded and asynchronous programming: threads, executors, locks, atomics, futures and thread-safe data structures.",
+    "WebSockets":     "Full-duplex communication over WebSockets: server and client endpoints, message encoding/decoding and connection lifecycle.",
+    "Messaging_APIs": "Message-oriented middleware and brokers (e.g., JMS, AMQP, Kafka, CoAP, DDS): producers, consumers, queues and topics.",
+    "OPC_UA":         "Industrial interoperability with OPC UA (e.g., Eclipse Milo, open62541): information models, nodes, sessions, subscriptions and security policies.",
+    "Telemetry_Data": "Collecting, encoding and transmitting device telemetry and sensor data: metrics, time series, payload formats and reporting.",
+    "Edge_Computing": "Processing data close to devices on edge nodes and gateways: local analytics, offloading, device management and edge runtimes.",
+    "OTA_Updates":    "Over-the-air firmware and software updates: update packaging, delivery, verification, rollback and device provisioning (e.g., Eclipse hawkBit).",
+    "IoT_Security":   "Securing connected devices and their communication: TLS/DTLS, certificates, authentication, encryption and secure boot.",
+    "EMF":            "Model-driven engineering with the Eclipse Modeling Framework: Ecore metamodels, generated model code, resources and model manipulation.",
+    "Xtext":          "Building domain-specific languages with Xtext: grammars, parsers, scoping, validation, code generation and editor integration.",
+    "Eclipse_RCP":    "Developing Eclipse plug-ins and Rich Client Platform applications: OSGi bundles, extension points, views, editors, commands and SWT/JFace UI.",
+    "Embedded_RTOS":  "Programming embedded systems on real-time operating systems (e.g., FreeRTOS, Zephyr): tasks, scheduling, interrupts, drivers and device trees.",
+    "Matter_Thread":  "Smart-home connectivity with the Matter standard and the Thread mesh network protocol: commissioning, clusters and device interoperability.",
+    "IEC_61499":      "Distributed industrial automation with IEC 61499 (e.g., Eclipse 4diac): function blocks, applications, event/data connections and device mapping.",
+    "CMake":          "Configuring and building native projects with CMake: CMakeLists, targets, dependencies, toolchains and cross-compilation.",
+};

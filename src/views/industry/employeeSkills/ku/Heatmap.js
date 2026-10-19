@@ -7,12 +7,23 @@ import { KU_NAMES, KU_DESCRIPTIONS, normalizeKuId } from "../../../../utils/kuIn
 // re-exported here so existing imports from this file keep working.
 export { KU_NAMES, KU_DESCRIPTIONS, normalizeKuId };
 
-const Heatmap = ({ analysisResults }) => {
+const Heatmap = ({
+  analysisResults,
+  kuNames = KU_NAMES,
+  kuDescriptions = KU_DESCRIPTIONS,
+  normalizeKu = normalizeKuId,
+  kuOrder = null, // optional explicit KU order (e.g. the Eclipse taxonomy)
+}) => {
   const authors = Array.from(new Set(analysisResults.map((result) => result.author)));
 
-  // Create a unique list of kus and sort them numerically
-  const kus = Array.from(new Set(analysisResults.flatMap((result) => Object.keys(result.detected_kus))))
+  // Create a unique list of kus: explicit order when given, otherwise numeric (K1, K2, ...)
+  const kus = Array.from(new Set(analysisResults.flatMap((result) => Object.keys(result.detected_kus || {}))))
     .sort((a, b) => {
+      if (kuOrder) {
+        const ia = kuOrder.indexOf(a);
+        const ib = kuOrder.indexOf(b);
+        return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib) || a.localeCompare(b);
+      }
       const numA = parseInt(a.replace(/\D/g, ""), 10);
       const numB = parseInt(b.replace(/\D/g, ""), 10);
       return numA - numB;
@@ -23,7 +34,7 @@ const Heatmap = ({ analysisResults }) => {
     const data = kus.map((ku) => {
       const kuCount = analysisResults
         .filter((result) => result.author === author)
-        .reduce((acc, result) => acc + (result.detected_kus[ku] || 0), 0);
+        .reduce((acc, result) => acc + (Number((result.detected_kus || {})[ku]) || 0), 0);
       return { x: ku, y: kuCount };
     });
     return { name: author, data };
@@ -63,9 +74,10 @@ const Heatmap = ({ analysisResults }) => {
     tooltip: {
       custom: ({ series, seriesIndex, dataPointIndex, w }) => {
         const ku = kus[dataPointIndex];
-        const key = normalizeKuId(ku);
-        const name = KU_NAMES[key] || ku;
-        const description = KU_DESCRIPTIONS[key] || "";
+        const key = normalizeKu(ku);
+        const name = kuNames[key] || ku;
+        const title = name && name !== ku ? `${ku} – ${name}` : ku;
+        const description = kuDescriptions[key] || "";
         const count = series[seriesIndex][dataPointIndex];
         const author = w.globals.seriesNames[seriesIndex];
 
@@ -85,7 +97,7 @@ const Heatmap = ({ analysisResults }) => {
             overflow-wrap: break-word;
           ">
             <div style="font-weight: 700; margin-bottom: 6px; color: #333;">
-              ${ku} – ${name}
+              ${title}
             </div>
             <div style="color: #555; margin-bottom: 8px; font-size: 12px; white-space: normal; word-wrap: break-word;">
               ${description}
@@ -103,7 +115,7 @@ const Heatmap = ({ analysisResults }) => {
   };
 
   return (
-    <div id="chart">
+    <div>
       <ReactApexChart options={options} series={series} type="heatmap" />
     </div>
   );
