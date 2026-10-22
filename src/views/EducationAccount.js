@@ -1,6 +1,11 @@
 import React from "react";
 import { Row, Col } from "reactstrap";
-import { MdManageAccounts, MdAccountTree, MdDescription } from "react-icons/md";
+import {
+  MdManageAccounts,
+  MdAccountTree,
+  MdPolicy,
+  MdDescription,
+} from "react-icons/md";
 import { GiTeamIdea } from "react-icons/gi";
 import NavCard from "../components/Cards/NavCard";
 
@@ -34,6 +39,15 @@ function EducationAccount() {
             title="Taxonomy"
             description="Browse and maintain the skills taxonomy."
             onClick={go("/education/account/taxonomy")}
+          />
+        </Col>
+        <Col lg="3" md="6" className="mb-4">
+          <NavCard
+            icon={MdPolicy}
+            color="#fbc658"
+            title="Manage Policies"
+            description="Create, review and publish education policies."
+            onClick={go("/education/account/manage-policies")}
           />
         </Col>
       </Row>
