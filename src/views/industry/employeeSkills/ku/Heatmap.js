@@ -14,7 +14,13 @@ const Heatmap = ({
   normalizeKu = normalizeKuId,
   kuOrder = null, // optional explicit KU order (e.g. the Eclipse taxonomy)
 }) => {
-  const authors = Array.from(new Set(analysisResults.map((result) => result.author)));
+  // Most active contributors first (by total KU count)
+  const authorTotals = {};
+  analysisResults.forEach((result) => {
+    const total = Object.values(result.detected_kus || {}).reduce((acc, v) => acc + (Number(v) || 0), 0);
+    authorTotals[result.author] = (authorTotals[result.author] || 0) + total;
+  });
+  const authors = Object.keys(authorTotals).sort((a, b) => authorTotals[b] - authorTotals[a]);
 
   // Create a unique list of kus: explicit order when given, otherwise numeric (K1, K2, ...)
   const kus = Array.from(new Set(analysisResults.flatMap((result) => Object.keys(result.detected_kus || {}))))
@@ -45,10 +51,19 @@ const Heatmap = ({
   const maxKuCount = Math.max(...allKuCounts);
   const step = Math.max(Math.floor(maxKuCount / 4), 1);
 
+  // Fixed row height so many contributors stay readable; the chart grows instead of squeezing rows.
+  // ApexCharts draws series bottom-up, so reverse to show the most active contributor on top.
+  const ROW_HEIGHT = 25;
+  const manyAuthors = authors.length > 15;
+  const chartHeight = Math.max(350, authors.length * ROW_HEIGHT + 120);
+  const truncate = (label, max = 28) =>
+    typeof label === "string" && label.length > max ? `${label.slice(0, max - 1)}\u2026` : label;
+
   const options = {
     chart: {
       type: "heatmap",
       toolbar: { show: false },
+      animations: { enabled: !manyAuthors },
     },
     legend: { show: false },
     plotOptions: {
@@ -70,7 +85,15 @@ const Heatmap = ({
     },
     stroke: { width: 0.1 },
     dataLabels: { enabled: false },
-    xaxis: { type: "category", categories: kus },
+    // With many rows the KU labels go on top so they are visible without scrolling to the bottom
+    xaxis: { type: "category", categories: kus, position: manyAuthors ? "top" : "bottom" },
+    yaxis: {
+      labels: {
+        maxWidth: 220,
+        style: { fontSize: "12px" },
+        formatter: (value) => truncate(value),
+      },
+    },
     tooltip: {
       custom: ({ series, seriesIndex, dataPointIndex, w }) => {
         const ku = kus[dataPointIndex];
@@ -116,7 +139,7 @@ const Heatmap = ({
 
   return (
     <div>
-      <ReactApexChart options={options} series={series} type="heatmap" />
+      <ReactApexChart options={options} series={[...series].reverse()} type="heatmap" height={chartHeight} />
     </div>
   );
 };
