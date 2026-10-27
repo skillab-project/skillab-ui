@@ -313,7 +313,9 @@ const Form = ({
             const limit = parseInt(commitLimit, 10);
             const { min = 1, max } = config.commitLimit || {};
             if (Number.isNaN(limit) || limit < min || (max && limit > max)) {
-                setInfoMessage(`Commit limit must be a whole number between ${min} and ${max}.`);
+                setInfoMessage(max
+                    ? `Commit limit must be a whole number between ${min} and ${max}.`
+                    : `Commit limit must be a whole number of at least ${min}, or leave it empty to scan all commits.`);
                 return false;
             }
             body.commit_limit = limit;

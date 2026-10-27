@@ -31,15 +31,15 @@ export const KU_SOURCES = {
     eclipse: {
         key: "eclipse",
         title: "Eclipse Detected KUs",
-        subtitle: "Eclipse Knowledge Units (MQTT, EMF, Xtext, Eclipse RCP, ...) detected in the most recent commits.",
+        subtitle: "Eclipse Knowledge Units (MQTT, EMF, Xtext, Eclipse RCP, ...) detected in the repository's commit history.",
         usesCommits: false,
         startPath: (repoName) => `/detector17/analyze/${enc(repoName)}`,
         resultsPath: (repoName) => `/detector17/results/${enc(repoName)}`,
         orgSkillsPath: () => `/detector17/organizationskills`,
         kuRiskPath: (organization) => `/detector17/ku_risk?organization=${enc(organization || "")}`,
         employeeRiskPath: (organization) => `/detector17/employee_risk?organization=${enc(organization || "")}`,
-        // Backend accepts commit_limit in [1, 500]; empty → server default (DETECTOR17_COMMIT_LIMIT, 50)
-        commitLimit: { default: "50", min: 1, max: 500 },
+        // Backend accepts commit_limit >= 1; empty → full git history
+        commitLimit: { default: "", min: 1, max: null },
         kuNames: ECLIPSE_KU_NAMES,
         kuDescriptions: ECLIPSE_KU_DESCRIPTIONS,
         normalizeKu: (ku) => ku,
