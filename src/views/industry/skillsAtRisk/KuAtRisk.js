@@ -84,7 +84,7 @@ function KuRiskSection({ config, organization }) {
     const [errorMessage, setErrorMessage] = useState("");
     const [employeeRisk, setEmployeeRisk] = useState([]);
     const [sortConfig, setSortConfig] = useState({
-        key: "absolute_employee_risk",
+        key: "impact_at_loss",
         direction: "desc",
     });
     const [currentPage, setCurrentPage] = useState(1);
@@ -120,7 +120,7 @@ function KuRiskSection({ config, organization }) {
                 setkuRisk([]);
             }
             if (empRes.status === "fulfilled" && Array.isArray(empRes.value.data)) {
-                setEmployeeRisk([...empRes.value.data].sort((a, b) => b.absolute_employee_risk - a.absolute_employee_risk));
+                setEmployeeRisk([...empRes.value.data].sort((a, b) => b.impact_at_loss - a.impact_at_loss));
             } else {
                 setEmployeeRisk([]);
             }
@@ -219,8 +219,8 @@ function KuRiskSection({ config, organization }) {
 
         // Take log10 of risk and bin it
         const logs = employeeRisk
-            .filter((e) => e.absolute_employee_risk > 0)
-            .map((e) => Math.log10(e.absolute_employee_risk));
+            .filter((e) => e.impact_at_loss > 0)
+            .map((e) => Math.log10(e.impact_at_loss));
 
         const minLog = Math.min(...logs);
         const maxLog = Math.max(...logs);
@@ -300,7 +300,7 @@ function KuRiskSection({ config, organization }) {
                     </CardHeader>
                     <CardBody>
                         {/* KU Risk Table */}
-                        <Table striped>
+                        <Table striped responsive>
                             <thead>
                                 <tr>
                                     <th>KU</th>
@@ -336,9 +336,9 @@ function KuRiskSection({ config, organization }) {
                                                     </UncontrolledTooltip>
                                                 )}
                                             </td>
-                                            <td>{item.employee_count}</td>
-                                            <td>{formatPercent(item.impact)}</td>
-                                            <td>{formatPercent(item.ku_risk)}</td>
+                                            <td style={{ whiteSpace: "nowrap" }}>{item.employee_count}</td>
+                                            <td style={{ whiteSpace: "nowrap" }}>{formatPercent(item.impact)}</td>
+                                            <td style={{ whiteSpace: "nowrap" }}>{formatPercent(item.ku_risk)}</td>
                                         </tr>
                                     );
                                 })}
@@ -350,11 +350,14 @@ function KuRiskSection({ config, organization }) {
             <Col md="12" xl="6">
                 <Card>
                     <CardHeader>
-                        <CardTitle tag="h6">Employee Risk — {config.title}</CardTitle>
+                        <CardTitle tag="h6">Employee Impact@Loss — {config.title}</CardTitle>
+                        <small className="text-muted">
+                            How much of the project's knowledge depends on each employee, averaged over the KUs they contribute to (0–100%).
+                        </small>
                     </CardHeader>
                     <CardBody>
                         {/* Employee Risk Table */}
-                        <Table striped>
+                        <Table striped responsive>
                             <thead>
                                 <tr>
                                     <th
@@ -364,25 +367,25 @@ function KuRiskSection({ config, organization }) {
                                         Name{getArrow("employee_name")}
                                     </th>
                                     <th
-                                        style={{ cursor: "pointer" }}
+                                        style={{ cursor: "pointer", whiteSpace: "nowrap" }}
                                         onClick={() => handleSort("ku_count")}
                                     >
                                         KU Count{getArrow("ku_count")}
                                     </th>
                                     <th
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => handleSort("absolute_employee_risk")}
+                                        style={{ cursor: "pointer", whiteSpace: "nowrap" }}
+                                        onClick={() => handleSort("impact_at_loss")}
                                     >
-                                        Risk{getArrow("absolute_employee_risk")}
+                                        Impact@Loss{getArrow("impact_at_loss")}
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {currentItems.map((item, index) => (
                                     <tr key={index}>
-                                        <td>{item.employee_name}</td>
-                                        <td>{item.ku_count}</td>
-                                        <td>{formatPercent(item.absolute_employee_risk)}</td>
+                                        <td style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}>{item.employee_name}</td>
+                                        <td style={{ whiteSpace: "nowrap" }}>{item.ku_count}</td>
+                                        <td style={{ whiteSpace: "nowrap" }}>{formatPercent(item.impact_at_loss)}</td>
                                     </tr>
                                 ))}
                             </tbody>

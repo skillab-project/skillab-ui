@@ -21,7 +21,7 @@ export const KU_SOURCES = {
         resultsPath: (repoName) => `/analyzedb?repo_name=${enc(repoName)}`,
         orgSkillsPath: () => `/organizationskills`,
         kuRiskPath: (organization) => `/ku_risk?organization=${enc(organization || "")}`,
-        employeeRiskPath: (organization) => `/employee_risk?organization=${enc(organization || "")}`,
+        employeeRiskPath: (organization) => `/impact_at_loss?organization=${enc(organization || "")}`,
         commitLimit: { default: "30", min: 1, max: null },
         kuNames: KU_NAMES,
         kuDescriptions: KU_DESCRIPTIONS,
@@ -37,7 +37,8 @@ export const KU_SOURCES = {
         resultsPath: (repoName) => `/detector17/results/${enc(repoName)}`,
         orgSkillsPath: () => `/detector17/organizationskills`,
         kuRiskPath: (organization) => `/detector17/ku_risk?organization=${enc(organization || "")}`,
-        employeeRiskPath: (organization) => `/detector17/employee_risk?organization=${enc(organization || "")}`,
+        // Impact@Loss per employee (replaces the delta-based /detector17/employee_risk)
+        employeeRiskPath: (organization) => `/detector17/impact_at_loss?organization=${enc(organization || "")}`,
         // Backend accepts commit_limit >= 1; empty → full git history
         commitLimit: { default: "", min: 1, max: null },
         kuNames: ECLIPSE_KU_NAMES,
