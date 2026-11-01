@@ -92,6 +92,9 @@ function KPIsSetup({ policies, availableMetrics, onKpiCreated }) {
 
                             <FormGroup>
                                 <Label for="equation">Equation</Label>
+                                <small className="text-muted d-block mb-1">
+                                    Build the formula from metric symbols and operators: click a metric on the right (or an operator button below) to insert it, e.g. (GRADS / ENROLLED) * 100. The KPI is recalculated whenever its metrics get new values.
+                                </small>
                                 <Input type="textarea" id="equation" rows="3" value={equation} onChange={e => setEquation(e.target.value)} />
                             </FormGroup>
                             
@@ -107,12 +110,18 @@ function KPIsSetup({ policies, availableMetrics, onKpiCreated }) {
                                 <Col md="6">
                                     <FormGroup>
                                         <Label for="targetValue">Target Value (Optional)</Label>
+                                        <small className="text-muted d-block mb-1">
+                                            The value the KPI should reach; it is drawn as a red line on the KPI chart.
+                                        </small>
                                         <Input type="number" id="targetValue" placeholder="e.g., 95.5" value={targetValue} onChange={e => setTargetValue(e.target.value)} />
                                     </FormGroup>
                                 </Col>
                                 <Col md="6">
                                     <FormGroup>
                                         <Label for="targetTime">Target Time (Optional)</Label>
+                                        <small className="text-muted d-block mb-1">
+                                            The date by which the target should be reached (DD/MM/YYYY).
+                                        </small>
                                         <Input type="text" id="targetTime" placeholder="e.g., 25/10/2027" value={targetTime} onChange={e => setTargetTime(e.target.value)} />
                                     </FormGroup>
                                 </Col>

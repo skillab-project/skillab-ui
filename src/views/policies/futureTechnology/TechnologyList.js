@@ -27,6 +27,9 @@ const TechnologyList = ({ technologies, escoParams, setEscoParams, onMapClick, l
     return (
         <div>
             <h5>Found Technologies <small className="text-muted">(Click to expand)</small></h5>
+            <small className="text-muted d-block mb-2">
+                Technologies the LLM extracted from this PDF, with their domain, related occupations and the model's confidence.
+            </small>
             <ListGroup>
                 {technologies.map((tech, index) => (
                     <TechnologyItem key={index} tech={tech} />
@@ -34,6 +37,9 @@ const TechnologyList = ({ technologies, escoParams, setEscoParams, onMapClick, l
             </ListGroup>
             <hr/>
             <h5>Map to ESCO</h5>
+            <small className="text-muted d-block mb-2">
+                Matches each technology to the most similar ESCO occupations and skills (semantic similarity, 0–1). Top N: how many matches to keep per technology. Threshold: minimum similarity for a match to be shown.
+            </small>
             <Row>
                 <Col md="4">
                     <FormGroup>

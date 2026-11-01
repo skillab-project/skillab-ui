@@ -62,7 +62,7 @@ function EmployeeSkills() {
                         Skills
                     </NavLink>
                 </NavItem>
-                <NavItem style={{cursor:"pointer"}}>
+                {/* <NavItem style={{cursor:"pointer"}}>
                     <NavLink
                         className={classnames({
                             active:
@@ -72,7 +72,7 @@ function EmployeeSkills() {
                     >
                         Skills at Risk
                     </NavLink>
-                </NavItem>
+                </NavItem> */}
             </Nav>
 
             <TabContent activeTab={currentActiveTab}>
@@ -106,11 +106,11 @@ function EmployeeSkills() {
                 {/**
                  * Tab: Skills at Risk
                  */}
-                <TabPane tabId="4">
+                {/* <TabPane tabId="4">
                     {currentActiveTab == 4 &&
                         <SkillsAtRisk />
                     }
-                </TabPane>
+                </TabPane> */}
             </TabContent>
         </div>
     );

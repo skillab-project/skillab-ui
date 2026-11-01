@@ -50,6 +50,9 @@ const EscoColumn = ({ items, type }) => {
                 </div>
                 <div>
                     <h6 className="text-dark font-weight-bold border-bottom pb-2 mb-3">Not Mapped / Emerging ({notMapped.length})</h6>
+                    <small className="text-muted d-block mb-2 small">
+                        Technologies with no ESCO match above the threshold, i.e. not yet covered by ESCO.
+                    </small>
                     <ListGroup flush>
                         {notMapped.map((item, idx) => (
                             <ListGroupItem key={idx} className="p-2 border-0 d-flex justify-content-between align-items-center">
@@ -75,6 +78,9 @@ const EscoMappingResults = ({ escoMapping, policyParams, setPolicyParams, onReco
             </Row>
             <hr/>
             <h5>Generate Policy Recommendations</h5>
+            <small className="text-muted d-block mb-2">
+                Creates policy actions for the emerging technologies. Similarity Threshold: a technology counts as emerging when none of its ESCO matches reach this similarity (or it has no occupation or skill match). Max Actions per Tech: upper limit on actions generated for each technology.
+            </small>
             <Row>
                 <Col md="4">
                     <FormGroup>

@@ -106,6 +106,9 @@ const ForecastingTimeseries = ({}) => {
     <Card>
       <CardHeader>
         <CardTitle tag="h4">Occupational Demand Forecasting</CardTitle>
+        <small className="text-muted">
+            Forecasts how demand for an occupation will evolve over the next months. Demand is measured as the occupation's share of all job ads per month (share index = occupation job ads ÷ total job ads), and the future values are predicted with a SARIMAX time-series model.
+        </small>
       </CardHeader>
       <CardBody>
         {/* --- INPUT CONTROLS --- */}
@@ -172,6 +175,9 @@ const ForecastingTimeseries = ({}) => {
             </p>
             
             {/* --- CHART --- */}
+            <small className="text-muted d-block">
+                Solid blue line: the historical monthly share index. Dashed green line: the forecast for the chosen horizon. Values are shares (e.g. 0.0125 = 1.25% of all job ads). Hover the chart for exact values.
+            </small>
             <div style={{ width: '100%', height: 400 }} className="mt-4">
               <ResponsiveContainer>
                 <LineChart

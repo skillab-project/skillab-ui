@@ -173,6 +173,9 @@ const TaxonomyForecasting = () => {
                     <Card>
                         <CardHeader>
                             <CardTitle tag="h5">Taxonomy Forecasting via Link Prediction</CardTitle>
+                            <small className="text-muted">
+                                Predicts which skill connections are likely to appear in the future. It builds a network linking ESCO skills from the selected data to similar new technology, AI and green skills, then uses link prediction to find pairs that are not connected yet but share many neighbours. Top K: how many predicted links to return. Prediction Method: Adamic-Adar and Resource Allocation favour pairs connected through rare, specific skills; Jaccard looks at the share of neighbours they have in common.
+                            </small>
                             <p className="card-category">Select a data source to predict future skill relationships.</p>
                         </CardHeader>
                         <CardBody>
@@ -273,7 +276,12 @@ const TaxonomyForecasting = () => {
                         <Row>
                             <Col md="4">
                                 <Card>
-                                    <CardHeader><CardTitle tag="h5">Forecast Summary</CardTitle></CardHeader>
+                                    <CardHeader>
+                                        <CardTitle tag="h5">Forecast Summary</CardTitle>
+                                        <small className="text-muted">
+                                            Size of the network (records, skills, existing links) and how many new links were predicted. Confidence Distribution: High ≥ 0.8, Medium 0.6–0.8, Low below 0.6.
+                                        </small>
+                                    </CardHeader>
                                     <CardBody>
                                         <ListGroup flush>
                                             {results.summary && Object.entries(results.summary).map(([key, value]) => {
@@ -305,7 +313,12 @@ const TaxonomyForecasting = () => {
                             </Col>
                             <Col md="8">
                                 <Card>
-                                    <CardHeader><CardTitle tag="h5">Predicted Skill Links</CardTitle></CardHeader>
+                                    <CardHeader>
+                                        <CardTitle tag="h5">Predicted Skill Links</CardTitle>
+                                        <small className="text-muted">
+                                            Skill pairs not linked today that are likely to become related. Score (0–1) averages the link-prediction score with the strength of the pair's shared neighbours; higher means more likely.
+                                        </small>
+                                    </CardHeader>
                                     <CardBody>
                                         <Table responsive hover>
                                             <thead className="text-primary">

@@ -68,6 +68,9 @@ function Turf({ datasource }) {
                 <Card>
                     <CardHeader>
                         <CardTitle tag="h5">Turf Analysis</CardTitle>
+                        <small className="text-muted">
+                            TURF (Total Unduplicated Reach and Frequency) analysis finds the combinations of skills that together cover the most records. It takes the 20 most frequent skills and tests every combination of the chosen size.
+                        </small>
                         <OccupationSelectionAndPillar 
                             onApplySelection={handleApplySelection} 
                             datasource={datasource} 

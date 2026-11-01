@@ -115,6 +115,9 @@ function HCV({datasource}) {
                 <Card>
                     <CardHeader>
                         <CardTitle tag="h5">Select occupation</CardTitle>
+                        <small className="text-muted">
+                            Hierarchical Cumulative Voting (HCV) ranks the ESCO skills of the selected occupation and pillar across every level of the ESCO skill hierarchy. A skill's priority combines how often it appears with the priority of its parent group, so the ranking at each level respects the levels above it.
+                        </small>
                         <OccupationSelectionAndPillar onApplySelection={handleApplyOccupationSelection} datasource={datasource}/>
                     </CardHeader>
                     <CardBody>

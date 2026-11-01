@@ -181,6 +181,9 @@ function CoOccurrence({ parentDatasource }) {
                 <Card>
                     <CardHeader>
                         <CardTitle tag="h5">Skill Co-occurrence Network</CardTitle>
+                        <small className="text-muted">
+                            Skills that tend to be required together. Each node is a skill; a link means two skills appear in the same records, and thicker links mean they co-occur more often relative to how common each skill is. Only the largest connected group of skills (the giant component) is shown; Max Nodes / Max Edges limit the network's size.
+                        </small>
                         <Row className="mt-3 align-items-end" style={{justifyContent:"center"}}>
                             {parentDatasource === 'ku' ? (
                                 <Col md="3">

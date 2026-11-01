@@ -173,7 +173,12 @@ function MetricsMain({ metrics, onMetricCreated, onMetricsChanged }) {
     <Row>
       <Col md="4">
         <Card>
-          <CardHeader><CardTitle tag="h5">Create New Metric</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle tag="h5">Create New Metric</CardTitle>
+            <small className="text-muted d-block">
+              A metric is a raw, measurable value (e.g. number of graduates) that you report over time. KPIs are calculated from metrics.
+            </small>
+          </CardHeader>
           <CardBody>
             <Form onSubmit={handleCreateMetric}>
               <FormGroup>
@@ -182,6 +187,9 @@ function MetricsMain({ metrics, onMetricCreated, onMetricsChanged }) {
               </FormGroup>
               <FormGroup>
                 <Label for="metricSymbol">Symbol</Label>
+                <small className="text-muted d-block mb-1">
+                    Short unique code used to reference this metric in KPI equations (e.g. USR_SGN; avoid spaces and operator characters).
+                </small>
                 <Input id="metricSymbol" name="symbol" placeholder="e.g., USR_SGN" value={newMetric.symbol} onChange={handleInputChange} />
               </FormGroup>
               <Button color="primary" type="submit" block>Create Metric</Button>
@@ -259,6 +267,9 @@ function MetricsMain({ metrics, onMetricCreated, onMetricsChanged }) {
               ) : (
                 <>
                   <CardTitle tag="h6">Add New Value</CardTitle>
+                  <small className="text-muted d-block mb-2">
+                      Record a new measurement of this metric. Leave "Use Current Date/Time" ticked to timestamp it now, or untick it to enter the date the value refers to.
+                  </small>
                   <Form onSubmit={handleAddReport} className="mb-4">
                     <Row>
                         <Col md="4">

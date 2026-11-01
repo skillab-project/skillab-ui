@@ -47,6 +47,9 @@ function GroupLevel({ data }) {
         <Card>
           <CardHeader>
             <CardTitle tag="h5">Level {data[0]?.level}</CardTitle>
+            <small className="text-muted">
+                Skills at this level of the ESCO hierarchy (0 = broadest groups), ranked by normalized priority. Priority % is each skill's share of the total priority at this level.
+            </small>
           </CardHeader>
           <CardBody>
             <Row>

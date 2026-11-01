@@ -708,6 +708,9 @@ const FutureTechnologyTrendsIdentifier = () => {
             📂 Previous Analyses
           </Button>
         </div>
+        <small className="text-muted d-block mt-1">
+            Upload policy documents or work programmes as PDFs. An LLM reads them and extracts the technologies they mention, maps each one to ESCO occupations and skills, flags emerging technologies (ones ESCO does not cover yet) and generates policy recommendations for them. Use "Previous Analyses" to reopen earlier results.
+        </small>
       </CardHeader>
 
       <CardBody>
@@ -840,6 +843,9 @@ const FutureTechnologyTrendsIdentifier = () => {
                 <h5>
                   Combined recommendations
                 </h5>
+                <small className="text-muted d-block mb-2">
+                    Policy actions (training, funding, KPIs, incentives, …) for the emerging technologies found across all uploaded PDFs. Open a single PDF above for its technologies and ESCO mapping.
+                </small>
                 {overviewData.recommendations.length === 0 ? (
                   processing ? (
                     <Alert color="info">

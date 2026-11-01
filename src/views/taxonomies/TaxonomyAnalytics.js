@@ -177,6 +177,9 @@ const TaxonomyAnalytics = () => {
                     <Card>
                         <CardHeader>
                             <CardTitle tag="h5">ESCO Taxonomy Extension Analysis</CardTitle>
+                            <small className="text-muted">
+                                Finds skills that are missing from ESCO. The ESCO skills found in the selected data are compared, by text similarity, with a pool of newer technology, AI and green skills; close matches become proposals for extending ESCO (ESCO+). Similarity Threshold (0–1): how close two skill names must be to count as a match. Confidence Threshold: minimum confidence (similarity boosted by how often the ESCO skill appears in the data) for a match to be proposed as a new skill.
+                            </small>
                             <p className="card-category">Select a data source and parameters to find new technology skills.</p>
                         </CardHeader>
                         <CardBody>
@@ -267,7 +270,12 @@ const TaxonomyAnalytics = () => {
                         <Row>
                             <Col md="12" xl="8">
                                 <Card>
-                                    <CardHeader><CardTitle tag="h5">Skill Network Visualization</CardTitle></CardHeader>
+                                    <CardHeader>
+                                        <CardTitle tag="h5">Skill Network Visualization</CardTitle>
+                                        <small className="text-muted">
+                                            Each link connects an ESCO skill to a proposed new (non-ESCO) skill it closely matches. Skills with many links are hubs where ESCO could be extended.
+                                        </small>
+                                    </CardHeader>
                                     <CardBody style={{overflow: "hidden"}}>
                                         <NetworkGraph data={results.network} />
                                     </CardBody>
@@ -275,7 +283,12 @@ const TaxonomyAnalytics = () => {
                             </Col>
                             <Col md="12" xl="4">
                                 <Card>
-                                    <CardHeader><CardTitle tag="h5">Summary</CardTitle></CardHeader>
+                                    <CardHeader>
+                                        <CardTitle tag="h5">Summary</CardTitle>
+                                        <small className="text-muted">
+                                            Size of the analysis: records processed, ESCO skills found, matches and how many were proposed as new skills.
+                                        </small>
+                                    </CardHeader>
                                     <CardBody>
                                         <ListGroup flush>
                                             {results.summary && Object.entries(results.summary).map(([key, value]) => (
@@ -288,7 +301,12 @@ const TaxonomyAnalytics = () => {
                                     </CardBody>
                                 </Card>
                                 <Card className="mt-3">
-                                    <CardHeader><CardTitle tag="h5">Proposed New Skills</CardTitle></CardHeader>
+                                    <CardHeader>
+                                        <CardTitle tag="h5">Proposed New Skills</CardTitle>
+                                        <small className="text-muted">
+                                            Skills from the technology, AI and green pools that passed both thresholds and could be added to ESCO.
+                                        </small>
+                                    </CardHeader>
                                     <CardBody>
                                         <ListGroup>
                                             {proposedExtensions.map((skill, idx) => (
@@ -300,7 +318,12 @@ const TaxonomyAnalytics = () => {
                             </Col>
                             <Col md="12">
                                 <Card>
-                                    <CardHeader><CardTitle tag="h5">Matches Preview</CardTitle></CardHeader>
+                                    <CardHeader>
+                                        <CardTitle tag="h5">Matches Preview</CardTitle>
+                                        <small className="text-muted">
+                                            Pairs of an existing ESCO skill and its closest new skill. Similarity runs from 0 to 1 (1 = practically the same name).
+                                        </small>
+                                    </CardHeader>
                                     <CardBody>
                                         <Table responsive>
                                             <thead>

@@ -245,6 +245,9 @@ function ForecastingAgeing({parentDatasource}) {
                             parentDatasource === 'policies' ? 'Enter keywords (required)' :
                             'Select occupation (required)'}
                         </CardTitle>
+                        <small className="text-muted">
+                            Skill ageing treats each skill like a living organism: it tracks when the skill first appeared, when it peaked, and whether it is still alive, rising or fading in the selected records (monthly data from 2020 onward). The results are split into Summary, Skill Ageing, Epidemiological Metrics and Special Categories.
+                        </small>
 
                         <div className="filter-inputs mt-3">
                             {parentDatasource === 'ku' ? (
@@ -316,6 +319,9 @@ function ForecastingAgeing({parentDatasource}) {
                                     </TabPane>
                                     <TabPane tabId="2">
                                         <h5 className="mt-3">Skill Ageing Details</h5>
+                                        <small className="text-muted d-block mb-2">
+                                            Date of Birth: first time the skill appears. Peak Activity Date: the month with the most mentions. Total Instances: how many records mention it. Immunity Score is High when the skill has more than 20 mentions and is still used after 2022, otherwise Low.
+                                        </small>
                                         <Table responsive hover>
                                             <thead className="text-primary">
                                                 <tr>
@@ -345,6 +351,9 @@ function ForecastingAgeing({parentDatasource}) {
                                     </TabPane>
                                     <TabPane tabId="3">
                                          <h5 className="mt-3">Epidemiological Metrics</h5>
+                                         <small className="text-muted d-block mb-2">
+                                             Epidemiology terms applied to skills. Incidence (2023): mentions during 2023. Mortality Risk: ☠️ if the skill has had no mentions since July 2023, 🟢 if still active. Attack Rate: share of months in which the skill appears at all (0–1). CFR: 1 if a skill that was active in 2022–2023 has since died out, otherwise 0.
+                                         </small>
                                          {analysisData.data.epidemiological_metrics?.length > 0 ? (
                                             <Table responsive hover>
                                                 <thead className="text-primary">
@@ -374,6 +383,9 @@ function ForecastingAgeing({parentDatasource}) {
                                     </TabPane>
                                     <TabPane tabId="4">
                                         <h5 className="mt-3">Competing Skills</h5>
+                                        <small className="text-muted d-block mb-2">
+                                            Pairs among the 50 most frequent skills whose monthly demand moves in opposite directions (correlation below −0.5): when one is asked for more, the other is asked for less, suggesting one may be replacing the other.
+                                        </small>
                                         {analysisData.data.competing_skills?.length > 0 ? (
                                             <Table responsive hover>
                                                 <thead className="text-primary">
@@ -396,6 +408,9 @@ function ForecastingAgeing({parentDatasource}) {
                                         ) : <h6>No competing skills found.</h6>}
                                         <hr />
                                         <h5 className="mt-3">Rapid Obsolescence Skills</h5>
+                                        <small className="text-muted d-block mb-2">
+                                            Skills whose monthly mentions fell by at least 30% within 6 months of their peak. Drop % = (Peak Value − Min Value After Peak) ÷ Peak Value.
+                                        </small>
                                         {analysisData.data.rapid_obsolescence?.length > 0 ? (
                                             <Table responsive hover>
                                                 <thead className="text-primary">

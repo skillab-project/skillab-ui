@@ -20,7 +20,6 @@ import axios from 'axios';
 import ExploratoryAnalytics from "./ExploratoryAnalytics";
 import TrendAnalysis from "./TrendAnalysis";
 import DescriptiveAnalytics from "./DescriptiveAnalytics";
-import SkillClustering from "./SkillClustering";
 import TopOrganizations from "./TopOrganizations";
 
 
@@ -108,7 +107,6 @@ const DescriptiveExploratoryKU = ({filters}) => {
     const [dataSkills, setDataSkills] = useState([]);
     const [dataExploratory, setDataExploratory] = useState([]);
     const [dataTrending, setDataTrending] = useState([]);
-    const [dataClustering, setDataClustering] = useState([]);
     const [organizationFrequencyData, setOrganizationFrequencyData] = useState([]);
     
     
@@ -190,34 +188,9 @@ const DescriptiveExploratoryKU = ({filters}) => {
                 };
             });
             setDataTrending(transformedData);
-            fetchDataClustering(2);
         }
         catch (error) {
             console.error('Error fetching trending data:', error);
-        }
-    };
-
-    // Fetch clustering skills
-    const fetchDataClustering = async (noClustNow) => {
-        try {
-            const response = await axios.post(
-                process.env.REACT_APP_API_URL_KU_PUBLIC + "/cluster_repos",
-                {
-                    'num_clusters': noClustNow
-                });
-            const transformedData = response.data.map((repo) => {
-                const key = normalizeKuId(repo.repo_name);
-                return {
-                    Cluster: repo.cluster,
-                    Pref_Label: KU_NAMES[key] ? `${key} – ${KU_NAMES[key]}` : repo.repo_name,
-                    kuKey: key,
-                    x: repo.coordinates.x,
-                    y: repo.coordinates.y
-                };
-            });
-            setDataClustering(transformedData);
-        } catch (error) {
-            console.error("Error fetching clustering data:", error);
         }
     };
 
@@ -225,30 +198,6 @@ const DescriptiveExploratoryKU = ({filters}) => {
     useEffect(() => {
         fetchDataSkills();
     }, []);
-
-
-    const handleApplyChangeValueK = async (noClustNow) => {
-        try {
-            const response = await axios.post(
-                process.env.REACT_APP_API_URL_KU_PUBLIC + "/cluster_repos",
-                {
-                    'num_clusters': noClustNow
-                });
-            const transformedData = response.data.map(item => {
-                const key = normalizeKuId(item.repo_name);
-                return {
-                    x: item.coordinates.x,
-                    y: item.coordinates.y,
-                    Cluster: item.cluster,
-                    Pref_Label: KU_NAMES[key] ? `${key} – ${KU_NAMES[key]}` : item.repo_name,
-                    kuKey: key,
-                };
-            });
-            setDataClustering(transformedData);
-        } catch (error) {
-            console.error("Error fetching clustering data:", error);
-        }
-    };
 
     
     return (
@@ -292,19 +241,7 @@ const DescriptiveExploratoryKU = ({filters}) => {
                     </Col>
                 </Row>
 
-                <Row>
-                    <Col md="12">
-                        {dataClustering && dataClustering.length > 0 &&
-                            <SkillClustering
-                                data={dataClustering}
-                                onApplyChangeValueK={handleApplyChangeValueK}
-                                noClustering={2}
-                            />
-                        }
-                    </Col>
-                </Row>
-
-                {(dataSkills.length === 0 || dataExploratory.length === 0 || dataTrending === 0 || dataClustering === 0) &&
+                {(dataSkills.length === 0 || dataExploratory.length === 0 || dataTrending === 0) &&
                     <div className="lds-dual-ring"></div>
                 }
             </>

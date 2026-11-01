@@ -82,6 +82,9 @@ const JobClassifier = () => {
         <Card>
             <CardHeader>
                 <CardTitle tag="h4">Job Classifier</CardTitle>
+                <small className="text-muted">
+                    Classifies the job ads of the selected occupation as Emerging or Established roles. Jobs are first labelled by their title (titles mentioning AI, machine learning, cloud, blockchain, cybersecurity, DevOps and similar terms count as emerging), then a machine-learning model (XGBoost) learns which skills separate the two groups, and SHAP explains how much each skill pushes a job towards one side.
+                </small>
             </CardHeader>
             <CardBody>
                 <Row style={{ justifyContent: "center", alignItems: "flex-end" }}>
@@ -123,6 +126,9 @@ const JobClassifier = () => {
                         <Row>
                             <Col md="6">
                                 <h5>General Statistics</h5>
+                                <small className="text-muted d-block mb-2">
+                                    How many job ads were analysed, how they split between Emerging and Established, and the average number of skills per ad.
+                                </small>
                                 <Table bordered size="sm">
                                     <tbody>
                                         <tr><td>Jobs Analyzed</td><td>{result.descriptive_statistics.total_jobs_analyzed}</td></tr>
@@ -135,6 +141,9 @@ const JobClassifier = () => {
                             
                             <Col md="6">
                                 <h5>Top 10 Most Common Skills</h5>
+                                <small className="text-muted d-block mb-2">
+                                    The skills that appear in the most job ads, regardless of class.
+                                </small>
                                 <Table striped size="sm">
                                     <thead>
                                         <tr><th>Skill</th><th>Count</th></tr>
@@ -156,6 +165,9 @@ const JobClassifier = () => {
                         <Row>
                             <Col md="6">
                                 <h5 className="text-success">Global Top Emerging Skills</h5>
+                                <small className="text-muted d-block mb-2">
+                                    Skills that most strongly push a job towards Emerging. Impact Score is the summed SHAP contribution across jobs; higher = stronger signal.
+                                </small>
                                 <Table striped size="sm">
                                     <thead>
                                         <tr><th>Skill</th><th>Impact Score</th></tr>
@@ -172,6 +184,9 @@ const JobClassifier = () => {
                             </Col>
                             <Col md="6">
                                 <h5 className="text-danger">Global Top Established Skills</h5>
+                                <small className="text-muted d-block mb-2">
+                                    Skills that most strongly push a job towards Established. Impact Scores are negative; the more negative, the stronger the signal.
+                                </small>
                                 <Table striped size="sm">
                                     <thead>
                                         <tr><th>Skill</th><th>Impact Score</th></tr>

@@ -85,6 +85,9 @@ function TopOrganizations({ data }) {
         <Card>
             <CardHeader>
                 <CardTitle tag="h4">Top Organizations</CardTitle>
+                <small className="text-muted">
+                    The GitHub organizations whose repositories have been analysed for Knowledge Units, ranked by the number of projects analysed for each. On the left, bigger logos mean more projects; hover a logo for its name and count. The bar chart on the right shows the same counts.
+                </small>
             </CardHeader>
             <CardBody>
                 {orgData.length > 0 && (

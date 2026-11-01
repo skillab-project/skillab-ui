@@ -25,6 +25,9 @@ const TurfResults = ({ data }) => {
                         </Badge>
                     </div>
                     
+                    <small className="text-muted d-block mb-2">
+                        Reach: records that contain at least one skill of the combination (Reach % = share of all records). Frequency: total mentions of the combination's skills. Ratio: Frequency ÷ Reach, i.e. how many of the combination's skills a reached record has on average.
+                    </small>
                     <Table responsive hover size="sm">
                         <thead className="text-info">
                             <tr>

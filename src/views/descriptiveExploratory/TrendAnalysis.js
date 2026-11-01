@@ -76,6 +76,9 @@ function TrendAnalysis({ data }) {
         <Card>
             <CardHeader>
                 <CardTitle tag="h5">Trend Analysis</CardTitle>
+                <small className="text-muted">
+                    How the volume of records changes over time in each country. Click the country buttons to add or remove lines from the chart.
+                </small>
             </CardHeader>
             <CardBody>
                 <div style={{ marginBottom: "20px", flexWrap: "wrap" }}>

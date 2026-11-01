@@ -67,6 +67,9 @@ function TopTypeFrequency({ data }) {
         <Card>
             <CardHeader>
                 <CardTitle tag="h4">Top Types</CardTitle>
+                <small className="text-muted">
+                    The most common document types among the EU law and policy texts (e.g. regulations, directives, decisions), ranked by how many documents of each type are in the dataset. On the left, bigger bubbles mean more documents; hover a bubble for its count. The bar chart on the right shows the same counts, and "More" adds 10 more types.
+                </small>
             </CardHeader>
             <CardBody>
                 {processedData.length > 0 && (

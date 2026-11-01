@@ -297,6 +297,9 @@ function KuRiskSection({ config, organization }) {
                 <Card>
                     <CardHeader>
                         <CardTitle tag="h6">KU Risk — {config.title}</CardTitle>
+                        <small className="text-muted">
+                            For each Knowledge Unit: how many employees hold it, how much of the project's knowledge it represents (Impact), and how likely that knowledge is to be lost if those employees leave (Risk, 0–100%).
+                        </small>
                     </CardHeader>
                     <CardBody>
                         {/* KU Risk Table */}
@@ -462,6 +465,9 @@ function KuRiskSection({ config, organization }) {
                 <Card>
                     <CardHeader>
                         <CardTitle tag="h6">KU Risk — {config.title}</CardTitle>
+                        <small className="text-muted">
+                            Knowledge Units ranked from highest to lowest risk of being lost; only KUs with a risk above zero are shown. Hover a bar for the KU's description.
+                        </small>
                     </CardHeader>
                     <CardBody style={{ height: kuRiskChartData.length > 0 ? "400px" : "auto" }}>
                         {kuRiskChartData.length === 0 ? (

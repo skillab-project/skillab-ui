@@ -55,7 +55,12 @@ const Biodiversity = () => {
                                 <Row className="mb-4">
                                     <Col md="12">
                                         <Card className="border">
-                                            <CardHeader><CardTitle tag="h6">Biodiversity Indices</CardTitle></CardHeader>
+                                            <CardHeader>
+                                                <CardTitle tag="h6">Biodiversity Indices</CardTitle>
+                                                <small className="text-muted">
+                                                    Ecology-style diversity indices applied to skills. Richness is the number of distinct skills required. Shannon also accounts for how evenly demand is spread across those skills (higher = more varied). Simpson measures how concentrated demand is on a few dominant skills.
+                                                </small>
+                                            </CardHeader>
                                             <CardBody>
                                                 <Table responsive size="sm">
                                                     <thead>
@@ -86,7 +91,12 @@ const Biodiversity = () => {
                                 <Row>
                                     <Col md="12">
                                         <Card className="border">
-                                            <CardHeader><CardTitle tag="h6">Required Skills & Groupings</CardTitle></CardHeader>
+                                            <CardHeader>
+                                                <CardTitle tag="h6">Required Skills & Groupings</CardTitle>
+                                                <small className="text-muted">
+                                                    The skills required for the selected occupation, with their ESCO pillar (Skill, Knowledge, Transversal, Language), the roles that share each skill, and its importance. Click Pillar or Importance to sort.
+                                                </small>
+                                            </CardHeader>
                                             <CardBody>
                                                 <SkillsNeeded data={skillsData}/>
                                             </CardBody>

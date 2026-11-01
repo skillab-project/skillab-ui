@@ -779,6 +779,9 @@ const ProgramAndNeeds = () => {
           <h5 className="mb-2">
             Coverage{country ? <span style={{ color: "#999", fontWeight: 400 }}> · {country}</span> : null}
           </h5>
+          <small className="text-muted d-block mb-2">
+            Share of the future-oriented skills (derived from the technologies in the trends analysis) that are already taught in the selected country's curricula.
+          </small>
           <Badge color={pct >= 50 ? "success" : pct >= 20 ? "warning" : "danger"}>
             {pct}% covered
           </Badge>{" "}
@@ -904,6 +907,9 @@ const ProgramAndNeeds = () => {
                 </Button>
               </div>
 
+              <small className="text-muted d-block mb-3">
+                Checks whether today's university programmes teach the skills the labour market asks for now. For the selected occupations, the required skills (with their importance, from job-ad demand analysis) are compared with the skills found in the curricula of the selected country's universities. The result is each university's coverage and its missing skills, plus AI-generated suggestions for new programmes.
+              </small>
               {activeFilters && renderUsedFilters(
                 [
                   { label: "Country", value: activeFilters.country || "All countries" },
@@ -1032,6 +1038,9 @@ const ProgramAndNeeds = () => {
                     <Col md="6">
                       <FormGroup>
                         <Label>Importance threshold</Label>
+                        <small className="text-muted d-block mb-1">
+                          Only skills whose importance for the occupation (0–1) is at least this value are checked. 0 = all skills.
+                        </small>
                         <Input
                           type="number" min="0" max="1" step="0.05"
                           value={threshold}
@@ -1042,6 +1051,9 @@ const ProgramAndNeeds = () => {
                     <Col md="6">
                       <FormGroup>
                         <Label>Top N skills</Label>
+                        <small className="text-muted d-block mb-1">
+                          Maximum number of the most important skills checked per occupation.
+                        </small>
                         <Input
                           type="number" min="1" max="500"
                           value={topN}
@@ -1083,6 +1095,9 @@ const ProgramAndNeeds = () => {
                                 <i className="fas fa-university" style={{ marginRight: 6, color: "#51bcda" }}></i>
                                 Suggested actions for creating universities
                               </CardTitle>
+                                <small className="text-muted d-block mb-1">
+                                  AI-generated suggestions (programmes, courses, collaborations) for closing the skill gaps found below. Saved with the analysis; use Regenerate to create a new version.
+                                </small>
                               {uniSuggestMeta && !uniSuggestLoading && (
                                 <span style={{ color: "#666" }}>
                                   {uniSuggestMeta.cached ? (
@@ -1127,6 +1142,9 @@ const ProgramAndNeeds = () => {
                             </CardTitle>
                             <i className={`fas fa-chevron-${resultsCollapsed ? "down" : "up"}`} style={{ color: "#999" }}></i>
                           </div>
+                          <small className="text-muted d-block mt-1">
+                            Per university: the share of the required skills found in its curricula (coverage %, green ≥ 50%, orange ≥ 20%, red below 20%), and which skills are missing for each occupation. Click to expand or collapse.
+                          </small>
                         </CardHeader>
                         <Collapse isOpen={!resultsCollapsed}>
                           <CardBody>
@@ -1331,6 +1349,9 @@ const ProgramAndNeeds = () => {
                               Missing from curricula{" "}
                               <span style={{ color: "#999", fontWeight: 400 }}>({missing.length})</span>
                             </h6>
+                            <small className="text-muted d-block mb-2">
+                              Skills needed for the upcoming technologies that no university in the country teaches yet. Expand a skill to see the technologies it comes from.
+                            </small>
                             {missing.length === 0 ? (
                               <em style={{ color: "#999" }}>None — every skill is covered.</em>
                             ) : (
@@ -1342,6 +1363,9 @@ const ProgramAndNeeds = () => {
                               In curricula{" "}
                               <span style={{ color: "#999", fontWeight: 400 }}>({covered.length})</span>
                             </h6>
+                            <small className="text-muted d-block mb-2">
+                              Skills already taught. Expand a skill to see the technologies it comes from and the courses that teach it.
+                            </small>
                             {covered.length === 0 ? (
                               <em style={{ color: "#999" }}>None found in the selected country's curricula.</em>
                             ) : (

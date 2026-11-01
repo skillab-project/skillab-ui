@@ -52,6 +52,9 @@ function TopCountries(props) {
         <Card>
             <CardHeader>
                 <CardTitle tag="h4">Top Countries</CardTitle>
+                <small className="text-muted">
+                    Where the selected records come from: the darker the green on the map, the more records a country has. Hover a country to see its exact count.
+                </small>
             </CardHeader>
             <CardBody style={{ position: "relative" }}>
                 {props.data && props.data.length > 0 && 

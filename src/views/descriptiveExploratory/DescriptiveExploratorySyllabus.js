@@ -19,7 +19,6 @@ import classnames from 'classnames';
 import axios from 'axios';
 import ExploratoryAnalytics from "./ExploratoryAnalytics";
 import DescriptiveAnalytics from "./DescriptiveAnalytics";
-import SkillClustering from "./SkillClustering";
 import TopCountries from "./TopCountries";
 
 
@@ -27,7 +26,6 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
     const [dataAreReady, setDataAreReady] = useState(false);
     const [dataSkills, setDataSkills] = useState([]);
     const [dataExploratory, setDataExploratory] = useState([]);
-    const [dataClustering, setDataClustering] = useState([]);
     const [countryFrequencyData, setCountryFrequencyData] = useState([]);
     
     
@@ -86,30 +84,9 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
                 };
             });
             setDataExploratory(transformedData);
-            
-            // Fetch clustering data
-            fetchDataClustering(10);
         }
         catch (error) {
             console.error('Error fetching location data:', error);
-        }
-    };
-
-    // Fetch clustering skills
-    const fetchDataClustering = async (noClustNow) => {
-        try {
-            const response = await axios.get(process.env.REACT_APP_API_URL_CURRICULUM_SKILLS + "/cluster/universities/"+noClustNow);
-            const transformedData = response.data.flatMap((clusterGroup) =>
-                clusterGroup.universities.map((uni) => ({
-                    Cluster: clusterGroup.cluster,
-                    Pref_Label: uni.pref_label,
-                    x: uni.x,
-                    y: uni.y
-                }))
-            );
-            setDataClustering(transformedData);
-        } catch (error) {
-            console.error("Error fetching data:", error);
         }
     };
 
@@ -121,24 +98,6 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
         
         load();
     }, []);
-
-
-    const handleApplyChangeValueK = async (noClustNow) => {
-        try {
-            const response = await axios.get(process.env.REACT_APP_API_URL_CURRICULUM_SKILLS + "/cluster/universities/"+noClustNow);
-            const transformedData = response.data.flatMap((clusterGroup) =>
-                clusterGroup.universities.map((uni) => ({
-                    Cluster: clusterGroup.cluster,
-                    Pref_Label: uni.pref_label,
-                    x: uni.x,
-                    y: uni.y
-                }))
-            );
-            setDataClustering(transformedData);
-        } catch (error) {
-            console.error("Error fetching data:", error);
-        }
-    };
 
     
     return (
@@ -168,16 +127,8 @@ const DescriptiveExploratorySyllabus = ({filters}) => {
                     </Col>
                 </Row>
 
-                <Row>
-                    <Col md="12">
-                        {dataClustering && dataClustering.length>0 &&
-                            <SkillClustering data={dataClustering} onApplyChangeValueK={handleApplyChangeValueK} noClustering={10}/>
-                        }
-                    </Col>
-                </Row>
 
-
-                {(dataSkills.length==0 || dataExploratory.length==0 || dataClustering==0) &&
+                {(dataSkills.length==0 || dataExploratory.length==0) &&
                     <div class="lds-dual-ring"></div>
                 }
             </>

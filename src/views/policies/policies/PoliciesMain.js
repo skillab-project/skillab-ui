@@ -220,6 +220,9 @@ function PoliciesMain({ policies, onPolicyCreated, onPolicyDeleted }) {
                 <Card>
                     <CardHeader>
                         <CardTitle tag="h5">Create New Policy</CardTitle>
+                        <small className="text-muted d-block">
+                            A policy groups the KPIs used to track its success. Setup order: create the policy here, define its Metrics (the measurable values), then build KPIs from those metrics in KPIs-Setup.
+                        </small>
                     </CardHeader>
                     <CardBody>
                         <Form onSubmit={handleCreatePolicy}>
@@ -320,7 +323,12 @@ function PoliciesMain({ policies, onPolicyCreated, onPolicyDeleted }) {
                                 
                                 <TabPane tabId="2">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h5>KPIs for this Policy</h5>
+                                        <div>
+                                            <h5 className="mb-0">KPIs for this Policy</h5>
+                                            <small className="text-muted d-block">
+                                                Evaluate Success analyses each KPI's history against its target and returns a trend analysis plus recommended actions.
+                                            </small>
+                                        </div>
                                         <Button 
                                             color="success" 
                                             onClick={handleEvaluatePolicy} 

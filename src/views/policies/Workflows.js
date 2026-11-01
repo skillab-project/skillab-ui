@@ -13,6 +13,9 @@ function Workflows() {
     <Card>
       <CardHeader>
         <CardTitle tag="h4" className="mb-0">Workflows</CardTitle>
+        <small className="text-muted d-block mt-1">
+            Design and run the business processes (e.g. approval and reporting steps) behind your policies in the jBPM workflow engine. It opens in a new tab.
+        </small>
       </CardHeader>
       <CardBody className="text-center">
         <Button color="primary" onClick={openInNewTab}>

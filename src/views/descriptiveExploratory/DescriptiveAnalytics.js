@@ -42,6 +42,9 @@ function DescriptiveAnalytics(props) {
         <Card>
             <CardHeader>
                 <CardTitle tag="h4">Top Instances</CardTitle>
+                <small className="text-muted">
+                    The most frequent skills in the selected data, ranked by how many records mention them. Hover a bar for the skill's description; use "More" to show 10 more.
+                </small>
             </CardHeader>
             <CardBody>
                 

@@ -114,6 +114,9 @@ function ExploratoryAnalytics(props) {
         <Card>
             <CardHeader>
                 <CardTitle tag="h5">Exploratory Analytics</CardTitle>
+                <small className="text-muted">
+                    Compare how often each skill appears across countries. Click the skill buttons to add or remove columns from the table.
+                </small>
             </CardHeader>
             <CardBody>
               {allSkillsExploratory.length>0 &&
