@@ -42,8 +42,11 @@ const TurfResults = ({ data }) => {
                         <tbody>
                             {data.map((item, idx) => {
                                 // 2. Robust key handling (handles "Combination" or "combination")
+                                // Prefer the explicit label list (safe for labels containing '+', e.g. "C++")
                                 const combinationStr = item?.Combination || item?.combination || "";
-                                const skills = combinationStr ? combinationStr.split('+') : [];
+                                const skills = Array.isArray(item?.Skills) && item.Skills.length > 0
+                                    ? item.Skills
+                                    : (combinationStr ? combinationStr.split('+') : []);
 
                                 return (
                                     <tr key={idx}>
