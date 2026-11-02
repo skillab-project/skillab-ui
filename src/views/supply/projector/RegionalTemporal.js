@@ -3,11 +3,12 @@ import {
   Card, CardHeader, CardBody, CardTitle, Row, Col, Button, Alert, Spinner,
   Input, Label, FormGroup, Badge, Table, Collapse, UncontrolledTooltip,
 } from "reactstrap";
-import axios from "axios";
 import {
   LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { API_BASE_URL, GRANULARITIES, FORM_HEADERS, HelpIcon, SectionTitle } from "./projectorShared";
+import { GRANULARITIES, HelpIcon, SectionTitle } from "./projectorShared";
+import useProjectorAnalysis from "./useProjectorAnalysis";
+import AnalysisProgress from "../../industry/futureNeeds/AnalysisProgress";
 
 // Territorial levels offered in the UI (the API also returns a country-level
 // "raw" breakdown, which is intentionally not shown).
@@ -63,60 +64,53 @@ const SkillTooltip = ({ active, payload }) => {
 
 const RegionalTemporal = () => {
   // --- Filters ---
-  const [minDate, setMinDate] = useState("2024-10-01");
-  const [maxDate, setMaxDate] = useState("2024-12-31");
+  const [minDate, setMinDate] = useState("2023-10-01");
+  const [maxDate, setMaxDate] = useState("2023-12-31");
   const [keywords, setKeywords] = useState("software");
   const [granularity, setGranularity] = useState("monthly");
   const [topKRegions, setTopKRegions] = useState(10);
   const [topKSkills, setTopKSkills] = useState(10);
 
-  // --- Request / view state ---
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [result, setResult] = useState(null);
+  // --- Request state (analysis runs in the background; the hook polls until it is ready) ---
+  const [validationError, setValidationError] = useState(null);
+  const analysis = useProjectorAnalysis("regional-temporal", "Failed to fetch regional temporal analysis.");
+  const { run: runAnalysis } = analysis;
+  const result = analysis.data;
+  const busy = analysis.phase === "loading" || analysis.phase === "pending";
+
+  // --- View state ---
   const [level, setLevel] = useState("nuts1");
   const [selectedCode, setSelectedCode] = useState(null);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
 
-  const handleFetch = useCallback(async () => {
+  const handleFetch = useCallback(() => {
     if (minDate && maxDate && minDate > maxDate) {
-      setError("The start date must be before the end date.");
+      setValidationError("The start date must be before the end date.");
       return;
     }
-    setLoading(true);
-    setError(null);
-    try {
-      const body = new URLSearchParams({
-        min_date: minDate,
-        max_date: maxDate,
-        keywords,
-        granularity,
-        top_k_regions: String(topKRegions),
-        top_k_skills: String(topKSkills),
-        demo: "false",
-      });
-      const { data } = await axios.post(`${API_BASE_URL}/regional-temporal`, body, { headers: FORM_HEADERS });
-      if (data?.status && data.status !== "completed") {
-        setError(`The analysis did not complete (status: ${data.status}).`);
-        setResult(null);
-      } else {
-        setResult(data);
-        // Keep the current level if it has data, otherwise fall back to the first level that does
-        const rt = data?.regional_temporal || {};
-        if (!rt[level]?.length) {
-          const firstWithData = LEVELS.find((l) => rt[l.id]?.length);
-          if (firstWithData) setLevel(firstWithData.id);
-        }
-        if (!LEVELS.some((l) => rt[l.id]?.length)) setError("No regional data was found for these filters.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch regional temporal analysis.");
-      setResult(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [minDate, maxDate, keywords, granularity, topKRegions, topKSkills, level]);
+    setValidationError(null);
+    runAnalysis({
+      min_date: minDate,
+      max_date: maxDate,
+      keywords,
+      granularity,
+      top_k_regions: String(topKRegions),
+      top_k_skills: String(topKSkills),
+      demo: "false",
+    });
+  }, [runAnalysis, minDate, maxDate, keywords, granularity, topKRegions, topKSkills]);
+
+  // When a new result arrives keep the current level if it has data,
+  // otherwise fall back to the first level that does.
+  const hasRegionalData = LEVELS.some((l) => result?.regional_temporal?.[l.id]?.length);
+  useEffect(() => {
+    const rt = result?.regional_temporal || {};
+    setLevel((current) => {
+      if (rt[current]?.length) return current;
+      const firstWithData = LEVELS.find((l) => rt[l.id]?.length);
+      return firstWithData ? firstWithData.id : current;
+    });
+  }, [result]);
 
   const areas = useMemo(() => result?.regional_temporal?.[level] || [], [result, level]);
 
@@ -189,14 +183,32 @@ const RegionalTemporal = () => {
             </Col>
           </Row>
           <Row style={{ justifyContent: "center" }} className="mb-3">
-            <Button color="primary" onClick={handleFetch} disabled={loading}>
-              {loading ? <><Spinner size="sm" /> Processing...</> : "Apply"}
+            <Button color="primary" onClick={handleFetch} disabled={analysis.phase === "loading"}>
+              {busy ? <><Spinner size="sm" /> Processing...</> : "Apply"}
             </Button>
+            {analysis.phase === "done" && (
+              <Button color="link" onClick={analysis.rerun} title="Discard the saved result and compute this analysis again">
+                Recompute
+              </Button>
+            )}
           </Row>
+          <AnalysisProgress
+            phase={analysis.phase}
+            serverStatus={analysis.serverStatus}
+            message={analysis.message}
+            waitingSince={analysis.waitingSince}
+            nextCheckAt={analysis.nextCheckAt}
+            onCheckNow={analysis.checkNow}
+            hasPreviousResult={!!result}
+          />
         </CardBody>
       </Card>
 
-      {error && <Alert color="danger">{error}</Alert>}
+      {validationError && <Alert color="danger">{validationError}</Alert>}
+      {analysis.phase === "error" && <Alert color="danger">{analysis.message}</Alert>}
+      {analysis.phase === "done" && !hasRegionalData && (
+        <Alert color="warning">No regional data was found for these filters.</Alert>
+      )}
 
       {result && (
         <>

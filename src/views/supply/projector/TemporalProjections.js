@@ -3,11 +3,12 @@ import {
   Card, CardHeader, CardBody, CardTitle, Row, Col, Button,
   Alert, Spinner, Input, Label, FormGroup, Badge, Table,
 } from "reactstrap";
-import axios from "axios";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
-import { API_BASE_URL, GRANULARITIES, FORM_HEADERS, HelpIcon, SectionTitle } from "./projectorShared";
+import { GRANULARITIES, HelpIcon, SectionTitle } from "./projectorShared";
+import useProjectorAnalysis from "./useProjectorAnalysis";
+import AnalysisProgress from "../../industry/futureNeeds/AnalysisProgress";
 
 // 10 distinguishable categorical colours (one per top-k skill; cycles if top_k > 10)
 const SERIES_COLORS = [
@@ -40,48 +41,28 @@ const TemporalProjections = () => {
   const [forecastPeriods, setForecastPeriods] = useState(1);
   const [topK, setTopK] = useState(10);
 
-  // --- Request state ---
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [result, setResult] = useState(null);
+  // --- Request state (analysis runs in the background; the hook polls until it is ready) ---
+  const [validationError, setValidationError] = useState(null);
+  const analysis = useProjectorAnalysis("temporal-projections", "Failed to fetch temporal projections.");
+  const { run: runAnalysis } = analysis;
+  const result = analysis.data;
+  const busy = analysis.phase === "loading" || analysis.phase === "pending";
 
-  const handleFetch = useCallback(async () => {
+  const handleFetch = useCallback(() => {
     if (minDate && maxDate && minDate > maxDate) {
-      setError("The start date must be before the end date.");
+      setValidationError("The start date must be before the end date.");
       return;
     }
-    setLoading(true);
-    setError(null);
-    try {
-      const body = new URLSearchParams({
-        min_date: minDate,
-        max_date: maxDate,
-        keywords: keywords,
-        granularity: granularity,
-        forecast_periods: String(forecastPeriods),
-        top_k: String(topK),
-      });
-      const response = await axios.post(`${API_BASE_URL}/temporal-projections`, body, {
-        headers: FORM_HEADERS,
-      });
-      const data = response.data;
-      if (data?.status && data.status !== "completed") {
-        setError(`The analysis did not complete (status: ${data.status}).`);
-        setResult(null);
-      } else {
-        setResult(data);
-        if (!data?.insights?.skills?.length) {
-          setError("No skills were found for these filters.");
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch temporal projections.");
-      setResult(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [minDate, maxDate, keywords, granularity, forecastPeriods, topK]);
+    setValidationError(null);
+    runAnalysis({
+      min_date: minDate,
+      max_date: maxDate,
+      keywords: keywords,
+      granularity: granularity,
+      forecast_periods: String(forecastPeriods),
+      top_k: String(topK),
+    });
+  }, [runAnalysis, minDate, maxDate, keywords, granularity, forecastPeriods, topK]);
 
   const insights = result?.insights;
   const skills = useMemo(() => insights?.skills || [], [insights]);
@@ -199,14 +180,32 @@ const TemporalProjections = () => {
             </Col>
           </Row>
           <Row style={{ justifyContent: "center" }} className="mb-3">
-            <Button color="primary" onClick={handleFetch} disabled={loading}>
-              {loading ? <><Spinner size="sm" /> Processing...</> : "Apply"}
+            <Button color="primary" onClick={handleFetch} disabled={analysis.phase === "loading"}>
+              {busy ? <><Spinner size="sm" /> Processing...</> : "Apply"}
             </Button>
+            {analysis.phase === "done" && (
+              <Button color="link" onClick={analysis.rerun} title="Discard the saved result and compute this analysis again">
+                Recompute
+              </Button>
+            )}
           </Row>
+          <AnalysisProgress
+            phase={analysis.phase}
+            serverStatus={analysis.serverStatus}
+            message={analysis.message}
+            waitingSince={analysis.waitingSince}
+            nextCheckAt={analysis.nextCheckAt}
+            onCheckNow={analysis.checkNow}
+            hasPreviousResult={!!result}
+          />
         </CardBody>
       </Card>
 
-      {error && <Alert color="danger">{error}</Alert>}
+      {validationError && <Alert color="danger">{validationError}</Alert>}
+      {analysis.phase === "error" && <Alert color="danger">{analysis.message}</Alert>}
+      {analysis.phase === "done" && !result?.insights?.skills?.length && (
+        <Alert color="warning">No skills were found for these filters.</Alert>
+      )}
 
       {insights && (
         <>
