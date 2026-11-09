@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, CardBody, Button, Dropdown, DropdownMenu, DropdownToggle, DropdownItem, FormGroup, Label, Input } from 'reactstrap';
+import { Row, Col, Card, CardBody, Button, FormGroup, Label, Input } from 'reactstrap';
 import axios from 'axios';
 
 const OccupationSelectionAndPillar = ({ onApplySelection, datasource }) => {
@@ -8,15 +8,12 @@ const OccupationSelectionAndPillar = ({ onApplySelection, datasource }) => {
     const [filteredOccupations, setFilteredOccupations] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedOccupations, setSelectedOccupations] = useState([]);
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState('skills');
+    // TURF uses the most frequent skills regardless of pillar, so there is no pillar choice.
+    // The API still requires the parameter, so a fixed value is sent.
+    const selectedItem = 'skills';
 
     const [combinations, setCombinations] = useState(2);
     const [keywords, setKeywords] = useState("");
-
-    const toggle = () => setDropdownOpen((prevState) => !prevState);
-
-    const handleSelect = (item) => setSelectedItem(item);
 
     // Fetch Occupations Logic
     useEffect(() => {
@@ -136,30 +133,12 @@ const OccupationSelectionAndPillar = ({ onApplySelection, datasource }) => {
                     {/* COMBINATIONS - Always Visible */}
                     <Col md="3">
                         <FormGroup>
-                            <Label>Combinations (2-10)</Label>
+                            <Label>Combinations (2-5)</Label>
                             <Input type="select" value={combinations} onChange={(e) => setCombinations(e.target.value)}>
-                                {[...Array(9)].map((_, i) => (
+                                {[...Array(4)].map((_, i) => (
                                     <option key={i + 2} value={i + 2}>{i + 2}</option>
                                 ))}
                             </Input>
-                        </FormGroup>
-                    </Col>
-
-                    {/* PILLAR - Always Visible */}
-                    <Col md="3">
-                        <FormGroup>
-                            <Label>Select Pillar</Label>
-                            <Dropdown isOpen={dropdownOpen} toggle={toggle} className="w-100">
-                                <DropdownToggle caret className="w-100 text-capitalize">
-                                    {selectedItem}
-                                </DropdownToggle>
-                                <DropdownMenu right className="w-100">
-                                    <DropdownItem onClick={() => handleSelect('skills')}>Skills</DropdownItem>
-                                    <DropdownItem onClick={() => handleSelect('knowledge')}>Knowledge</DropdownItem>
-                                    <DropdownItem onClick={() => handleSelect('languages')}>Languages</DropdownItem>
-                                    <DropdownItem onClick={() => handleSelect('traversal')}>Transversal</DropdownItem>
-                                </DropdownMenu>
-                            </Dropdown>
                         </FormGroup>
                     </Col>
                 </Row>

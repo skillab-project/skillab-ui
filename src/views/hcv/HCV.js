@@ -53,7 +53,7 @@ function HCV({datasource}) {
         const baseUrl = process.env.REACT_APP_API_URL_SKILL_DEMAND_MATRIX + "/HierarchicalCumulativeVoting";
         
         if (datasource === "jobs") {
-            url = `${baseUrl}/jobs?pillar=${pillar}&occupation_ids=${occupation}&source=OJA`;
+            url = `${baseUrl}/jobs?pillar=${pillar}&occupation_ids=${occupation}&sources=OJA`;
         } else if (datasource === "EU profiles") {
             url = `${baseUrl}/profiles?pillar=${pillar}`;
         } else if (datasource === "Short Courses") {
@@ -96,7 +96,14 @@ function HCV({datasource}) {
             setData(groupedData);
         })
         .catch((err) => {
-            if (err.response && err.response.status === 504) {
+            if (timerRef.current)
+                clearTimeout(timerRef.current);
+            setLoading(false);
+
+            if (pillar === "languages" && err.response && err.response.status === 500) {
+                setInfoMessage("The Languages analysis is not available for this selection at the moment. Please try another pillar.");
+            }
+            else if (err.response && err.response.status === 504) {
                 setInfoMessage("The analysis is still running in the background. Because this is a large dataset, it may take a few minutes. Please try clicking 'Apply' again shortly to view the results.");
             } 
             else if (err.code === 'ECONNABORTED') {
