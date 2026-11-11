@@ -89,6 +89,9 @@ const ProgramAndNeeds = () => {
   const [ltSectors, setLtSectors] = useState([]);
   const [ltSectorsLoading, setLtSectorsLoading] = useState(false);
   const [ltSector, setLtSector] = useState("");
+  // Sentinel for FTTI analyses saved without a sector (the sector is optional
+  // when creating one), so they can still be picked here.
+  const NO_SECTOR = "__no_sector__";
 
   const [ltTitles, setLtTitles] = useState([]);
   const [ltTitlesLoading, setLtTitlesLoading] = useState(false);
@@ -217,7 +220,8 @@ const ProgramAndNeeds = () => {
     setLtError(null);
     try {
       const res = await axios.get(`${FTTI}/analyses/sectors`, { headers: ftAuth() });
-      setLtSectors(Array.isArray(res.data) ? res.data : []);
+      // drop empty/null sectors — those are covered by the "(No sector)" option
+      setLtSectors(Array.isArray(res.data) ? res.data.filter((s) => s && String(s).trim()) : []);
     } catch (e) {
       setLtError(`Could not load sectors: ${errText(e)}`);
     } finally {
@@ -245,6 +249,13 @@ const ProgramAndNeeds = () => {
     setLtTitlesLoading(true);
     setLtError(null);
     try {
+      if (sector === NO_SECTOR) {
+        // no by-sector route for "empty", so list all titles and keep the sector-less ones
+        const res = await axios.get(`${FTTI}/analyses/titles`, { headers: ftAuth() });
+        const all = Array.isArray(res.data) ? res.data : [];
+        setLtTitles(all.filter((t) => !t?.sector || !String(t.sector).trim()));
+        return;
+      }
       const res = await axios.get(
         `${FTTI}/analyses/by-sector/${encodeURIComponent(sector)}`,
         { headers: ftAuth() }
@@ -1205,6 +1216,7 @@ const ProgramAndNeeds = () => {
                       <option value="">
                         {ltSectorsLoading ? "Loading sectors…" : "— select a sector —"}
                       </option>
+                      {!ltSectorsLoading && <option value={NO_SECTOR}>(No sector)</option>}
                       {ltSectors.map((s) => <option key={s} value={s}>{s}</option>)}
                     </Input>
                   </FormGroup>
@@ -1246,7 +1258,9 @@ const ProgramAndNeeds = () => {
               )}
               {ltSector && !ltTitlesLoading && ltTitles.length === 0 && (
                 <Alert color="warning">
-                  No analyses found for “{ltSector}”.{" "}
+                  {ltSector === NO_SECTOR
+                    ? "No analyses without a sector found."
+                    : <>No analyses found for “{ltSector}”.</>}{" "}
                   <Button color="link" className="p-0 align-baseline" onClick={goCreateFtti}>
                     Create a Future Technology Trends analysis
                   </Button>{" "}first.
