@@ -270,9 +270,15 @@ function KuRiskSection({ config, organization, repoName }) {
             .filter((e) => e.impact_at_loss > 0)
             .map((e) => Math.log10(e.impact_at_loss));
 
+        // No positive risk values -> nothing to bin
+        if (!logs.length) return [];
+
         const minLog = Math.min(...logs);
         const maxLog = Math.max(...logs);
-        const binSize = (maxLog - minLog) / 10; // 10 bins by default
+        // If all values are identical (range 0), use a unit range to avoid
+        // dividing by zero (NaN bin index -> bins[NaN] is undefined)
+        const range = maxLog - minLog || 1;
+        const binSize = range / 10; // 10 bins by default
 
         const bins = Array.from({ length: 10 }, (_, i) => ({
             binStart: minLog + i * binSize,
