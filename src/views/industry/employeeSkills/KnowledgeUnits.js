@@ -135,6 +135,7 @@ function KnowleageUnits() {
     const [activeAnalysis, setActiveAnalysis] = useState(null);
 
     const handleSelectRepo = (repoName, repoUrl) => {
+        setShowChart(false);
         setSelectedRepo(repoName);
         setRepoUrl(repoUrl);
         setShowScreen(true);

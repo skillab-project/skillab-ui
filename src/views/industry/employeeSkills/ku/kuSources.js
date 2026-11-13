@@ -10,6 +10,8 @@ import {
 } from "../../../../utils/kuInfo";
 
 const enc = encodeURIComponent;
+// Optional "&repo_name=..." suffix for the risk endpoints (omitted → whole organization)
+const repoParam = (repoName) => (repoName ? `&repo_name=${enc(repoName)}` : "");
 
 export const KU_SOURCES = {
     java: {
@@ -20,8 +22,8 @@ export const KU_SOURCES = {
         usesCommits: true,
         resultsPath: (repoName) => `/analyzedb?repo_name=${enc(repoName)}`,
         orgSkillsPath: () => `/organizationskills`,
-        kuRiskPath: (organization) => `/ku_risk?organization=${enc(organization || "")}`,
-        employeeRiskPath: (organization) => `/impact_at_loss?organization=${enc(organization || "")}`,
+        kuRiskPath: (organization, repoName) => `/ku_risk?organization=${enc(organization || "")}${repoParam(repoName)}`,
+        employeeRiskPath: (organization, repoName) => `/impact_at_loss?organization=${enc(organization || "")}${repoParam(repoName)}`,
         commitLimit: { default: "30", min: 1, max: null },
         kuNames: KU_NAMES,
         kuDescriptions: KU_DESCRIPTIONS,
@@ -36,9 +38,9 @@ export const KU_SOURCES = {
         startPath: (repoName) => `/detector17/analyze/${enc(repoName)}`,
         resultsPath: (repoName) => `/detector17/results/${enc(repoName)}`,
         orgSkillsPath: () => `/detector17/organizationskills`,
-        kuRiskPath: (organization) => `/detector17/ku_risk?organization=${enc(organization || "")}`,
+        kuRiskPath: (organization, repoName) => `/detector17/ku_risk?organization=${enc(organization || "")}${repoParam(repoName)}`,
         // Impact@Loss per employee (replaces the delta-based /detector17/employee_risk)
-        employeeRiskPath: (organization) => `/detector17/impact_at_loss?organization=${enc(organization || "")}`,
+        employeeRiskPath: (organization, repoName) => `/detector17/impact_at_loss?organization=${enc(organization || "")}${repoParam(repoName)}`,
         // Backend accepts commit_limit >= 1; empty → full git history
         commitLimit: { default: "", min: 1, max: null },
         kuNames: ECLIPSE_KU_NAMES,

@@ -11,6 +11,9 @@ import {
   PaginationItem,
   PaginationLink,
   UncontrolledTooltip,
+  Button,
+  ButtonGroup,
+  Input,
 } from "reactstrap";
 import {
   BarChart,
@@ -73,12 +76,26 @@ const KuRiskTooltip = ({ active, payload, label, valueFormatter, config }) => {
     );
 };
 
+// KU name without the id prefix (e.g. "K1 - Name" → "Name"); falls back to the id
+// when the detector has no separate name (label is just the id).
+const getKuNameOnly = (config, id) => {
+    const idStr = String(id);
+    const label = getKuLabelFor(config, id);
+    if (!label || label === idStr) return idStr;
+    if (label.startsWith(idStr)) {
+        const rest = label.slice(idStr.length).replace(/^\s*[-–—:]\s*/, "");
+        return rest || idStr;
+    }
+    return label;
+};
+
 const authHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("accessTokenSkillab")}` },
 });
 
-// Risk tables + chart for ONE detector (Java K1–K28 or Eclipse detector17)
-function KuRiskSection({ config, organization }) {
+// Risk tables + chart for ONE detector (Java K1–K28 or Eclipse detector17).
+// repoName empty → organization-level risk; otherwise risk for that single project.
+function KuRiskSection({ config, organization, repoName }) {
     const [kuRisk, setkuRisk] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -89,8 +106,8 @@ function KuRiskSection({ config, organization }) {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 27;
-    // KU Risk table sorting; key null = default KU order (as returned/sorted by KU id)
-    const [kuSortConfig, setKuSortConfig] = useState({ key: null, direction: "desc" });
+    // KU Risk table sorting; default: highest Risk first
+    const [kuSortConfig, setKuSortConfig] = useState({ key: "ku_risk", direction: "desc" });
 
 
     const formatPercent = (value) => {
@@ -110,9 +127,10 @@ function KuRiskSection({ config, organization }) {
         const load = async () => {
             setLoading(true);
             setErrorMessage("");
+            setCurrentPage(1);
             const [kuRes, empRes] = await Promise.allSettled([
-                axios.get(process.env.REACT_APP_API_URL_KU + config.kuRiskPath(organization), authHeaders()),
-                axios.get(process.env.REACT_APP_API_URL_KU + config.employeeRiskPath(organization), authHeaders()),
+                axios.get(process.env.REACT_APP_API_URL_KU + config.kuRiskPath(organization, repoName), authHeaders()),
+                axios.get(process.env.REACT_APP_API_URL_KU + config.employeeRiskPath(organization, repoName), authHeaders()),
             ]);
             if (cancelled) return;
 
@@ -138,7 +156,7 @@ function KuRiskSection({ config, organization }) {
         load();
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [organization, config.key]);
+    }, [organization, config.key, repoName]);
 
     // Sort handler for Employee Risk table
     const handleSort = (key) => {
@@ -285,7 +303,12 @@ function KuRiskSection({ config, organization }) {
 
     const sectionHeader = (
         <div className="mb-3 mt-2">
-            <h3 className="mb-0">{config.title}</h3>
+            <h3 className="mb-0">
+                {config.title}
+                <span className="text-muted" style={{ fontWeight: 400 }}>
+                    {repoName ? ` — ${repoName}` : " — Organization"}
+                </span>
+            </h3>
             <small className="text-muted">{config.subtitle}</small>
         </div>
     );
@@ -308,7 +331,9 @@ function KuRiskSection({ config, organization }) {
                         <p className="mb-0 text-muted">
                             {errorMessage
                                 ? `Could not load the ${config.title} risk: ${errorMessage}`
-                                : `No ${config.title} risk data yet. Analyze your organization's projects for ${config.title} in the Knowledge Units tab to calculate it.`}
+                                : repoName
+                                    ? `No ${config.title} risk data for ${repoName} yet. Analyze this project for ${config.title} in the Knowledge Units tab to calculate it.`
+                                    : `No ${config.title} risk data yet. Analyze your organization's projects for ${config.title} in the Knowledge Units tab to calculate it.`}
                         </p>
                     </CardBody>
                 </Card>
@@ -371,7 +396,7 @@ function KuRiskSection({ config, organization }) {
                                         <tr key={index}>
                                             <td>
                                                 <span id={kuTooltipId} style={{ cursor: "help" }}>
-                                                    {item.ku_name}
+                                                    {getKuNameOnly(config, item.ku_name)}
                                                 </span>
                                                 {(kuLabel !== String(item.ku_name) || kuDescription) && (
                                                     <UncontrolledTooltip
@@ -566,6 +591,12 @@ function KuRiskSection({ config, organization }) {
 
 function KuAtRisk() {
     const [organization, setOrganization] = useState('');
+    // "organization" → whole-org risk (default); "project" → risk for selectedRepo only
+    const [scope, setScope] = useState("organization");
+    const [repos, setRepos] = useState([]);
+    const [reposLoading, setReposLoading] = useState(false);
+    const [reposError, setReposError] = useState("");
+    const [selectedRepo, setSelectedRepo] = useState("");
 
     useEffect(() => {
         const fetchOrganization = async () => {
@@ -579,12 +610,108 @@ function KuAtRisk() {
         fetchOrganization();
     }, []);
 
-    // Eclipse KUs first, then Java KUs (order comes from KU_SOURCE_LIST)
+    // Load the organization's projects for the project selector
+    useEffect(() => {
+        if (!organization) return;
+        let cancelled = false;
+        setReposLoading(true);
+        setReposError("");
+        axios
+            .get(process.env.REACT_APP_API_URL_KU + "/repos?organization=" + encodeURIComponent(organization), authHeaders())
+            .then((res) => {
+                if (cancelled) return;
+                const list = Array.isArray(res.data) ? res.data : [];
+                setRepos([...list].sort((a, b) => String(a.name).localeCompare(String(b.name))));
+            })
+            .catch((error) => {
+                if (cancelled) return;
+                console.error("Failed to load repositories:", error);
+                setRepos([]);
+                setReposError(getErrorMessage(error, "Failed to load the projects."));
+            })
+            .finally(() => { if (!cancelled) setReposLoading(false); });
+        return () => { cancelled = true; };
+    }, [organization]);
+
+    const repoName = scope === "project" ? selectedRepo : "";
+    const showSections = scope === "organization" || !!selectedRepo;
+
     return (
         <>
-            {KU_SOURCE_LIST.map((config) => (
-                <KuRiskSection key={config.key} config={config} organization={organization} />
-            ))}
+            <Card>
+                <CardBody>
+                    <div className="d-flex flex-column align-items-center text-center">
+                        <ButtonGroup>
+                            <Button
+                                color="info"
+                                outline={scope !== "organization"}
+                                onClick={() => setScope("organization")}
+                            >
+                                Organization Risk
+                            </Button>
+                            <Button
+                                color="info"
+                                outline={scope !== "project"}
+                                onClick={() => setScope("project")}
+                            >
+                                Project Risk
+                            </Button>
+                        </ButtonGroup>
+
+                        {scope === "project" && (
+                            <div className="mt-3 text-left" style={{ width: "100%", maxWidth: "360px" }}>
+                                <Input
+                                    type="select"
+                                    aria-label="Project"
+                                    value={selectedRepo}
+                                    onChange={(e) => setSelectedRepo(e.target.value)}
+                                    disabled={reposLoading || repos.length === 0}
+                                >
+                                    <option value="">
+                                        {reposLoading
+                                            ? "Loading projects..."
+                                            : repos.length === 0
+                                                ? "No projects available"
+                                                : "Select a project..."}
+                                    </option>
+                                    {repos.map((repo) => (
+                                        <option key={repo.name} value={repo.name}>
+                                            {repo.name}
+                                        </option>
+                                    ))}
+                                </Input>
+                            </div>
+                        )}
+
+                        <small className="text-muted mt-2">
+                            {scope === "organization"
+                                ? "Knowledge loss risk across all of the organization's analyzed projects."
+                                : "Knowledge loss risk for a single project, based only on that project's contributors."}
+                        </small>
+                        {scope === "project" && reposError && (
+                            <small className="text-danger mt-1">{reposError}</small>
+                        )}
+                    </div>
+                </CardBody>
+            </Card>
+
+            {showSections ? (
+                // Eclipse KUs first, then Java KUs (order comes from KU_SOURCE_LIST)
+                KU_SOURCE_LIST.map((config) => (
+                    <KuRiskSection
+                        key={config.key}
+                        config={config}
+                        organization={organization}
+                        repoName={repoName}
+                    />
+                ))
+            ) : (
+                <Card>
+                    <CardBody>
+                        <p className="mb-0 text-muted">Select a project to see its KU risk.</p>
+                    </CardBody>
+                </Card>
+            )}
         </>
     );
 }
