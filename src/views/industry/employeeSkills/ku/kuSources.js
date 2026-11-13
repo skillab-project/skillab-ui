@@ -48,7 +48,7 @@ export const KU_SOURCES = {
     },
 };
 
-export const KU_SOURCE_LIST = [KU_SOURCES.java, KU_SOURCES.eclipse];
+export const KU_SOURCE_LIST = [KU_SOURCES.eclipse, KU_SOURCES.java];
 
 // "K8" -> "K8 – Generics and Collections", "EMF" -> "EMF – Eclipse Modeling Framework (EMF)"
 export const getKuLabelFor = (config, rawId) => {

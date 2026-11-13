@@ -173,7 +173,19 @@ function KnowleageUnits() {
         };
     };
 
+    // Unselect the current project so its detector cards are hidden while viewing org skills.
+    // A running analysis keeps going in the backend; the cards pick it up again on re-select.
+    const handleUnselectRepo = () => {
+        setSelectedRepo('');
+        setRepoUrl('');
+        setShowScreen(false);
+        setResultsOfAnalysis(false);
+        setCommits([]);
+        setActiveAnalysis(null);
+    };
+
     const handleViewOrganizationSkills = async () => {
+        handleUnselectRepo();
         setLoadingOrgSkills(true);
         setOrgSkillsMessage("");
         try {
@@ -326,6 +338,22 @@ function KnowleageUnits() {
                         <Col md="12">
                             <Card>
                                 <CardHeader>
+                                    <h3 className="mb-0">{KU_SOURCES.eclipse.title}</h3>
+                                    <small className="text-muted">{KU_SOURCES.eclipse.subtitle}</small>
+                                </CardHeader>
+                                <CardBody>
+                                    <Form
+                                        source="eclipse"
+                                        activeAnalysis={activeAnalysis}
+                                        setActiveAnalysis={setActiveAnalysis}
+                                        initialRepoUrl={repoUrl}
+                                    />
+                                </CardBody>
+                            </Card>
+                        </Col>
+                        <Col md="12">
+                            <Card>
+                                <CardHeader>
                                     <h3 className="mb-0">{KU_SOURCES.java.title}</h3>
                                     <small className="text-muted">{KU_SOURCES.java.subtitle}</small>
                                 </CardHeader>
@@ -347,22 +375,6 @@ function KnowleageUnits() {
                                     {resultsOfAnalysis && ( // Render only if resultsOfAnalysis is true
                                         <Commits commits={commits} loading={loading} />
                                     )}
-                                </CardBody>
-                            </Card>
-                        </Col>
-                        <Col md="12">
-                            <Card>
-                                <CardHeader>
-                                    <h3 className="mb-0">{KU_SOURCES.eclipse.title}</h3>
-                                    <small className="text-muted">{KU_SOURCES.eclipse.subtitle}</small>
-                                </CardHeader>
-                                <CardBody>
-                                    <Form
-                                        source="eclipse"
-                                        activeAnalysis={activeAnalysis}
-                                        setActiveAnalysis={setActiveAnalysis}
-                                        initialRepoUrl={repoUrl}
-                                    />
                                 </CardBody>
                             </Card>
                         </Col>

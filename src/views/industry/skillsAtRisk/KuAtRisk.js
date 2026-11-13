@@ -89,6 +89,8 @@ function KuRiskSection({ config, organization }) {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 27;
+    // KU Risk table sorting; key null = default KU order (as returned/sorted by KU id)
+    const [kuSortConfig, setKuSortConfig] = useState({ key: null, direction: "desc" });
 
 
     const formatPercent = (value) => {
@@ -170,6 +172,34 @@ function KuRiskSection({ config, organization }) {
     const getArrow = (key) => {
         if (sortConfig.key !== key) return "";
         return sortConfig.direction === "asc" ? " ▲" : " ▼";
+    };
+
+    // Sort handler for KU Risk table: numeric columns start descending (highest first),
+    // the KU column starts ascending (K1, K2, ... / detector order)
+    const handleKuSort = (key) => {
+        let direction = key === "ku_name" ? "asc" : "desc";
+        if (kuSortConfig.key === key) {
+            direction = kuSortConfig.direction === "asc" ? "desc" : "asc";
+        }
+        setKuSortConfig({ key, direction });
+    };
+
+    const sortedKuRisk = useMemo(() => {
+        if (!kuSortConfig.key) return kuRisk;
+        const sorted = [...kuRisk];
+        const dir = kuSortConfig.direction === "asc" ? 1 : -1;
+        if (kuSortConfig.key === "ku_name") {
+            sorted.sort((a, b) => dir * compareKuIds(config)(a.ku_name, b.ku_name));
+        } else {
+            sorted.sort((a, b) => dir * ((a[kuSortConfig.key] ?? 0) - (b[kuSortConfig.key] ?? 0)));
+        }
+        return sorted;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [kuRisk, kuSortConfig, config.key]);
+
+    const getKuArrow = (key) => {
+        if (kuSortConfig.key !== key) return "";
+        return kuSortConfig.direction === "asc" ? " ▲" : " ▼";
     };
 
     const kuCountDistribution = useMemo(() => {
@@ -306,14 +336,34 @@ function KuRiskSection({ config, organization }) {
                         <Table striped responsive>
                             <thead>
                                 <tr>
-                                    <th>KU</th>
-                                    <th>Employee Count</th>
-                                    <th>Impact</th>
-                                    <th>Risk</th>
+                                    <th
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => handleKuSort("ku_name")}
+                                    >
+                                        KU{getKuArrow("ku_name")}
+                                    </th>
+                                    <th
+                                        style={{ cursor: "pointer", whiteSpace: "nowrap" }}
+                                        onClick={() => handleKuSort("employee_count")}
+                                    >
+                                        Employee Count{getKuArrow("employee_count")}
+                                    </th>
+                                    <th
+                                        style={{ cursor: "pointer", whiteSpace: "nowrap" }}
+                                        onClick={() => handleKuSort("impact")}
+                                    >
+                                        Impact{getKuArrow("impact")}
+                                    </th>
+                                    <th
+                                        style={{ cursor: "pointer", whiteSpace: "nowrap" }}
+                                        onClick={() => handleKuSort("ku_risk")}
+                                    >
+                                        Risk{getKuArrow("ku_risk")}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {kuRisk.map((item, index) => {
+                                {sortedKuRisk.map((item, index) => {
                                     const kuTooltipId = `ku-risk-tooltip-${config.key}-${String(item.ku_name).replace(/[^A-Za-z0-9_-]/g, "_")}-${index}`;
                                     const kuLabel = getKuLabelFor(config, item.ku_name);
                                     const kuDescription = getKuDescriptionFor(config, item.ku_name);
@@ -529,7 +579,7 @@ function KuAtRisk() {
         fetchOrganization();
     }, []);
 
-    // Java KUs first, then Eclipse KUs
+    // Eclipse KUs first, then Java KUs (order comes from KU_SOURCE_LIST)
     return (
         <>
             {KU_SOURCE_LIST.map((config) => (
